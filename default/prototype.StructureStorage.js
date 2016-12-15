@@ -18,6 +18,32 @@ var mod =
             }
         });
 
+        StructureStorage.prototype.hasMinerals = function()
+        {
+
+            var aStore = _.filter(_.keys(this.store), (aKey) => { return (aKey != RESOURCE_ENERGY); });
+
+            // var aMineralStore = {};
+            // _.forEach(aStore, (a) => { aMineralStore[a] = aBox.store[a]});
+            // var aMineralCount = _.sum(aMineralStore);
+
+            return aStore.length > 0;
+        };
+
+
+        StructureStorage.prototype.getStoredMineral = function()
+        {
+
+            var aStore = _.filter(_.keys(this.store), (aKey) => { return (aKey != RESOURCE_ENERGY); });
+
+            var aMineralStore = {};
+            _.forEach(aStore, (a) => { aMineralStore[a] = this.store[a]});
+
+            var aType = maxCarryResourceType(aMineralStore);
+
+            return { mineralKey: aType , mineralAmount: aMineralStore[aType] };
+        };
+
         StructureStorage.prototype.init = function()
         {
             delete this._neededEnergyReserve;

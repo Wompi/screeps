@@ -221,7 +221,7 @@ class UpgraderRole extends require('role.creep.AbstractRole')
 
         if (!pTask.aCreep.pos.isEqualTo(aCheck.aPos))
         {
-            //logDERP(' ----- aPOs ------- '+JSON.stringify(aCheck.aPos));
+            logDERP(' ----- aPOs ------- '+JSON.stringify(aCheck.aPos));
             pTask.aMove = aCheck.aPos;
         }
         return pTask;

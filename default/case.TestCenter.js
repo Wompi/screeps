@@ -22,6 +22,22 @@ class TestCenter
         }
     }
 
+
+    /**
+     * HTML table in console
+     * ex: Log.table(['a','b'], [[1,2],[3,4]])
+     */
+    table(headers, rows) {
+
+        let msg = '<table>';
+        _.each(headers, h => msg += '<th width="50px">' + h + '</th>');
+        _.each(rows, row =>  msg += '<tr>' + _.map(row, el => (`<th>${el}</th>`)) + '</tr>');
+        msg += '</table>'
+        // console.log(msg);
+        return msg;
+    }
+
+
     storeTest(pID)
     {
         var aBox = Game.getObjectById(pID);
@@ -465,7 +481,9 @@ class TestCenter
         {
             plainCost: 2,
             swampCost: 5,
-            costCallback: function(roomName)
+            range: 1,
+            maxOps: 3000,
+            roomCallback: function(roomName)
             {
                 let room = Game.rooms[roomName];
                 // In this example `room` will always exist, but since PathFinder
@@ -473,6 +491,7 @@ class TestCenter
                 if (!room) return;
                 let costs = new PathFinder.CostMatrix;
 
+                logDERP(' pathroom = '+room.name);
                 room.find(FIND_STRUCTURES).forEach(function(structure)
                 {
                     if (structure.structureType === STRUCTURE_ROAD)
@@ -496,6 +515,16 @@ class TestCenter
             }
         });
         var len = myPath.path.length;
+
+        logDERP('DERP '+JSON.stringify(myPath.path));
+
+        _.forEach(myPath.path, (a) =>
+        {
+            var aRoom = Game.rooms[a.roomName];
+            aRoom.createFlag(a.x,a.y);
+        });
+
+
         myPath.path = [];
 
         logERROR('Path: '+len+' Config: '+JSON.stringify(myPath));

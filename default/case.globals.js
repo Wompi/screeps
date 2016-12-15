@@ -61,11 +61,12 @@ var mod =
                 'fixer':                { role: require('role.creep.FixerRole'),            spawn: require('spawn.creep.FixerSpawn') },
                 'miner':                { role: require('role.creep.MinerRole'),            spawn: require('spawn.creep.MinerSpawn')  },
                 'mineral miner':        { role: require('role.creep.MineralMinerRole'),     spawn: require('spawn.creep.MineralMinerSpawn')  },
-                'mineral hauler':       { role: require('role.creep.MineralHaulerRole'),     spawn: require('spawn.creep.MineralHaulerSpawn')  },
+                'mineral hauler':       { role: require('role.creep.MineralHaulerRole'),    spawn: require('spawn.creep.MineralHaulerSpawn')  },
                 'supplier':             { role: require('role.creep.SupplierRole'),         spawn: require('spawn.creep.SupplierSpawn') },
                 'extension reloader':   { role: require('role.creep.ExtensionReloaderRole'),spawn: require('spawn.creep.ExtensionReloaderSpawn') },
                 'upgrader':             { role: require('role.creep.UpgraderRole'),         spawn: require('spawn.creep.UpgraderSpawn') },
                 'builder':              { role: require('role.creep.ConstructorRole'),      spawn: require('spawn.creep.ConstructorSpawn') },
+                'room trader':          { role: require('role.creep.RoomTraderRole'),       spawn: require('spawn.creep.RoomTraderSpawn') },
             },
             ROOM_OBJECT_TYPE:
             {

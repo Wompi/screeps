@@ -87,6 +87,19 @@ var mod =
                     return this.memory.liveRenewEnergy;
                 }
             },
+            'isFull':
+            {
+                configurable: true,
+                get: function ()
+                {
+                    if (_.isUndefined(this._isFull))
+                    {
+                        this._isFull = (this.carryCapacity - _.sum(this.carry)) == 0;
+                    }
+                    return this._isFull;
+                }
+
+            }
         });
 
         Creep.prototype.honk = function()
@@ -140,16 +153,18 @@ var mod =
 
         Creep.prototype.init = function()
         {
-            if (FUNCTION_CALLS_CREEP)
-            {
-                logDEBUG('CREEP: init - ['+this.pos.x+' '+this.pos.y+'] N: '+this.name);
-            }
+            delete this._isFull;
             delete this._bodySize;
             delete this._spawnTime;
             delete this._bodyCost;
             delete this._liveRenewTime;
             delete this._liveRenewEnergy;
             delete this._liveTime;
+
+            if (FUNCTION_CALLS_CREEP)
+            {
+                logDEBUG('CREEP: init - ['+this.pos.x+' '+this.pos.y+'] N: '+this.name);
+            }
         };
     }
 };

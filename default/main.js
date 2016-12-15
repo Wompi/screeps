@@ -1,6 +1,7 @@
 
 var GameManager = require('case.controller.GameManager');
 var RoomManager = require('case.controller.RoomManager');
+var RoomTraderManager = require('case.controller.RoomTraderManager');
 
 module.exports.loop = function ()
 {
@@ -38,6 +39,14 @@ module.exports.loop = function ()
     _.forEach(Game.rooms,aLoop);
     var b2 = Game.cpu.getUsed();
 
+
+    console.log('------------------------ ROOM TRADER ----------------------------------------------');
+    var aRoomTraderManager = new RoomTraderManager();
+    aRoomTraderManager.process();
+
+
+
+
     logWARN('PROFILE SCRIPT INIT: '+(b0-a0).toFixed(2)+' '+(b01-a0).toFixed(2)+' '+(b0-a01).toFixed(2));
     logWARN('PROFILE GAME INIT: '+(b1-a1).toFixed(2));
     logWARN('PROFILE ROOM LOOP: '+(b2-a2).toFixed(2));
@@ -50,7 +59,7 @@ module.exports.loop = function ()
     logWARN('PROFILE MAINTENANCE: '+(b-a));
 
 
-
+    logDERP(`<progress value='75' max='100'/>`);
 
     var endCPU = Game.cpu.getUsed();
     console.log(
@@ -61,15 +70,75 @@ module.exports.loop = function ()
             +'\tTICK: '+Game.time
     );
 
-
-    logDERP('GitTest');
-
     // Test Stuff
     //Test.checkRoadMap('E66N49');
     // var a = Game.cpu.getUsed();
     // Test.gravityTest('E65N49');
     // var b = Game.cpu.getUsed();
     // logWARN('PROFILE GRAVITY: '+(b-a));
-
-
+    //runBrawler();
 };
+
+
+// runBrawler = function()
+// {
+//     var myCreeps = _.filter(Game.creeps, (a) => {return (a.memory.role == 'derp' && !a.spawning);});
+//     if (myCreeps.length == 0) return;
+//     // for starters we only handle one fixer
+//     var aCreep = myCreeps[0];
+//
+//     var aRoom = aCreep.room;
+//     if (aRoom.name != 'E65N48')
+//     {
+//         var result = aCreep.moveTo(new RoomPosition(25,25,'E65N48'));
+//         logDERP(' BRAWLER moves to ... room .. '+ErrorSting(result));
+//         return;
+//     }
+//
+//     var invaders = aRoom.find(FIND_HOSTILE_CREEPS);
+//
+//     var mySpawns = aRoom.find(FIND_STRUCTURES,
+//     {
+//         filter: (a) =>
+//         {
+//             return a.structureType == STRUCTURE_SPAWN;
+//         }
+//     });
+//     var aSpawn = mySpawns[0]
+//     if (_.isUndefined(aSpawn))
+//     {
+//         if (invaders.length == 0)
+//         {
+//             var myExtensions = aRoom.find(FIND_STRUCTURES,
+//             {
+//                 filter: (a) =>
+//                 {
+//                     return a.structureType == STRUCTURE_EXTENSION;
+//                 }
+//             });
+//             if (myExtensions.length == 0) return;
+//
+//             var aExtension = _.min(myExtensions, (a) => { return aCreep.pos.getRangeTo(a);});
+//             var resultA = aCreep.moveTo(aExtension);
+//             var resultB = aCreep.attack(aExtension);
+//
+//             logDERP(' BRAWLER =  '+ErrorSting(resultA)+' '+ErrorSting(resultB));
+//             return;
+//         }
+//         var aInvader = _.min(invaders, (a) => { return aCreep.pos.getRangeTo(a)});
+//
+//         if (!aCreep.pos.isNearTo(aInvader))
+//         {
+//             var result = aCreep.moveTo(aInvader)
+//             logDEBUG('Brawler engages .....'+ErrorSting(result));
+//         }
+//         var result = aCreep.attack(aInvader);
+//         logWARN('ATTACK: '+ErrorSting(result));
+//         return;
+//     }
+//
+//     var resultA = aCreep.moveTo(aSpawn);
+//     var resultB = aCreep.attack(aSpawn);
+//
+//     logDERP(' BRAWLER =  '+ErrorSting(resultA)+' '+ErrorSting(resultB));
+// }

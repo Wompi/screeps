@@ -28,6 +28,20 @@ var mod =
             return aStore.length > 0;
         };
 
+        StructureContainer.prototype.getStoredMineral = function()
+        {
+
+            var aStore = _.filter(_.keys(this.store), (aKey) => { return (aKey != RESOURCE_ENERGY); });
+
+            var aMineralStore = {};
+            _.forEach(aStore, (a) => { aMineralStore[a] = this.store[a]});
+
+            var aType = maxCarryResourceType(aMineralStore);
+
+            return { mineralKey: aType , mineralAmount: aMineralStore[aType] };
+        };
+
+
         StructureContainer.prototype.isOUT = function()
         {
             var myRoomMiningSources = this.room.getRoomObjects(ROOM_OBJECT_TYPE.source);
@@ -160,6 +174,12 @@ var mod =
                 }
 
                 var aS = (Memory.containerTest[this.id].avg > 0) ? 'OUT' : ' IN';
+
+                var aHeader = ['x','y','avg','dE','dT','state'];
+
+
+                //Test.table()
+
 
                 logDERP(aS +' ['+this.pos.x+' '+this.pos.y+'] avg: '+Memory.containerTest[this.id].avg.toFixed(2)+'\tdE: '+deltaEnergy+'\tdT:'+deltaTime+' ***');
             }
