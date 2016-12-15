@@ -1,7 +1,7 @@
 
 var GameManager = require('case.controller.GameManager');
 var RoomManager = require('case.controller.RoomManager');
- 
+
 module.exports.loop = function ()
 {
     var startCPU = Game.cpu.getUsed();
@@ -62,6 +62,7 @@ module.exports.loop = function ()
     );
 
 
+    logDERP('GitTest');
 
     // Test Stuff
     //Test.checkRoadMap('E66N49');
