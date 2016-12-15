@@ -159,7 +159,8 @@ var mod =
             {
                 // TODO: check for the minimal configuration of creeps
             }
-            return myCreeps.length == 0
+
+            return myCreeps.length == 0 || this.controller.level < 3;
         };
 
         // prototype ROOM functions
@@ -330,8 +331,10 @@ var mod =
             [
                 {   x: 44,  y: 25,  next: 1,    },
                 {   x: 22,  y: 20,  next: 2,    },
-                {   x: 45,  y: 36,  next: 3,    },
-                {   x: 18,  y: 8,   next: 0,    },
+                {   x: 28,  y: 45,  next: 3,    },
+                {   x: 31,  y: 27,  next: 4,    },
+                {   x: 45,  y: 36,  next: 5,    },
+                {   x:  4,  y: 11,  next: 0,    },
             ],
         };
     }

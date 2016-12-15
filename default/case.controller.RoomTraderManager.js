@@ -18,7 +18,7 @@ class RoomTraderManager
     processSpawns()
     {
         var aSpawn = Game.spawns['Nexuspool'];
-        if (_.isUndefined(aSpawn));
+        if (_.isUndefined(aSpawn)) return;
         var myRoomSpawns =
         [
             new CREEP_ROLE['room trader'].spawn('room trader'),

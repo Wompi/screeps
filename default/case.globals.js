@@ -67,6 +67,8 @@ var mod =
                 'upgrader':             { role: require('role.creep.UpgraderRole'),         spawn: require('spawn.creep.UpgraderSpawn') },
                 'builder':              { role: require('role.creep.ConstructorRole'),      spawn: require('spawn.creep.ConstructorSpawn') },
                 'room trader':          { role: require('role.creep.RoomTraderRole'),       spawn: require('spawn.creep.RoomTraderSpawn') },
+                'remote builder':       { role: require('role.creep.RemoteBuilderRole'),    spawn: require('spawn.creep.RemoteBuilderSpawn') },
+                'remote claimer':       { role: require('role.creep.RemoteClaimerRole'),    spawn: require('spawn.creep.RemoteClaimerSpawn') },
             },
             ROOM_OBJECT_TYPE:
             {

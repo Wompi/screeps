@@ -129,7 +129,7 @@ class ConstructorRole extends require('role.creep.AbstractRole')
 
     handleFags(pRoom,pCreep,pConstructionSites)
     {
-        var reusult = { flag: undefined, site: undefined };
+        var result = { flag: undefined, site: undefined };
         var myFlagNames = (Flag.findName(Flag.FLAG_COLOR.construction.primaryConstruction,pRoom));
         var myAllFlags = myFlagNames.concat(Flag.findName(Flag.FLAG_COLOR.construction,pRoom));
         if (myAllFlags.length == 0 )

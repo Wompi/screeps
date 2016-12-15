@@ -142,7 +142,7 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
     {
         if (_.isUndefined(pTask.aExtensionBay)) return pTask;
 
-        if (!pTask.aCreep.pos.inRangeTo(pTask.aExtensionBay,1) ||  _.sum(pTask.aExtensionBay.store) == 0 )
+        if (!pTask.aCreep.pos.inRangeTo(pTask.aExtensionBay,1) ||  _.sum(pTask.aExtensionBay.store) < pTask.aCreep.carryCapacity )
         {
             pTask.aMove = pTask.aExtensionBay;
         }

@@ -24,8 +24,9 @@ class GameManager
             var aSite = Game.constructionSites[aID];
             aSite.init();
             //logERROR('DERP: '+JSON.stringify(aSite));
-            var aName = aSite.room.name;
-            Game.rooms[aName].registerRoomObject(aSite,ROOM_OBJECT_TYPE.constructionSite);
+            var aRoom = aSite.room;
+            if (_.isUndefined(aRoom)) return;
+            aRoom.registerRoomObject(aSite,ROOM_OBJECT_TYPE.constructionSite);
         }
     }
 

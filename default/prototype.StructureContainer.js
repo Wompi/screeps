@@ -140,55 +140,55 @@ var mod =
                 logDEBUG('STRUCTURE_CONTAINER: init - ['+this.pos.x+' '+this.pos.y+'] D: '+this.ticksToDecay+' S: '+this.getStructureState().toFixed(1));
             }
 
-            if (_.isUndefined(Memory.containerTest))
-            {
-                Memory.containerTest = {}
-                Memory.containerTest[this.id] =
-                {
-                    time: Game.time,
-                    lastEnergy: this.store[RESOURCE_ENERGY],
-                    avg: 0
-                }
-            }
-
-            if (_.isUndefined(Memory.containerTest[this.id]))
-            {
-                Memory.containerTest[this.id] =
-                {
-                    time: Game.time,
-                    lastEnergy: _.sum(this.store),
-                    avg: 0,
-                }
-            }
-            var oldData = Memory.containerTest[this.id];
-            var deltaTime = Game.time - oldData.time;
-            var deltaEnergy = _.sum(this.store) - oldData.lastEnergy;
-
-            if (deltaEnergy  != 0 || deltaTime > 20)
-            {
-                Memory.containerTest[this.id] =
-                {
-                    time: Game.time,
-                    lastEnergy: _.sum(this.store),
-                    avg: ((oldData.avg + (deltaEnergy/deltaTime))/2),
-                }
-
-                var aS = (Memory.containerTest[this.id].avg > 0) ? 'OUT' : ' IN';
-
-                var aHeader = ['x','y','avg','dE','dT','state'];
-
-
-                //Test.table()
-
-
-                logDERP(aS +' ['+this.pos.x+' '+this.pos.y+'] avg: '+Memory.containerTest[this.id].avg.toFixed(2)+'\tdE: '+deltaEnergy+'\tdT:'+deltaTime+' ***');
-            }
-            else
-            {
-                var aS = (Memory.containerTest[this.id].avg > 0) ? 'OUT' : ' IN';
-                logDERP(aS+' ['+this.pos.x+' '+this.pos.y+'] avg: '+Memory.containerTest[this.id].avg.toFixed(2)+'\tdE: '+deltaEnergy+'\tdT:'+deltaTime);
-
-            }
+            // if (_.isUndefined(Memory.containerTest))
+            // {
+            //     Memory.containerTest = {}
+            //     Memory.containerTest[this.id] =
+            //     {
+            //         time: Game.time,
+            //         lastEnergy: this.store[RESOURCE_ENERGY],
+            //         avg: 0
+            //     }
+            // }
+            //
+            // if (_.isUndefined(Memory.containerTest[this.id]))
+            // {
+            //     Memory.containerTest[this.id] =
+            //     {
+            //         time: Game.time,
+            //         lastEnergy: _.sum(this.store),
+            //         avg: 0,
+            //     }
+            // }
+            // var oldData = Memory.containerTest[this.id];
+            // var deltaTime = Game.time - oldData.time;
+            // var deltaEnergy = _.sum(this.store) - oldData.lastEnergy;
+            //
+            // if (deltaEnergy  != 0 || deltaTime > 20)
+            // {
+            //     Memory.containerTest[this.id] =
+            //     {
+            //         time: Game.time,
+            //         lastEnergy: _.sum(this.store),
+            //         avg: ((oldData.avg + (deltaEnergy/deltaTime))/2),
+            //     }
+            //
+            //     var aS = (Memory.containerTest[this.id].avg > 0) ? 'OUT' : ' IN';
+            //
+            //     var aHeader = ['x','y','avg','dE','dT','state'];
+            //
+            //
+            //     //Test.table()
+            //
+            //
+            //     logDERP(aS +' ['+this.pos.x+' '+this.pos.y+'] avg: '+Memory.containerTest[this.id].avg.toFixed(2)+'\tdE: '+deltaEnergy+'\tdT:'+deltaTime+' ***');
+            // }
+            // else
+            // {
+            //     var aS = (Memory.containerTest[this.id].avg > 0) ? 'OUT' : ' IN';
+            //     logDERP(aS+' ['+this.pos.x+' '+this.pos.y+'] avg: '+Memory.containerTest[this.id].avg.toFixed(2)+'\tdE: '+deltaEnergy+'\tdT:'+deltaTime);
+            //
+            // }
         };
 
 

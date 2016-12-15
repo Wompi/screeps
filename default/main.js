@@ -2,6 +2,7 @@
 var GameManager = require('case.controller.GameManager');
 var RoomManager = require('case.controller.RoomManager');
 var RoomTraderManager = require('case.controller.RoomTraderManager');
+var RemoteManager = require('case.controller.RemoteManager');
 
 module.exports.loop = function ()
 {
@@ -44,6 +45,9 @@ module.exports.loop = function ()
     var aRoomTraderManager = new RoomTraderManager();
     aRoomTraderManager.process();
 
+    console.log('------------------------ REMOTE MANAGER ----------------------------------------------');
+    var aRemoteManagerManager = new RemoteManager();
+    aRemoteManagerManager.process();
 
 
 

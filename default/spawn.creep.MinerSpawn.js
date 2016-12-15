@@ -60,7 +60,7 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
     spawnNormalCreep(pSpawn)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 900)
+        if (pSpawn.room.energyAvailable >= 800)
         {
             if (pSpawn.name == 'Casepool')
             {
@@ -68,7 +68,7 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
             }
             else
             {
-                aBody = [WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
+                aBody = [WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE];
             }
         }
 

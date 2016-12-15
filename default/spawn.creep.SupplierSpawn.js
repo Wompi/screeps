@@ -46,9 +46,9 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
     spawnEmergencyCreep(pSpawn)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 300)
+        if (pSpawn.room.energyAvailable >= 450)
         {
-            aBody = [CARRY,CARRY,CARRY,CARRY,MOVE,MOVE];
+            aBody = [CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
         }
 
         // if (pSpawn.room.energyAvailable >= 750)
