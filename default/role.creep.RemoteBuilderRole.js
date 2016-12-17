@@ -40,11 +40,13 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
             },
             aBuild: undefined,
             aMove: undefined,
+            aUpgrade: undefined,
         };
 
         myTask = this.assignMoveTarget(myTask);
         myTask = this.assignWithdrawTarget(myTask);
         myTask = this.assignBuildTarget(myTask);
+        myTask = this.assignUpgradeTarget(myTask);
 
         if (!_.isUndefined(myTask.aMove))
         {
@@ -58,6 +60,13 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
             logDERP('REMOTE BUILDER '+myTask.aCreep.name+' withdraws ['+myTask.aWithdraw.aKey+']['+myTask.aWithdraw.aAmount+'] from ['+myTask.aWithdraw.aTarget.pos.x+' '+myTask.aWithdraw.aTarget.pos.y+'] .. '+ErrorSting(result));
         }
 
+        if (!_.isUndefined(myTask.aUpgrade))
+        {
+            var result = myTask.aCreep.upgradeController(myTask.aUpgrade);
+            logDEBUG('REMOTE BUILDER '+myTask.aCreep.name+' upgrades controller ['+myTask.aUpgrade.pos.x+' '+myTask.aUpgrade.pos.y+'] .. '+ErrorSting(result));
+        }
+
+
         if (!_.isUndefined(myTask.aBuild))
         {
             var result = pCreep.build(myTask.aBuild);
@@ -66,6 +75,17 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
         logDERP('---------------- REMOTE BUILDER --------------------');
 
+    }
+
+    assignUpgradeTarget(pTask)
+    {
+        var aController = pTask.aRoom.controller;
+
+        if (pTask.aCreep.pos.inRangeTo(aController,3) && aController.level < 3 && pTask.aCreep.carry.energy > 0)
+        {
+            pTask.aUpgrade = aController;
+        }
+        return pTask;
     }
 
     assignMoveTarget(pTask)

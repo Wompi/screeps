@@ -43,6 +43,7 @@ class MinerRole extends require('role.creep.AbstractRole')
             },
             aMove: undefined,
             aHarvest: undefined,
+            aBuild: undefined,
 
         }
         myTask = this.assignMiningSource(myTask);
@@ -51,6 +52,7 @@ class MinerRole extends require('role.creep.AbstractRole')
         myTask = this.assignPickupTarget(myTask);
         myTask = this.assignTransferTarget(myTask);
         myTask = this.assignWithdrawTarget(myTask);
+        myTask = this.assignBuildTarget(myTask);
         myTask = this.assignDropTarget(myTask);
 
         if (_.isUndefined(myTask.aSource)) return;
@@ -101,7 +103,43 @@ class MinerRole extends require('role.creep.AbstractRole')
             logDERP('MINER '+myTask.aCreep.name+' harvests source ['+myTask.aSource.pos.x+' '+myTask.aSource.pos.y+'] .. '+ErrorSting(result));
         }
 
+        if (!_.isUndefined(myTask.aBuild))
+        {
+            var result = pCreep.build(myTask.aBuild);
+            logDERP('MINER '+myTask.aCreep.name+' builds ['+myTask.aBuild.pos.x+' '+myTask.aBuild.pos.y+'] .. '+ErrorSting(result));
+        }
+
+
         //logDERP(' -------------------------- MINER ----------------------');
+    }
+
+    assignBuildTarget(pTask)
+    {
+        if (pTask.aCreep.pos.isNearTo(pTask.aSource))
+        {
+            var myRoomConstructionSites = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.constructionSite);
+            var mySites = _.filter(myRoomConstructionSites, (a) =>
+            {
+                return pTask.aCreep.pos.inRangeTo(a,3);
+            })
+            if (mySites.length == 0) return pTask;
+
+            var hasBox = pTask.aSource.hasMiningBox;
+            if (hasBox)
+            {
+                var aBox = pTask.aSource.myMiningBoxes[0];
+
+                if (_.sum(aBox.store) > 1000)
+                {
+                    pTask.aBuild = mySites[0];
+                }
+            }
+            else
+            {
+                pTask.aBuild = mySites[0];
+            }
+        }
+        return pTask;
     }
 
 

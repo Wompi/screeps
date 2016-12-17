@@ -49,11 +49,40 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         if (hasEmergency)
         {
             this.spawnEmergencyCreep(pSpawn);
+            return;
+        }
+
+        if (aRoom.controller.level < 4)
+        {
+            this.spawnCalculatedCreep(pSpawn,aRoom);
         }
         else
         {
             // TODO: implement a real miner spawn here
             this.spawnNormalCreep(pSpawn);
+        }
+    }
+
+    spawnCalculatedCreep(pSpawn,pRoom)
+    {
+        var aBody = undefined;
+        if (pSpawn.room.energyAvailable >= 550)
+        {
+            aBody = [WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE];
+        }
+
+        if (!_.isUndefined(aBody))
+        {
+            var result = pSpawn.createCreep(aBody,undefined,{ role: 'miner'});
+            if (typeof result === 'string')
+            {
+                logWARN('MINER '+result+' is spawning .. '+ErrorSting(result));
+                Game.creeps[result].init();
+            }
+            else
+            {
+                logERROR('MINER something fishy with creep creation .. '+ErrorSting(result));
+            }
         }
     }
 

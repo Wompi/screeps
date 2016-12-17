@@ -1,6 +1,6 @@
 var mySpawnCenter = require('case.SpawnCenter');
 
-class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
+class DismantleSpawn extends require('spawn.creep.AbstractSpawn')
 {
     constructor(roleName)
     {
@@ -14,8 +14,7 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
 
     processSpawn(pSpawn)
     {
-
-        logDERP('REMOTE BUILDER SPAWN PROCESSED.....');
+        logDEBUG('DISMANTLE SPAWN PROCESSED.....');
         if (!this.isSpawnValid(pSpawn)) return;
 
         var aRoom = pSpawn.room;
@@ -23,12 +22,11 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(Game.creeps,(a) => { return a.myRole.myName == myRole.myName});
 
-        if (myCreeps.length > 1)
+        if (myCreeps.length > 0)
         {
             return;
         }
         var hasEmergency = aRoom.hasEmergencyState();
-
 
         if (hasEmergency)
         {
@@ -43,7 +41,7 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
 
     spawnNormalCreep(pSpawn)
     {
-        var myFlagNames = _.filter(Game.flags,Flag.FLAG_COLOR.pioneer.construction.filter);
+        var myFlagNames = _.filter(Game.flags,Flag.FLAG_COLOR.construction.dismantle.filter);
         if (myFlagNames.length == 0 )
         {
             logDEBUG('REMOTE SPAWN: no remote construction flags ...');
@@ -55,7 +53,7 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
         for (var aID in Game.spawns)
         {
             var spawn = Game.spawns[aID];
-            if (spawn.room.energyCapacityAvailable < 2100) continue;
+            if (spawn.room.energyCapacityAvailable < 800) continue;
             if (aFlag.pos.getRangeTo(spawn) < aFlag.pos.getRangeTo(aSpawn))
             {
                 aSpawn = spawn;
@@ -65,27 +63,27 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
 
         var aBody = undefined;
 
-        if (aRoom.energyCapacityAvailable >= 2100)
+        if (aRoom.energyCapacityAvailable >= 800)
         {
-            var aWork  = new Array(3).fill(WORK);
-            var aCarry = new Array(23).fill(CARRY);
-            var aMove  = new Array(13).fill(MOVE);
+            var aWork  = new Array(4).fill(WORK);
+            var aCarry = new Array(2).fill(CARRY);
+            var aMove  = new Array(6).fill(MOVE);
 
             aBody = aWork.concat(aCarry).concat(aMove);
         }
         if (_.isUndefined(aBody)) return;
 
-        var result = aSpawn.createCreep(aBody,undefined,{ role: 'remote builder', home: (aSpawn.id) });
+        var result = aSpawn.createCreep(aBody,undefined,{ role: 'dismantle', home: (aSpawn.id) });
         //var result = undefined;
         if (typeof result === 'string')
         {
-            logWARN('REMOTE BUILDER '+result+' is spawning .. ');
+            logWARN('DISMANTLE '+result+' is spawning .. ');
             Game.creeps[result].init();
         }
         else
         {
-            logERROR('REMOTE BUILDER something fishy with creep creation');
+            logERROR('DISMANTLE something fishy with creep creation');
         }
     }
 }
-module.exports = RemoteBuilderSpawn;
+module.exports = DismantleSpawn;

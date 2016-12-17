@@ -44,11 +44,42 @@ class ConstructorSpawn extends require('spawn.creep.AbstractSpawn')
         if (hasEmergency)
         {
             this.spawnEmergencyCreep(pSpawn);
+            return;
+        }
+
+        if(pSpawn.room.controller.level < 4)
+        {
+            this.spawnCalculatedCreep(pSpawn);
         }
         else
         {
             // TODO: implement a real miner spawn here
             this.spawnNormalCreep(pSpawn);
+        }
+    }
+
+    spawnCalculatedCreep(pSpawn)
+    {
+        var aBody = undefined;
+        // if (pSpawn.room.energyAvailable >= 550)
+        // {
+        //     aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+        // }
+        if (pSpawn.room.energyAvailable >= 300)
+        {
+            aBody = [WORK,CARRY,CARRY,MOVE,MOVE];
+        }
+        if (_.isUndefined(aBody)) return;
+
+        var result = pSpawn.createCreep(aBody,undefined,{ role: 'builder'});
+        if (typeof result === 'string')
+        {
+            logWARN('New CONSTRUCTOR Creep '+result+' .. '+ErrorSting(result));
+            Game.creeps[result].init();
+        }
+        else
+        {
+            logERROR('Something fishy with CONSTRUCTOR creep creation .. ');
         }
     }
 

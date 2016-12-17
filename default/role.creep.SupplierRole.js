@@ -33,16 +33,22 @@ class SupplierRole extends require('role.creep.AbstractRole')
         var mySuppliers = this.findSupplierTargets(aRoom);
         var aTower = this.processTowerSupply(aRoom,pCreep);
 
+        if (pCreep.pos.isNearTo(aSpawn) && aSpawn.isEnergyNeeded())
+        {
+            var result = pCreep.transfer(aSpawn,RESOURCE_ENERGY);
+            logDERP('SUPPLIER '+pCreep.name+' transfers ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] ... '+ErrorSting(result));
+        }
+
         if (!aSpawn.spawning && pCreep.pos.isNearTo(aSpawn) && (pCreep.getLiveRenewTicks() > 0))
         {
-            logDEBUG('SUPPLIER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+']');
+            logDERP('SUPPLIER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+']');
             return;
         }
 
         if (pCreep.ticksToLive < 100 )
         {
             var result = pCreep.moveTo(aSpawn,{ignoreCreeps: true});
-            logDEBUG('SUPPLIER '+pCreep.name+' back to spawn ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] for emergency repair ... '+ErrorSting(result));
+            logDERP('SUPPLIER '+pCreep.name+' back to spawn ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] for emergency repair ... '+ErrorSting(result));
             return;
         }
 
@@ -66,23 +72,39 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 }
             });
 
-            if (_.isUndefined(aNextOUT) && !_.isUndefined(aStorage))
-            {
-                //logDERP('SUPPLIER - adjustment to  ----OUT---- box list because all other boxes are full ...');
-                aNextOUT = aRoom.storage;
-            }
+            // if (_.isUndefined(aNextOUT) && !_.isUndefined(aStorage))
+            // {
+            //     //logDERP('SUPPLIER - adjustment to  ----OUT---- box list because all other boxes are full ...');
+            //     aNextOUT = aRoom.storage;
+            // }
 
             if (_.isUndefined(aNextOUT))
             {
                 // TODO: no resources to grab from .... move to idle position or something
-                logERROR('SUPPLIER '+aCreep.name+' IS STUCK (NO OUT BOX) FIX THIS ... ');
+                logERROR('SUPPLIER '+pCreep.name+' IS STUCK (NO OUT BOX) FIX THIS ... ');
+
+                var aIDLE = Room.IDLE_POSITIONS[aRoom.name];
+                if (_.isUndefined(aIDLE[0]))
+                {
+                    logERROR('SUPPLIER has no IDLE position for room '+aRoom.name);
+                    return;
+                }
+
+                logDERP(JSON.stringify(aIDLE));
+                var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
+                if (!pCreep.pos.isEqualTo(aPos))
+                {
+                    var result = pCreep.moveTo(aPos,{ignoreCreeps: true});
+                    logDERP('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
+                }
+
                 return;
             }
 
             if (!pCreep.pos.isNearTo(aNextOUT))
             {
                 var result = pCreep.moveTo(aNextOUT,{ignoreCreeps: true,range:1});
-                logDEBUG('SUPPLIER '+pCreep.name+' moves to next grab box ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
+                logDERP('SUPPLIER '+pCreep.name+' moves to next grab box ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
             }
 
             if (pCreep.pos.isNearTo(aNextOUT))
@@ -96,7 +118,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                     aResourceType = maxCarryResourceType(aNextOUT.store);
                 }
                 var result = pCreep.withdraw(aNextOUT,aResourceType);
-                logDEBUG('SUPPLIER '+pCreep.name+' grabs '+aResourceType+' from ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
+                logDERP('SUPPLIER '+pCreep.name+' grabs '+aResourceType+' from ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
             }
         }
         else if (!_.isUndefined(aTower))
@@ -104,12 +126,12 @@ class SupplierRole extends require('role.creep.AbstractRole')
             if (!pCreep.pos.isNearTo(aTower))
             {
                 var result = pCreep.moveTo(aTower,{ignoreCreeps: true});
-                logDEBUG('SUPPLIER moves to resupply tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
+                logDERP('SUPPLIER moves to resupply tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
             }
             else
             {
                 var result = pCreep.transfer(aTower,RESOURCE_ENERGY);
-                logDEBUG('SUPPLIER resupplys tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
+                logDERP('SUPPLIER resupplys tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
             }
         }
         else
@@ -124,7 +146,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 }
 
                 var result = pCreep.transfer(aStorage,maxCarryResourceType(pCreep.carry));
-                logDEBUG('SUPPLIER '+pCreep.name+' transfers '+maxCarryResourceType(pCreep.carry)+' ... '+ErrorSting(result));
+                logDERP('SUPPLIER '+pCreep.name+' transfers '+maxCarryResourceType(pCreep.carry)+' ... '+ErrorSting(result));
             }
             else
             {
@@ -158,18 +180,32 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 {
                     // TODO: no resources to grab from .... move to idle position or something
                     logERROR('SUPPLIER '+pCreep.name+' IS STUCK (NO IN BOX) FIX THIS ... ');
+                    var aIDLE = Room.IDLE_POSITIONS[aRoom.name];
+                    if (_.isUndefined(aIDLE[0]))
+                    {
+                        logERROR('SUPPLIER has no IDLE position for room '+aRoom.name);
+                        return;
+                    }
+
+                    logDERP(JSON.stringify(aIDLE));
+                    var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
+                    if (!pCreep.pos.isEqualTo(aPos))
+                    {
+                        var result = pCreep.moveTo(aPos,{ignoreCreeps: true});
+                        logDERP('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
+                    }
                     return;
                 }
 
                 if (!pCreep.pos.isNearTo(aNextIN))
                 {
                     var result = pCreep.moveTo(aNextIN,{ignoreCreeps: true,range:1});
-                    logDEBUG('SUPPLIER '+pCreep.name+' moves to next drop box ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
+                    logDERP('SUPPLIER '+pCreep.name+' moves to next drop box ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
                 }
 
                 var aResourceType = maxCarryResourceType(pCreep.carry);
                 var result = pCreep.transfer(aNextIN,aResourceType);
-                logDEBUG('SUPPLIER '+pCreep.name+' transfers '+aResourceType+' to ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
+                logDERP('SUPPLIER '+pCreep.name+' transfers '+aResourceType+' to ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
             }
         }
     }
@@ -221,6 +257,15 @@ class SupplierRole extends require('role.creep.AbstractRole')
             }
             return result;
         }));
+        //
+        // var aStorage = pRoom.storage
+        // if (!_.isUndefined(aStorage))
+        // {
+        //     if (aStorage.store[RESOURCE_ENERGY] < STORAGE_MAINTENANCE_RESERVE_LIMIT)
+        //     {
+        //         myIN = [aStorage];
+        //     }
+        // }
 
         _.forEach(myOUT, (a) =>
         {

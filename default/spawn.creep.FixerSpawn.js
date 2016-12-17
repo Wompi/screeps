@@ -22,7 +22,7 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
     {
         logDEBUG('FIXER SPAWN PROCESSED.....');
         if (!this.isSpawnValid(pSpawn)) return;
-    
+
         var aRoom = pSpawn.room;
 
         var myRoomCreeps = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);
@@ -37,6 +37,9 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
             return;
         }
         var hasEmergency = aRoom.hasEmergencyState();
+
+        var myRoomContainer = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
+        if (myRoomContainer < 2) return;
 
 
         if (hasEmergency)
@@ -116,20 +119,6 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         {
             logERROR('Something is fishy with FIXER spawn in room '+pSpawn.room.name+' .. ');
         }
-    }
-
-    getBody(pEnergyAvailable,pEnergyCapacity)
-    {
-        var result = undefined;
-        if (pEnergyCapacity >= 400 && pEnergyAvailable >= 400)
-        {
-            result = [WORK,WORK,CARRY,CARRY,MOVE,MOVE];
-        }
-        else if (pEnergyCapacity >= 200 && pEnergyAvailable >= 200)
-        {
-            result = [WORK,CARRY,CARRY,MOVE,MOVE];
-        }
-        return result;
     }
 }
 module.exports = FixerSpawn;

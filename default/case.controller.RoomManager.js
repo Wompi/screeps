@@ -64,6 +64,7 @@ class RoomManager
            new CREEP_ROLE['extension reloader'].spawn('extension reloader'),
            new CREEP_ROLE['upgrader'].spawn('upgrader'),
            new CREEP_ROLE['builder'].spawn('builder'),
+           new CREEP_ROLE['broker'].spawn('broker'),
        ];
 
        var spawnLoop = aSpawn =>

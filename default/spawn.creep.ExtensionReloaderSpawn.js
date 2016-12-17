@@ -21,6 +21,7 @@ class ExtensionReloaderSpawn extends require('spawn.creep.AbstractSpawn')
 
         var myRoomCreeps = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);
         var myRoomExtensionBays = aRoom.myExtensionBays;
+        if (myRoomExtensionBays.length == 0) return;
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});

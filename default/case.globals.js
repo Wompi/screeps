@@ -8,12 +8,18 @@ var mod =
         var TestCenter = require('case.TestCenter');
         var StatisticsManager = require('case.StatisticsManager');
         var CaseConsole = require('case.CaseConsole');
+        var Utillities = require('case.Utillities');
+        var Formulas = require('case.Formulas');
+        var Market = require('case.Market');
         _.assign(global,params);
         _.assign(global,
         {
             Test: new TestCenter(),
             Stats: new StatisticsManager(),
             Console: new CaseConsole(),
+            Util: new Utillities(),
+            Market: new Market(),
+            Formula: new Formulas(),
             ErrorSting: function(code)
             {
                 var codes =
@@ -69,6 +75,8 @@ var mod =
                 'room trader':          { role: require('role.creep.RoomTraderRole'),       spawn: require('spawn.creep.RoomTraderSpawn') },
                 'remote builder':       { role: require('role.creep.RemoteBuilderRole'),    spawn: require('spawn.creep.RemoteBuilderSpawn') },
                 'remote claimer':       { role: require('role.creep.RemoteClaimerRole'),    spawn: require('spawn.creep.RemoteClaimerSpawn') },
+                'dismantle':            { role: require('role.creep.DismantleRole'),        spawn: require('spawn.creep.DismantleSpawn') },
+                'broker':               { role: require('role.creep.BrokerRole'),           spawn: require('spawn.creep.BrokerSpawn') },
             },
             ROOM_OBJECT_TYPE:
             {

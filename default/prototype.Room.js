@@ -116,7 +116,7 @@ var mod =
 
                             // TODO: find a better waytodecide if it is a extension bay
                             // problemis that other containers can be in range as well but dont fit the common pattern
-                            if (myExtensionsInRange.length > 5)
+                            if (myExtensionsInRange.length > 4)
                             {
                                 this._myExtensionBays.push(aContainer);
                             }
@@ -160,7 +160,7 @@ var mod =
                 // TODO: check for the minimal configuration of creeps
             }
 
-            return myCreeps.length == 0 || this.controller.level < 3;
+            return myCreeps.length == 0; //|| this.controller.level < 3;
         };
 
         // prototype ROOM functions
@@ -302,19 +302,27 @@ var mod =
             'E65N49':
             [
                 {   x: 16,  y: 9,   },
-            ]
+            ],
+            'E66N48':
+            [
+                {   x: 37,  y: 24,   },
+            ],
         };
 
         Room.IDLE_POSITIONS =
         {
             'E66N49':
             [
-                {   x: 42,  y: 42,  },
+                {   x: 43,  y: 43,  },
             ],
             'E65N49':
             [
-                {   x: 15,  y: 8,   },
-            ]
+                {   x: 27,  y: 24,   },
+            ],
+            'E66N48':
+            [
+                {   x: 33,  y: 26,   },
+            ],
         };
 
         Room.FIXER_GRAPH =
@@ -335,6 +343,11 @@ var mod =
                 {   x: 31,  y: 27,  next: 4,    },
                 {   x: 45,  y: 36,  next: 5,    },
                 {   x:  4,  y: 11,  next: 0,    },
+            ],
+            'E66N48':
+            [
+                {   x: 13,  y:  4,  next: 1,    },
+                {   x: 31,  y: 41,  next: 0,    },
             ],
         };
     }

@@ -24,6 +24,7 @@ class RemoteManager
         [
             new CREEP_ROLE['remote builder'].spawn('remote builder'),
             new CREEP_ROLE['remote claimer'].spawn('remote claimer'),
+            new CREEP_ROLE['dismantle'].spawn('dismantle'),
         ];
         _.forEach(myRoomSpawns, (a) => { a.processSpawn(aSpawn); });
     }
@@ -34,6 +35,7 @@ class RemoteManager
         {
             return a.memory.role == 'remote builder'
                     || a.memory.role == 'remote claimer'
+                    || a.memory.role == 'dismantle'
         });
         for (var aCreep of myCreeps)
         {

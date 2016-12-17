@@ -86,6 +86,12 @@ var mod =
                    secondaryColor: COLOR_RED,
                    filter: {'color': COLOR_GREEN, 'secondaryColor': COLOR_RED },
                },
+               dismantle:
+               {
+                   color: COLOR_GREEN,
+                   secondaryColor: COLOR_GREY,
+                   filter: {'color': COLOR_GREEN, 'secondaryColor': COLOR_GREY },
+               },
            },
            remote:
            {

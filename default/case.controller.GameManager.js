@@ -66,6 +66,10 @@ class GameManager
                 //aRole.print();
                 aCreep.registerRole(aRole);
             }
+            if (aCreep.myRole == 'remote builder' || aCreep.myRole == 'remote claimer' || aCreep.myRole == 'dismantle')
+            {
+                continue;
+            }
             Game.rooms[aName].registerRoomObject(aCreep,ROOM_OBJECT_TYPE.creep);
         }
     }
