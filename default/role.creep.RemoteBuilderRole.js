@@ -7,7 +7,7 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
     isRoleActive()
     {
-        return true;
+        return false;
     }
 
     processRole(pCreep)

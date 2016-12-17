@@ -12,12 +12,6 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         return true;
     }
 
-    isSpawnValid(pSpawn)
-    {
-        var derp = super.isSpawnValid(pSpawn);
-        return derp;
-    }
-
     processSpawn(pSpawn)
     {
 

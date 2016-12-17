@@ -46,8 +46,8 @@ module.exports.loop = function ()
     aRoomTraderManager.process();
 
     console.log('------------------------ REMOTE MANAGER ----------------------------------------------');
-    //var aRemoteManagerManager = new RemoteManager();
-    //aRemoteManagerManager.process();
+    // var aRemoteManagerManager = new RemoteManager();
+    // aRemoteManagerManager.process();
 
 
 

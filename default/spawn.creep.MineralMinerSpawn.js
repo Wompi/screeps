@@ -9,7 +9,7 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return true;
+        return false;
     }
 
     isSpawnValid(pSpawn)

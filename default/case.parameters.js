@@ -7,7 +7,7 @@ var mod =
     //     supply: new require('role.Supply'),
     // },
     MAX_ROOM_RANGE: 25, // for some range checks use this as max room range
-    STORAGE_MAINTENANCE_RESERVE_LIMIT: 100000, // how many energy I want to be in the storage before it can be used for other stuff
+    STORAGE_MAINTENANCE_RESERVE_LIMIT: 20000, // how many energy I want to be in the storage before it can be used for other stuff
     HAULER_PICKUP_RANGE: 7, // this is the range at whitch the hauler can pickup scattered resources
 
 

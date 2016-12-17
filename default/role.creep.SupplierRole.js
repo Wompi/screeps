@@ -72,11 +72,11 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 }
             });
 
-            // if (_.isUndefined(aNextOUT) && !_.isUndefined(aStorage))
-            // {
-            //     //logDERP('SUPPLIER - adjustment to  ----OUT---- box list because all other boxes are full ...');
-            //     aNextOUT = aRoom.storage;
-            // }
+            if (_.isUndefined(aNextOUT) && !_.isUndefined(aStorage))
+            {
+                //logDERP('SUPPLIER - adjustment to  ----OUT---- box list because all other boxes are full ...');
+                aNextOUT = aRoom.storage;
+            }
 
             if (_.isUndefined(aNextOUT))
             {

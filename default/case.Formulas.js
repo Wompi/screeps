@@ -2,7 +2,7 @@ class Formulas
 {
     constructore()
     {
-
+        
     }
 
     calcUpgrader(pRoom)

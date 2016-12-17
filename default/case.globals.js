@@ -77,6 +77,9 @@ var mod =
                 'remote claimer':       { role: require('role.creep.RemoteClaimerRole'),    spawn: require('spawn.creep.RemoteClaimerSpawn') },
                 'dismantle':            { role: require('role.creep.DismantleRole'),        spawn: require('spawn.creep.DismantleSpawn') },
                 'broker':               { role: require('role.creep.BrokerRole'),           spawn: require('spawn.creep.BrokerSpawn') },
+                'remote miner':         { role: require('role.creep.RemoteMinerRole'),      spawn: require('spawn.creep.RemoteMinerSpawn') },
+                'remote miner hauler':  { role: require('role.creep.RemoteMinerHaulerRole'),spawn: require('spawn.creep.RemoteMinerHaulerSpawn') },
+                'remote reserve':       { role: require('role.creep.RemoteReserveRole'),    spawn: require('spawn.creep.RemoteReserveSpawn') },
             },
             ROOM_OBJECT_TYPE:
             {

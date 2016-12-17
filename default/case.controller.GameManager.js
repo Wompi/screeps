@@ -66,7 +66,15 @@ class GameManager
                 //aRole.print();
                 aCreep.registerRole(aRole);
             }
-            if (aCreep.myRole == 'remote builder' || aCreep.myRole == 'remote claimer' || aCreep.myRole == 'dismantle')
+            if (
+                        aCreep.myRole == 'remote builder'
+                    ||  aCreep.myRole == 'remote claimer'
+                    ||  aCreep.myRole == 'room trader'
+                    ||  aCreep.myRole == 'dismantle'
+                    ||  aCreep.myRole == 'remote miner hauler'
+                    ||  aCreep.myRole == 'remote miner'
+                    ||  aCreep.myRole == 'remote reserve'
+                )
             {
                 continue;
             }
