@@ -61,7 +61,7 @@ class MinerRole extends require('role.creep.AbstractRole')
         if (!_.isUndefined(myTask.aMove))
         {
             var result = pCreep.moveTo(myTask.aMove,{ignoreCreeps: true});
-            logDERP('MINER '+myTask.aCreep.name+' moves to source ['+myTask.aSource.pos.x+' '+myTask.aSource.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' moves to source ['+myTask.aSource.pos.x+' '+myTask.aSource.pos.y+'] .. '+ErrorSting(result));
         }
 
         if (!_.isUndefined(myTask.aTransfer.aTarget))
@@ -69,7 +69,7 @@ class MinerRole extends require('role.creep.AbstractRole')
             var aTransferAmount = _.min([myTask.aTransfer.aAmount,myTask.aCreep.carry.energy]);
             var result = myTask.aCreep.transfer(myTask.aTransfer.aTarget,RESOURCE_ENERGY,aTransferAmount);
             //logDERP(' carry = '+_.sum(myTask.aCreep.carry)+' target amount = '+myTask.aTransfer.aAmount+' transfer amount = '+aTransferAmount);
-            logDERP('MINER '+myTask.aCreep.name+' transfers ['+aTransferAmount+'] to ['+myTask.aTransfer.aTarget.pos.x+' '+myTask.aTransfer.aTarget.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' transfers ['+aTransferAmount+'] to ['+myTask.aTransfer.aTarget.pos.x+' '+myTask.aTransfer.aTarget.pos.y+'] .. '+ErrorSting(result));
         }
 
         if (!_.isUndefined(myTask.aWithdraw.aTarget))
@@ -78,7 +78,7 @@ class MinerRole extends require('role.creep.AbstractRole')
             var aWithdrawAmount = _.min([myTask.aWithdraw.aAmount,myTask.aCreep.carryCapacity-myTask.aCreep.carry.energy]);
             var result = myTask.aCreep.withdraw(myTask.aWithdraw.aTarget,RESOURCE_ENERGY,aWithdrawAmount);
             //logDERP(' carry = '+_.sum(myTask.aCreep.carry)+' target amount = '+myTask.aWithdraw.aAmount+' withdraw amount = '+aWithdrawAmount);
-            logDERP('MINER '+myTask.aCreep.name+' withdraws ['+aWithdrawAmount+'] from ['+myTask.aWithdraw.aTarget.pos.x+' '+myTask.aWithdraw.aTarget.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' withdraws ['+aWithdrawAmount+'] from ['+myTask.aWithdraw.aTarget.pos.x+' '+myTask.aWithdraw.aTarget.pos.y+'] .. '+ErrorSting(result));
         }
 
         if (!_.isUndefined(myTask.aPickup.aTarget))
@@ -86,27 +86,27 @@ class MinerRole extends require('role.creep.AbstractRole')
             var aPickupAmount = _.min([ myTask.aPickup.aAmount , myTask.aCreep.carry.energyCapacity - myTask.aCreep.carry.energy ]);
             var result = myTask.aCreep.pickup(myTask.aPickup.aTarget,aPickupAmount);
             //logDERP(' carry = '+_.sum(myTask.aCreep.carry)+' target amount = '+myTask.aPickup.aAmount+' withdraw amount = '+aPickupAmount);
-            logDERP('MINER '+myTask.aCreep.name+' pickup ['+aPickupAmount+'] from ['+myTask.aPickup.aTarget.pos.x+' '+myTask.aPickup.aTarget.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' pickup ['+aPickupAmount+'] from ['+myTask.aPickup.aTarget.pos.x+' '+myTask.aPickup.aTarget.pos.y+'] .. '+ErrorSting(result));
         }
 
         if (!_.isUndefined(myTask.aDrop.aType))
         {
             var result = myTask.aCreep.drop(myTask.aDrop.aType,myTask.aDrop.aAmount);
             logDERP(' carry = '+_.sum(myTask.aCreep.carry));
-            logDERP('MINER '+myTask.aCreep.name+' drops  ['+myTask.aDrop.aType+' = '+myTask.aDrop.aAmount+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' drops  ['+myTask.aDrop.aType+' = '+myTask.aDrop.aAmount+'] .. '+ErrorSting(result));
         }
 
 
         if (!_.isUndefined(myTask.aHarvest))
         {
             var result = myTask.aCreep.harvest(myTask.aHarvest);
-            logDERP('MINER '+myTask.aCreep.name+' harvests source ['+myTask.aSource.pos.x+' '+myTask.aSource.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' harvests source ['+myTask.aSource.pos.x+' '+myTask.aSource.pos.y+'] .. '+ErrorSting(result));
         }
 
         if (!_.isUndefined(myTask.aBuild))
         {
             var result = pCreep.build(myTask.aBuild);
-            logDERP('MINER '+myTask.aCreep.name+' builds ['+myTask.aBuild.pos.x+' '+myTask.aBuild.pos.y+'] .. '+ErrorSting(result));
+            logDEBUG('MINER '+myTask.aCreep.name+' builds ['+myTask.aBuild.pos.x+' '+myTask.aBuild.pos.y+'] .. '+ErrorSting(result));
         }
 
 
@@ -186,7 +186,7 @@ class MinerRole extends require('role.creep.AbstractRole')
         {
             // Storage is cloase an can be withdraw target
             var aStorage = pTask.aRoom.storage;
-            logDERP('---- withdraw storage ----- '+JSON.stringify(aStorage.store));
+            //logDERP('---- withdraw storage ----- '+JSON.stringify(aStorage.store));
             if (aStorage.store[RESOURCE_ENERGY] > 0)
             {
                 //logDERP(' box = '+aBox.store[RESOURCE_ENERGY]+' id: '+aBox.id);
@@ -241,7 +241,7 @@ class MinerRole extends require('role.creep.AbstractRole')
         pTask.aTransfer.aTarget = aStorage;
         pTask.aTransfer.aAmount = _.min([pTask.aCreep.carry.energy,aDelta]);
 
-        logDERP('---- storage -----');
+        //logDERP('---- storage -----');
         return pTask;
     }
 
@@ -259,7 +259,7 @@ class MinerRole extends require('role.creep.AbstractRole')
 
         pTask.aTransfer.aTarget = aLink;
         pTask.aTransfer.aAmount = aLink.energyCapacity - aLink.energy;
-        logDERP('---- link -----');
+        //logDERP('---- link -----');
         return pTask;
     }
     checkSpawnTransferTarget(pTask)
@@ -270,7 +270,7 @@ class MinerRole extends require('role.creep.AbstractRole')
 
         pTask.aTransfer.aTarget = aSpawn;
         pTask.aTransfer.aAmount = aSpawn.getEnergyNeeded();
-        logDERP('---- spawn -----');
+        //logDERP('---- spawn -----');
         return pTask;
     }
 

@@ -12,12 +12,6 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         return true;
     }
 
-    isSpawnValid(pSpawn)
-    {
-        var derp = super.isSpawnValid(pSpawn);
-        return derp;
-    }
-
     processSpawn(pSpawn)
     {
         logDEBUG('FIXER SPAWN PROCESSED.....');
@@ -30,7 +24,6 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});
 
-        //logERROR('SPAWN FIXER CREEPS: '+myCreeps.length);
 
         if (myCreeps.length > 0)
         {

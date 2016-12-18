@@ -71,10 +71,10 @@ class FixerRole extends require('role.creep.AbstractRole')
 
             var myTarget = pCreep.memory.target;
 
-            if (!_.isUndefined(myRepair.repairStructure))
+            if (!_.isUndefined(myRepair))
             {
                 var result = pCreep.repair(myRepair.repairStructure);
-                logDEBUG('FIXER repairs structure at ['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+'] - '+myRepair.repairStructure.structureType+' .. '+ErrorSting(result));
+                logDEBUG('FIXER repairs structure at ['+myRepair.emergency+']['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+'] - '+myRepair.repairStructure.structureType+' .. '+ErrorSting(result));
             }
 
             if (pCreep.pos.isEqualTo(myTarget.x,myTarget.y))
@@ -91,35 +91,41 @@ class FixerRole extends require('role.creep.AbstractRole')
                 var result = pCreep.moveTo(aSpawn,{ ignoreCreeps: ignore, range: 1});
                 logDEBUG('FIXER needs repair and moves to spawn ... '+ErrorSting(result));
             }
-            else if (!myRepair.emergency)
-            {
-                var result = pCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,pCreep.room.name),{ ignoreCreeps: ignore});
-                logDEBUG('FIXER moves to target position ['+myTarget.x+' '+myTarget.y+']... '+ErrorSting(result));
-            }
-            else
+            else if (!_.isUndefined(myRepair) && myRepair.emergency)
             {
                 pCreep.say('Oh boy!');
 
-                var myEmptySpots = _.filter(pCreep.pos.findEmptyNearbySpot(),(a) =>
+                var myPos = pCreep.pos.look();
+                logDERP('MY POS = '+JSON.stringify(_.countBy(myPos,'type')));
+
+                var derp = _.findKey(myPos,'structure');
+                if (!_.isUndefined(derp))
                 {
+                    logDERP('derp = '+JSON.stringify(derp));
+                    var myEmptySpots = _.filter(pCreep.pos.findEmptyNearbySpot(),(a) =>
+                    {
+                        var aLook = a.look();
+                        var aRange = a.getRangeTo(myRepair.repairStructure);
+                        var aLookTypes = _.countBy(aLook,'type');
+                        //logDERP(' pos ['+a.x+' '+a.y+']  ---- > ['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+']' );
+                        //logDERP(' pos ['+a.x+' '+a.y+'] ['+aRange+'] - '+JSON.stringify(aLookTypes));
 
-                    var aPos = new RoomPosition(a.x,a.y,a.roomName);
-                    var aLook = aPos.look();
-                    var aRange = aPos.getRangeTo(myRepair.repairStructure);
-                    var aLookTypes = _.countBy(aLook,'type');
-                    //logDERP(' pos ['+a.x+' '+a.y+']  ---- > ['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+']' );
-                    //logDERP(' pos ['+a.x+' '+a.y+'] ['+aRange+'] - '+JSON.stringify(aLookTypes));
+                        return (aRange < 4 && _.keys(aLookTypes).length == 1);
+                    });
 
-                    return (aRange < 4 && _.keys(aLookTypes).length == 1);
-                });
-
-                //logDERP(' emptySpots: '+myEmptySpots.length)
-                //logDERP(JSON.stringify(myEmptySpots));
-                if (myEmptySpots.length > 0)
-                {
-                    var result = pCreep.moveTo(myEmptySpots[0]);
-                    logDEBUG('FIXER steps aside for emergency repair! .. '+ErrorSting(result));
+                    //logDERP(' emptySpots: '+myEmptySpots.length)
+                    //logDERP(JSON.stringify(myEmptySpots));
+                    if (myEmptySpots.length > 0)
+                    {
+                        var result = pCreep.moveTo(myEmptySpots[0]);
+                        logDEBUG('FIXER steps aside for emergency repair! .. '+ErrorSting(result));
+                    }
                 }
+            }
+            else
+            {
+                var result = pCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,pCreep.room.name),{ ignoreCreeps: ignore});
+                logDEBUG('FIXER moves to target position ['+myTarget.x+' '+myTarget.y+']... '+ErrorSting(result));
             }
         }
     }
@@ -136,43 +142,23 @@ class FixerRole extends require('role.creep.AbstractRole')
         };
         var hasEmergency = false;
         var myStructuresInRange = pRoom.lookForAtArea(LOOK_STRUCTURES,aArea.top,aArea.left,aArea.bottom,aArea.right,true);
-        if (myStructuresInRange.length > 0)
-        {
-            var myFixables = _.filter(myStructuresInRange,(a) =>
-            {
-                var delta = a.structure.hitsMax - a.structure.hits;
-                return (delta >= (REPAIR_POWER * 2)); // chnage the 2 for the count of work parts
-            });
-            var myFix = undefined;
-            for (var aFix of myFixables)
-            {
-                var newFixState = aFix.hits * 100 / aFix.hitsMax;
-                var oldFixState = 100;
-                if (!_.isUndefined(myFix))
-                {
-                    oldFixState = myFix.hits * 100 / myFix.hitsMax;
-                }
-                //logERROR('FIXABLE: '+aFix.structureType+' ['+aFix.pos.x+' '+aFix.pos.y+'] state: '+newFixState+' delta: '+(aFix.hitsMax-aFix.hits));
-                if (_.isUndefined(myFix) || newFixState < oldFixState)
-                {
-                    myFix = aFix;
-                }
-            }
+        if (myStructuresInRange.length == 0) return undefined;
 
-            //logERROR('DERP aFix '+JSON.stringify(myFix));
-            if (!_.isUndefined(myFix))
-            {
-                result = Game.getObjectById(myFix.structure.id);
-                //logDERP(' structure to repair ['+result.pos.x+' '+result.pos.y+'] type - '+result.structureType);
-            }
-        }
+        var myFixables = _.filter(myStructuresInRange,(a) =>
+        {
+            return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER * pCreep.getActiveBodyparts(WORK));
+        });
+        if (myFixables.length == 0) return undefined;
+        var aFix = _.min(myFixables, (a) =>
+        {
+            return a.structure.hits * 100 / a.structure.hitsMax;
+        })
+        result = Game.getObjectById(aFix.structure.id);
         return {
                     repairStructure: result,
-                    emergency: ((_.isUndefined(result)) ? false : ((result.hits * 100 / result.hitsMax) < 80)),
+                    emergency: ((_.isNull(result)) ? false : ((result.hits * 100 / result.hitsMax) < 80)),
                 };
     }
-
-
 };
 
 module.exports = FixerRole;

@@ -22,14 +22,15 @@ var mod =
                     logERROR('StructureSpawn - creep '+aCreep.name+' has no role - FIX THIS!');
                     continue;
                 }
-                if (aCreepRole.myName == 'upgrader')
-                {
-                    logDERP('SPAWN '+this.name+' refuse to repair '+aCreep.name+' because he is a upgrader!');
-                    continue;
-                }
 
                 if (aCreep.pos.isNearTo(this.pos) && (aCreep.getLiveRenewTicks() > 0))
                 {
+                    if (aCreepRole.myName == 'upgrader')
+                    {
+                        logDEBUG('SPAWN '+this.name+' refuse to repair '+aCreep.name+' because he is a upgrader!');
+                        continue;
+                    }
+
                     if (_.isUndefined(myRepairCreep) || (aCreep.getLiveRenewTicks() > myRepairCreep.getLiveRenewTicks()))
                     {
                         myRepairCreep = aCreep;

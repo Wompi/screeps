@@ -15,10 +15,22 @@ class RoomManager
     {
         if (!this.myRoom.my) return;
 
+        //var a = Game.cpu.getUsed();
         this.processSpawns();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE: room - processSpawns() = '+(b-a));
+        // var a = Game.cpu.getUsed();
         this.processCreeps();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE: room - processCreeps() = '+(b-a));
+        // var a = Game.cpu.getUsed();
         this.processTowers();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE: room - processTowers() = '+(b-a));
+        // var a = Game.cpu.getUsed();
         this.processLinks();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE: room - processLinks() = '+(b-a));
 
     //    roomTowerLoop(room);
     //    roomCreepLoop(room);
@@ -80,7 +92,11 @@ class RoomManager
        var myCreeps = this.myRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);
        for (var aCreep of myCreeps)
        {
+           var a = Game.cpu.getUsed();
            aCreep.processRole();
+           var b = Game.cpu.getUsed();
+           logWARN('PROFILE: creep - '+aCreep.myRole+' = '+(b-a));
+
        }
    }
 
