@@ -29,11 +29,6 @@ class DismantleRole extends require('role.creep.AbstractRole')
             aRoom: pCreep.room,
             aTarget: undefined,
             aFlag: myFlag,
-            aWithdraw:
-            {
-                aTarget: undefined,
-                aAmount: 0,
-            },
             aTransfer:
             {
                 aTarget: undefined,
