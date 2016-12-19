@@ -46,7 +46,7 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
             return;
         }
 
-        if (aRoom.controller.level < 4)
+        if (aRoom.controller.level < 5)
         {
             this.spawnCalculatedCreep(pSpawn,aRoom);
         }
@@ -60,9 +60,9 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
     spawnCalculatedCreep(pSpawn,pRoom)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 550)
+        if (pSpawn.room.energyAvailable >= 700)
         {
-            aBody = [WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE];
+            aBody = [WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE];
         }
 
         if (!_.isUndefined(aBody))
