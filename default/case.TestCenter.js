@@ -10,6 +10,16 @@ class TestCenter
     }
 
 
+    creepStats()
+    {
+        _.forEach(Game.creeps, (aCreep) =>
+        {
+            var renewEnergy = _.ceil(aCreep.bodyCost/2.5/aCreep.bodySize);
+            logDERP(aCreep.name+' cost: '+aCreep.bodyCost+' rEnergy: '+renewEnergy);
+        });
+    }
+
+
     storeTest(aID)
     {
         var aBox = Game.getObjectById(aID);

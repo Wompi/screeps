@@ -87,8 +87,11 @@ class UpgraderRole extends require('role.creep.AbstractRole')
         if (!_.isUndefined(pTask.aMove)) return pTask;
         if (!_.isUndefined(pTask.aPickup.aTarget)) return pTask;
 
-        var uA = pTask.aCreep.getActiveBodyparts(WORK) * UPGRADE_CONTROLLER_POWER;
-        var eA =_.sum(pTask.aCreep.carry);
+        // better save than sorry so 2 times the upgrade power
+        // TODO: better find the exact amount because it saves withdraw opperations and therefor cpu - but this should
+        // secure that always is enough energy in the cargo for the upgrade opperation
+        var uA = pTask.aCreep.getActiveBodyparts(WORK) * UPGRADE_CONTROLLER_POWER * 2;
+        var eA =_.sum(pTask.aCreep.carry) ;
         if (eA < uA)
         {
             pTask = this.checkBoxWithdrawTarget(pTask,1000);
@@ -133,7 +136,7 @@ class UpgraderRole extends require('role.creep.AbstractRole')
                 //logDERP(' --------- box withdraw ['+bA+'] ['+aAmount+'] ['+cA+' '+eA+'] ['+Game.time+']------ ');
 
                 pTask.aWithdraw.aTarget = aBox;
-                pTask.aWithdraw.aAmount = aAmount;
+                pTask.aWithdraw.aAmount = _.min([bA,aAmount]);
             }
         }
         return pTask;

@@ -68,44 +68,6 @@ var modSpawnCenter  =
 
     },
 
-    getRemoteClaimer: function(room)
-    {
-        var result = undefined;
-        if (room.energyCapacityAvailable >= 1250)
-        {
-            if (room.energyAvailable >= 1250)
-            {
-                result = [CLAIM,CLAIM,MOVE];
-            }
-        }
-        return result;
-    },
-
-    getRemoteMiner: function(room)
-    {
-        var result = undefined;
-        if (room.energyCapacityAvailable >= 700)
-        {
-            if (room.energyAvailable >= 700)
-            {
-                result = [WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE];
-            }
-        }
-        return result;
-    },
-
-    getRemoteHauler: function(room)
-    {
-        var result = undefined;
-        if (room.energyCapacityAvailable >= 950)
-        {
-            if (room.energyAvailable >= 950)
-            {
-                result = [WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE];
-            }
-        }
-        return result;
-    },
 
 };
 module.exports = modSpawnCenter;

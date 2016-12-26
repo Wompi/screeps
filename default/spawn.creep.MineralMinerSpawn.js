@@ -9,7 +9,7 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return false;
+        return true;
     }
 
     isSpawnValid(pSpawn)
@@ -46,7 +46,7 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
         if (hasEmergency)
         {
-            this.spawnEmergencyCreep(pSpawn);
+            // no spawn at emergency
         }
         else
         {
@@ -57,11 +57,9 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
     spawnNormalCreep(pSpawn)
     {
-        var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 1250)
-        {
-            aBody = [WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE];
-        }
+        var aBody = Formula.calcMineralMiner(pSpawn);
+
+        if (_.isUndefined(aBody)) return;
 
         if (!_.isUndefined(aBody))
         {
@@ -77,29 +75,5 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
             }
         }
     }
-
-    spawnEmergencyCreep(pSpawn)
-    {
-        var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 250)
-        {
-            aBody = [WORK,WORK,MOVE];
-        }
-
-        if (!_.isUndefined(aBody))
-        {
-            var result = pSpawn.createCreep(aBody,undefined,{ role: 'mineral miner'});
-            if (typeof result === 'string')
-            {
-                logWARN('MINERAL MINER '+result+' is spawning .. '+ErrorSting(result));
-                Game.creeps[result].init();
-            }
-            else
-            {
-                logERROR('MINERAL MINER something fishy with creep creation .. ');
-            }
-        }
-    }
-
 }
 module.exports = MineralMinerSpawn;

@@ -8,6 +8,61 @@ var mod =
         {
         });
 
+        StructureSpawn.prototype.getSpawnPos = function()
+        {
+            //console.log('Prototype: ['+sourcePos.x+' '+sourcePos.y+']');
+            var dXY = [                         // direction
+                        [  0, -1 ],             // 1
+                        [  1, -1 ],             // 2
+                        [  1,  0 ],             // 3
+                        [  1,  1 ],             // 4
+                        [  0,  1 ],             // 5
+                        [ -1,  1 ],             // 6
+                        [ -1,  0 ],             // 7
+                        [ -1, -1 ],             // 8
+                      ];
+            var result = undefined;
+            for ( var aPos of dXY)
+            {
+                var x = this.pos.x + aPos[0];
+                var y = this.pos.y + aPos[1];
+
+                var aLook = this.room.lookAt(x,y);
+
+                var aObstacle = _.filter(aLook, (a) =>
+                {
+                    var aType = undefined;
+                    if (a.type == 'structure')
+                    {
+                        aType = a.structure.structureType;
+                    }
+                    else if (a.type == 'terrain')
+                    {
+                        aType = a.terrain;
+                    }
+                    else if (a.type == 'creep')
+                    {
+                        aType = a.type;
+                    }
+                    else
+                    {
+                        aType = a.type;
+                    }
+
+                    //logDERP(' includes: '+aType+' '+_.includes(OBSTACLE_OBJECT_TYPES,aType));
+                    return _.includes(OBSTACLE_OBJECT_TYPES,aType);
+                });
+
+                if (aObstacle.length == 0)
+                {
+                    //logDERP(this.name+' '+x+' '+y+' count: '+aLook.length);
+                    result = new RoomPosition(x,y,this.room.name);
+                    break;
+                }
+            }
+            return result;
+        };
+
         StructureSpawn.prototype.repairCreep = function(myCreeps)
         {
             var myRepairCreep = undefined;
@@ -69,85 +124,6 @@ var mod =
             }
             return result;
         };
-
-        // for starters this is only callable by hand
-        StructureSpawn.prototype.spawnPioneerClaimer = function()
-        {
-            var NEEDED_ENERGY = 650;
-            if (this.room.energyAvailable < NEEDED_ENERGY) return;
-            var filterCreep = _.filter(Game.creeps,(aCreep) => { return aCreep.memory.role == 'pioneer claimer'});
-            //logERROR('FILTER CREEPS: '+JSON.stringify(filterCreep));
-
-
-            if (filterCreep.length == 0)
-            {
-                var result = this.createCreep([CLAIM,MOVE],'Claimer',{role:  'pioneer claimer', travelTime: 0  });
-                if (result == 'Claimer')
-                {
-                    Game.creeps[result].init();
-                }
-                else
-                {
-                    logWARN('something is fishy with pioneer claimer creation .. '+ErrorSting(result));
-                }
-            }
-            else
-            {
-                //logDEBUG('room '+this.room.name+' has a miner .. '+filterCreep[0].name);
-            }
-        }
-
-        StructureSpawn.prototype.spawnPioneerMiner = function()
-        {
-            var NEEDED_ENERGY = 1500;
-            if (this.room.energyAvailable < NEEDED_ENERGY) return;
-            var filterCreep = _.filter(Game.creeps,(aCreep) => { return aCreep.memory.role == 'pioneer miner'});
-
-            var shouldSpawn = true;
-            if (filterCreep.length > 0)
-            {
-                if (filterCreep.length == 1)
-                {
-                    var aCreep = filterCreep[0];
-                    if (aCreep.spawning)
-                    {
-                        shouldSpawn = false;
-                    }
-                    else
-                    {
-                        if (_.isUndefined(aCreep.memory.travelTime))
-                        {
-                            aCreep.memory.travelTime = 0;
-                        }
-                        var travelTime = aCreep.memory.travelTime;
-                        var liveTime = aCreep.ticksToLive - aCreep.spawnTime - travelTime;
-                        logERROR(Game.time+' pioneer miner '+aCreep.name+' livetime '+liveTime);
-                        if (liveTime > 0)
-                        {
-                            shouldSpawn = false;
-                        }
-                    }
-                }
-                else
-                {
-                    shouldSpawn = false;
-                }
-            }
-
-            if (shouldSpawn)
-            {
-                //var result = this.createCreep([WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE],undefined,{role:  'pioneer miner', travelTime: 0 });
-                var result = this.createCreep([WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE],undefined,{role:  'pioneer miner', travelTime: 0 });
-                if (typeof result === 'string')
-                {
-                    Game.creeps[result].init();
-                }
-                else
-                {
-                    logWARN('something is fishy with pioneer miner creation .. '+ErrorSting(result));
-                }
-            }
-        }
 
         StructureSpawn.prototype.init = function()
         {

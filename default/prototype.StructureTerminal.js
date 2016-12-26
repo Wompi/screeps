@@ -24,6 +24,15 @@ var mod =
             return result;
         }
 
+        // this one splits the minerals from the energy
+        // the result can be used as normal storage .. so _.sum(res);
+        StructureTerminal.prototype.getMineralStore = function()
+        {
+            var aStore = _.clone(this.store);
+            delete aStore['energy'];
+            return aStore;
+        }
+
         StructureTerminal.prototype.getNeededResources = function()
         {
             var result = {};
@@ -53,9 +62,9 @@ var mod =
 
         StructureTerminal.LAB_STOCK =
         {
-            [RESOURCE_ENERGY]: 0,
-            [RESOURCE_ZYNTHIUM]: 0,
-            [RESOURCE_UTRIUM]: 0,
+            [RESOURCE_ENERGY]: 150000,
+            [RESOURCE_ZYNTHIUM]: 50000,
+            [RESOURCE_UTRIUM]: 50000,
         };
 
     }

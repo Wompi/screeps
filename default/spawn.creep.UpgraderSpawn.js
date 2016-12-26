@@ -51,6 +51,7 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
 
     spawnNormalCreep(pSpawn,pRoom)
     {
+        if (pSpawn.room.energyAvailable < 300) return;
         var aUpgraderConfig = Formula.calcUpgrader(pRoom);
         if (_.isUndefined(aUpgraderConfig)) return;
 

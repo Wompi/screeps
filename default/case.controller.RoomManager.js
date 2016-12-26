@@ -78,11 +78,13 @@ class RoomManager
            new CREEP_ROLE['builder'].spawn('builder'),
            new CREEP_ROLE['broker'].spawn('broker'),
        ];
+       var aSpawn = mySpawns[0];
+
+       _.forEach(myRoomSpawns, (a) => { a.processSpawn(aSpawn); });
 
        var spawnLoop = aSpawn =>
        {
            aSpawn.repairCreep(myCreeps);
-           _.forEach(myRoomSpawns, (a) => { a.processSpawn(aSpawn); });
        };
        _.forEach(mySpawns,spawnLoop);
    }

@@ -9,7 +9,7 @@ class BrokerSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return false;
+        return true;
     }
 
     processSpawn(pSpawn)

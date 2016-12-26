@@ -82,10 +82,38 @@ module.exports.loop = function ()
     // logWARN('PROFILE GRAVITY: '+(b-a));
 
     // => '<p>fred, barney, &amp; pebbles</p>'
+    var a = Game.cpu.getUsed();
+    // var aCreep = Game.creeps['Fixer E65N49'];
+    var oFixer = aGameManager.mFixerOperation;
+
+    _.forEach(aGameManager.mCreepManager.getCreepsForRole('fixer'), (aFixer) =>
+    {
+        oFixer.registerEntity(aFixer,ROOM_OBJECT_TYPE.creep);
+    })
+    oFixer.processOperation();
+    var b = Game.cpu.getUsed();
+    logWARN('PROFILE: operations fixer - '+(b-a));
 
 
+    // var a = Game.cpu.getUsed();
+    // _.forEach(Game.spawns, (aSpawn) =>
+    // {
+    //     var aPos = aSpawn.getSpawnPos();
+    //     logDERP(' Spawnpos: '+JSON.stringify(aPos));
+    // })
+    // var b = Game.cpu.getUsed();
+    // logWARN('PROFILE: spawn positions - '+(b-a));
+
+    // Formula.calcHauler();
+    // _.forEach(Game.spawns, (aSpawn) =>
+    // {
+    //     Formula.calcMineralMiner(aSpawn);
+    // });
 
 
+    //Formula.calcMineralHauler();
+
+    Util.getMineralStorage();
     //runBrawler();
 };
 

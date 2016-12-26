@@ -2,7 +2,7 @@ class Utillities
 {
     constructor()
     {
-        
+
     }
 
     getPath(pos1,pos2)
@@ -45,6 +45,46 @@ class Utillities
         });
         return myPath;
     }
+
+
+    getMineralStorage()
+    {
+        var a = Game.cpu.getUsed();
+        var aSum = {};
+        _.forEach(Game.rooms, (aRoom) =>
+        {
+            _.forEach(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container), (aBox) =>
+            {
+                aSum = this.sumMineralStore(aSum,aBox.getMineralStore());
+            });
+
+            var aStorage = aRoom.storage;
+            if (!_.isUndefined(aStorage))
+            {
+                aSum = this.sumMineralStore(aSum,aStorage.getMineralStore());
+            }
+
+            var aTerminal = aRoom.terminal;
+            if (!_.isUndefined(aTerminal))
+            {
+                aSum = this.sumMineralStore(aSum,aTerminal.getMineralStore());
+            }
+        });
+        logDERP('aSum = '+JSON.stringify(aSum));
+        var b = Game.cpu.getUsed();
+        logWARN('PROFILE: mineral sum - '+(b-a));
+    }
+
+
+    sumMineralStore(pSum,pStore)
+    {
+        return _.reduce(pStore, (res,a,b) =>
+        {
+            res[b] = _.isUndefined(res[b]) ? a : res[b] + a;
+            return res;
+        },pSum);
+    }
+
 };
 
 module.exports = Utillities;

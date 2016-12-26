@@ -37,13 +37,14 @@ class Market
         logDERP(aTable);
     }
 
-    fetchMarketOrders(pIndex)
+    fetch(pIndex)
     {
         var myResourceTypes =
         [
             RESOURCE_ENERGY,
             RESOURCE_ZYNTHIUM,
             RESOURCE_UTRIUM,
+            RESOURCE_OXYGEN,
         ]
 
         if (_.isUndefined(pIndex) || pIndex > (myResourceTypes.length-1))
@@ -86,7 +87,7 @@ class Market
 
         logERROR('Ready .. check Memory.market');
 
-
+        this.printMarketReport();
 
 
         // var myOrders = Game.market.getAllOrders();

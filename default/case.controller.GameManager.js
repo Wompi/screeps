@@ -1,7 +1,12 @@
+var OperationsFixer = require('case.operations.Fixer');
+var CreepManager = require('case.controller.CreepManager');
+
 class GameManager
 {
     constructor()
     {
+        this.mFixerOperation = new OperationsFixer();
+        this.mCreepManager = new CreepManager();
     }
 
     init()
@@ -79,6 +84,7 @@ class GameManager
                 continue;
             }
             Game.rooms[aName].registerRoomObject(aCreep,ROOM_OBJECT_TYPE.creep);
+            this.mCreepManager.registerCreep(aCreep);
         }
     }
 
@@ -93,6 +99,7 @@ class GameManager
                 {
                     a.init();
                     pRoom.registerRoomObject(a,ROOM_OBJECT_TYPE.container);
+                    this.mFixerOperation.registerEntity(a,ROOM_OBJECT_TYPE.container);
                 }
                 else if (a.structureType == STRUCTURE_PORTAL)
                 {
@@ -102,6 +109,7 @@ class GameManager
                 {
                     a.init();
                     pRoom.registerRoomObject(a,ROOM_OBJECT_TYPE.road);
+                    this.mFixerOperation.registerEntity(a,ROOM_OBJECT_TYPE.road);
                 }
                 else if (a.structureType == STRUCTURE_WALL)
                 {

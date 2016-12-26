@@ -2,8 +2,137 @@ class Formulas
 {
     constructore()
     {
-        
+
     }
+
+    // formula:
+    // - B = A/2 (roads)
+    // - C = A * 50 + B * 50
+    // - C = A * 50 + A * 25
+    // - C = A * 75  ->     A = C/75
+    //
+    // - CREEP_LIFE_TIME = 1500
+    //
+    // - T = CREEP_LIFE_TIME - startLength
+    // - C = CREEP_LIFE_TIME - startLength / 2 * aTravelLength
+    // - check if C is more than hauler lifeTime
+    calcMineralHauler()
+    {
+        var aRoom = Game.rooms['E65N49'];
+        var mySpawns = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
+        if (mySpawns.length == 0) return;
+
+        var aStorage = aRoom.storage;
+        if (_.isUndefined(aStorage)) return;
+
+        var aSpawn = _.min(mySpawns, (aSpawn) =>
+        {
+            var aPos = aSpawn.getSpawnPos();
+            var aStartLength = Util.getPath(aPos,aStorage.pos).path.length;
+            return aStartLength;
+        });
+
+
+        var bStorage = Game.rooms['E66N49'].storage;
+        var aTravelLength = Util.getPath(aStorage.pos,bStorage.pos).path.length;
+
+
+        var MY_ENERGY = aRoom.energyCapacityAvailable;
+        var aMineralStore = aStorage.getStoredMineral();
+        logDERP('aMineralStore = '+JSON.stringify(aMineralStore));
+
+
+        //var aA_wanted = _.ceil(CREEP_LIFE_TIME - aStartLength / 2 * aTravelLength)
+        var aA_possible = _.floor(_.min([50 / 1.5  ,MY_ENERGY / 75]));
+
+        logDERP(' Init Spawn: '+aSpawn.name+' Travel: '+aTravelLength+' aA_possible: '+aA_possible);
+
+    }
+
+
+
+    // formula:
+    // - B = A/2 (roads)
+    // - C = A * 100 + B * 50
+    // - A = C / 125
+    //
+    // - Mining capacity:
+    // - HARVEST_MINERAL_POWER = 1
+    // - EXTRACTOR_COOLDOWN = 5
+    // - CREEP_LIFE_TIME = 1500
+    //
+    // - T = CREEP_LIFE_TIME - startLength
+    // - C = T * (A * HARVEST_MINERAL_POWER / EXTRACTOR_COOLDOWN )
+    // - check if C is more than hauler lifeTime
+    calcMineralMiner(pSpawn)
+    {
+        var aSpawnPos = pSpawn.getSpawnPos();
+        if (_.isUndefined(aSpawnPos)) return;
+
+        var aRoom = pSpawn.room;
+        var myExtractors = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.extractor);
+        if (myExtractors.length == 0) return;
+        var aExtractor = myExtractors[0];
+        if (!aExtractor.hasMiningBox) return;
+        var myMineralSources = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.mineral);
+        if (myMineralSources.length == 0) return;
+        var aMineral = myMineralSources[0];
+
+        var aMineralAmount = aMineral.mineralAmount;
+        var aMineralTicks = aMineral.ticksToRegeneration;
+
+        var aEndPos = aExtractor.myMiningBoxes[0].pos;
+        var MY_ENERGY = aRoom.energyCapacityAvailable;
+        var aStartPath = Util.getPath(aSpawnPos,aEndPos);
+        var aStartLength = aStartPath.path.length;
+
+        var aT = CREEP_LIFE_TIME - aStartLength;
+        // ceil for wanted because we need one more to make sure we get all resources
+        // - otherwise there will be a rest at the end of the lifetime of the creep
+        // floor for possible - well we can not use more than we have
+        var aA_wanted = _.ceil((aMineralAmount / aT ) * EXTRACTOR_COOLDOWN / HARVEST_MINERAL_POWER);
+        // we only can build creeps with 50 body parts so we have to restrict the result to )50 / 1.5) (50 = A + A/2)
+        var aA_possible = _.floor(_.min([ 50 / 1.5, MY_ENERGY / (BODYPART_COST[WORK] + BODYPART_COST[MOVE]/2)]));
+
+        var aA = _.min([aA_wanted,aA_possible])
+        var aB = _.ceil(aA/2);
+
+        var aWork = new Array(aA).fill(WORK);
+        var aMove = new Array(aB).fill(MOVE);
+        var aBody = aWork.concat(aMove);
+        logDERP('aStartPath: '+aStartLength+' aT = '+aT+' aA_wanted = '+aA_wanted+' aA_possible = '+aA_possible+' aA = '+aA+' aBody = '+JSON.stringify(_.countBy(aBody)));
+        return aBody;
+    }
+
+
+    // formula:
+    // - B = A/2 (roads)
+    // - C = A * 50 + B * 50
+    // - C = A * 50 + A * 25
+    // - C = A * 75  ->     A = C/75
+    calcHauler()
+    {
+        var aSpawn = Game.spawns['Casepool'];
+        var aRoom = aSpawn.room;
+        var aStorage = aRoom.storage;
+        var aSourcePos = new RoomPosition(41,21,aRoom.name);
+        var MY_ENERGY = aRoom.energyAvailable;
+
+        var aSpawnPos = aSpawn.getSpawnPos();
+        if (_.isUndefined(aSpawnPos))
+        {
+            return;
+        }
+        var aStartPath = Util.getPath(aSpawnPos,aSourcePos);
+        var aTravelPath = Util.getPath(aSourcePos,aStorage.pos);
+
+        logDERP(' aStartPath: '+aStartPath.path.length);
+        logDERP(' aTravelPath: '+aTravelPath.path.length);
+
+
+    }
+
+
 
     calcUpgrader(pRoom)
     {
@@ -83,12 +212,28 @@ class Formulas
     //
     calcMiner(hasRoads)
     {
+        if (!_.isUndefined(Memory.minerTest))
+        {
+            delete Memory.minerTest;
+        }
+
         var myFlags = _.filter(Game.flags,Flag.FLAG_COLOR.remote.miner.filter);
         if (myFlags.length == 0) return;
-
-        var aSpawn = Game.spawns['Nexuspool'];
-        var aStorage = Game.rooms['E65N49'].storage;
         var aFlag = myFlags[0];
+
+
+
+        var aSpawn = _.min(Game.spawns, (a) =>
+        {
+
+            var aPath = Util.getPath(a.pos,aFlag.pos);
+            return aPath.path.length;
+        })      ;
+        logDERP('Closest Spawn: '+aSpawn.name);
+
+
+
+        var aStorage = Game.rooms['E65N49'].storage;
 
         var aStartPath = Util.getPath(aSpawn.pos,aFlag.pos);
         var aTravelPath = Util.getPath(aFlag.pos,aStorage.pos);
@@ -96,37 +241,69 @@ class Formulas
         logDERP(' aStartPath: '+aStartPath.path.length);
         logDERP(' aTravelPath: '+aTravelPath.path.length);
 
-        var MY_ENERGY = 2100;
-        for (var i=1; i<20; i++)
+        var aAll = [];
+
+        var MY_ENERGY = aSpawn.room.energyCapacityAvailable;
+
+        for (var j=50; j<=MY_ENERGY;j = j + 50)
         {
-            var aWork = 0;
-            var aCarry = 0;
-            var aMove = 0;
+            for (var i=1; i<50; i++)
+            {
+                var aWork = 0;
+                var aCarry = 0;
+                var aMove = 0;
 
-            if (hasRoads)
-            {
-                aWork = i
-                aCarry = _.floor((MY_ENERGY - aWork * 125)/75)
-                aMove = _.ceil((aWork+aCarry)/2)
-            }
-            else
-            {
-                aWork = i
-                aCarry = _.floor((MY_ENERGY - aWork * 150)/100)
-                aMove = _.ceil((aWork+aCarry))
-            }
-            var aCost = aWork*BODYPART_COST[WORK] + aCarry*BODYPART_COST[CARRY] + aMove*BODYPART_COST[MOVE];
-            if (aCost > MY_ENERGY || aCarry <= 0)
-            {
-                break;
-            }
-            var aCargo = (aCarry*50);
-            var aTick = _.floor(aCargo / (aWork*HARVEST_POWER));
-            var aTime = _.floor((CREEP_LIFE_TIME - aStartPath.path.length)/(2*aTravelPath.path.length+aTick));
-            var aMargin =   (aTime * aCargo) - aCost;
+                if (hasRoads)
+                {
+                    aWork = i
+                    aCarry = _.floor((j - aWork * 125)/75)
+                    aMove = _.ceil((aWork+aCarry)/2)
+                }
+                else
+                {
+                    aWork = i
+                    aCarry = _.floor((j - aWork * 150)/100)
+                    aMove = _.ceil((aWork+aCarry))
+                }
+                var aCost = aWork*BODYPART_COST[WORK] + aCarry*BODYPART_COST[CARRY] + aMove*BODYPART_COST[MOVE];
+                if (aCost > j || aCarry <= 0)
+                {
+                    break;
+                }
+                var aCargo = (aCarry*50);
+                var aTick = _.floor(aCargo / (aWork*HARVEST_POWER));
+                var aTime = _.floor((CREEP_LIFE_TIME - aStartPath.path.length)/(2*aTravelPath.path.length+aTick));
+                var aMargin =   (aTime * aCargo) - aCost;
+                var aQuantity = i + aCarry + aMove;
+                //logDERP(' W:\t'+i+'\tC: '+aCarry+'\tM: '+aMove+'\tQ: '+aQuantity+'\tC: '+aCargo+'\tT: '+aTick+'\tH:'+aTime+'\tM:'+aMargin+'\tcost: '+aCost);
 
-            logDERP(' W:\t'+i+'\tC: '+aCarry+'\tM: '+aMove+'\tC: '+aCargo+'\tT: '+aTick+'\tH:'+aTime+'\tM:'+aMargin+'\tcost: '+aCost);
+                if (aQuantity <= 50)
+                {
+                    var aBody =
+                    {
+                        startPath: aStartPath.path.length,
+                        travelPath: aTravelPath.path.length,
+                        energyAvailable: j,
+                        workParts: i,
+                        carryParts: aCarry,
+                        moveParts: aMove,
+                        bodyCount: aQuantity,
+                        cargo: aCargo,
+                        ticks: aTick,
+                        time: aTime,
+                        margin: aMargin,
+                        cost: aCost,
+                    }
+                    aAll.push(aBody);
+                }
+            }
         }
+
+        Memory.minerTest = aAll;
+        var aMaxMargin = _.max(aAll, (a) => { return a.margin});
+        logDERP(' Check Memory.minerTest .....');
+        logDERP(JSON.stringify(aMaxMargin));
+        //{"startPath":20,"travelPath":43,"energyAvailable":3000,"workParts":10,"carryParts":15,"moveParts":25,"bodyCount":50,"cargo":750,"ticks":37,"time":12,"margin":6000,"cost":3000}
     }
 
     // calcMineralCreep()

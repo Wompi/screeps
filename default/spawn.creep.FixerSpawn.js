@@ -49,7 +49,11 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
     spawnNormalCreep(pSpawn)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 400)
+        if (pSpawn.room.energyAvailable < 300)
+        {
+            aBody = [WORK,CARRY,MOVE];            
+        }
+        else if (pSpawn.room.energyAvailable >= 400)
         {
             aBody = [WORK,WORK,CARRY,CARRY,MOVE,MOVE];
         }

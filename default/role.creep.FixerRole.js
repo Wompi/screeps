@@ -146,7 +146,8 @@ class FixerRole extends require('role.creep.AbstractRole')
 
         var myFixables = _.filter(myStructuresInRange,(a) =>
         {
-            return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER * pCreep.getActiveBodyparts(WORK));
+            //return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER * pCreep.getActiveBodyparts(WORK));
+            return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER);
         });
         if (myFixables.length == 0) return undefined;
         var aFix = _.min(myFixables, (a) =>

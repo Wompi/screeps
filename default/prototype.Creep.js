@@ -35,11 +35,7 @@ var mod =
                 {
                     if (_.isUndefined(this.memory.bodyCost))
                     {
-                        this.memory.bodyCost = 0;
-                        for (var bodyPart of this.body)
-                        {
-                            this.memory.bodyCost = this.memory.bodyCost + BODYPART_COST[bodyPart.type];
-                        }
+                        this.memory.bodyCost = _.reduce(this.body, (result,aType) => { return result += BODYPART_COST[aType.type]; },0);
                     }
                     return this.memory.bodyCost;
                 }

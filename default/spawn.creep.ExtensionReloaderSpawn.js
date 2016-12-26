@@ -41,29 +41,39 @@ class ExtensionReloaderSpawn extends require('spawn.creep.AbstractSpawn')
         var aExtensionBay = undefined;
         if (myCreeps.length > 0)
         {
-            var derp = _.filter(myRoomExtensionBays,(a) =>
+            var assignedExtensions = [];
+            _.forEach(myCreeps, (a) =>
             {
-                for (var bCreep of myCreeps)
+                var registeredExtension = Game.getObjectById(a.memory.extensionBay)
+                if (_.isNull(registeredExtension))
                 {
-                    var registeredExtension = Game.getObjectById(bCreep.memory.extensionBay)
-                    if (_.isNull(registeredExtension))
-                    {
-                        logERROR('REGISTERED EXTENSION is not valid anymore!');
-                        continue;
-                    }
-                    if (registeredExtension.id != a.id)
-                    {
-                        return true;
-                    }
+                    logERROR('REGISTERED EXTENSION is not valid anymore!');
                 }
-                return false;
+                else
+                {
+                    assignedExtensions.push(registeredExtension);
+                }
+
             });
-            if (derp.length == 0)
+
+            _.forEach(myRoomExtensionBays, (a) =>
             {
-                logERROR('SPAWN: EXTENSION LOADER - could not find a undefined extension bay!');
-                return
-            }
-            aExtensionBay = derp[0];
+                var assigned = false;
+                _.forEach(assignedExtensions, (b) =>
+                {
+                    if (a.id == b.id)
+                    {
+                        assigned = true;
+                    }
+                });
+                if (!assigned)
+                {
+                    aExtensionBay = a;
+                    return;
+                }
+            });
+
+            if (_.isUndefined(aExtensionBay)) return;
         }
         else
         {

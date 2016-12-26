@@ -65,7 +65,10 @@ class RoomTraderRole extends require('role.creep.AbstractRole')
         {
             if (pTask.aCreep.ticksToLive < 150)
             {
-                var aSpawn = Game.spawns['Nexuspool'];
+                var aSpawn = _.min(Game.spawns, (aSpawn) =>
+                {
+                    return Util.getPath(pTask.aCreep.pos,aSpawn.pos).path.length;
+                });
                 if (pTask.aCreep.pos.isNearTo(aSpawn) && pTask.aCreep.getLiveRenewTicks() > 0)
                 {
                     // wait till full repair

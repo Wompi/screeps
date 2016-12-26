@@ -226,11 +226,14 @@ var mod =
             // TODO: claimer creeps have a different life time an so a different body cost - adjust this later
             // all current creeps and there cost - based on 1500 live time
             var aCreepsCost = 0
+            var aCreepParts = 0
             _.forEach(myRoomCreeps, (aCreep) =>
             {
                 var aCreepCost = _.sum(_.countBy(aCreep.body,'type'), (a,b) => { return BODYPART_COST[b]*a; });
                 aCreepsCost += aCreepCost;
+                aCreepParts = aCreepParts + aCreep.body.length;
             });
+
 
             // if we have construction sites add the costs to the maintenance costs
             var aConstructionsCost = _.sum(myRoomConstructionSites, (a) => { return a.getRemainingBuildCost(); });
@@ -252,17 +255,18 @@ var mod =
 
             var aTickCost = (aRoadsRatio + aContainerRatio + aCreepRatio + aStorageRatio + aConstructionRatio);
 
-            // if (DEBUG)
-            // {
-            //     logDERP(' ----------  MAINTENANCE COSTS/tick -----------------------');
-            //     logDERP('ROADS ['+myRoomRoads.length+']\tcost: '+aRoadsRatio.toFixed(2));
-            //     logDERP('CONTAINER ['+myRoomContainers.length+']\tcost: '+aContainerRatio.toFixed(2));
-            //     logDERP('CREEP ['+myRoomCreeps.length+']\tcost: '+aCreepRatio.toFixed(2));
-            //     if (!_.isUndefined(this.storage)) logDERP('STORAGE [1]\tcost: '+aStorageRatio.toFixed(2));
-            //     if (myRoomConstructionSites.length > 0) logDERP('CONSTRUCTION ['+myRoomConstructionSites.length+']\tcost: '+aConstructionRatio.toFixed(2));
-            //
-            //     logDERP('ALL COST   tick = '+aTickCost.toFixed(2)+' base = '+(aTickCost*aCostbase.toFixed(2)));
-            // }
+           if (DEBUG)
+            {
+                logDERP(' ----------  MAINTENANCE COSTS/tick -----------------------');
+                logDERP('ROADS ['+myRoomRoads.length+']\tcost: '+aRoadsRatio.toFixed(2));
+                logDERP('CONTAINER ['+myRoomContainers.length+']\tcost: '+aContainerRatio.toFixed(2));
+                logDERP('CREEP ['+myRoomCreeps.length+']\tcost: '+aCreepRatio.toFixed(2));
+                logDERP('CREEP ['+myRoomCreeps.length+']\tparts: '+aCreepParts);
+                if (!_.isUndefined(this.storage)) logDERP('STORAGE [1]\tcost: '+aStorageRatio.toFixed(2));
+                if (myRoomConstructionSites.length > 0) logDERP('CONSTRUCTION ['+myRoomConstructionSites.length+']\tcost: '+aConstructionRatio.toFixed(2));
+
+                logDERP('ALL COST   tick = '+aTickCost.toFixed(2)+' base = '+(aTickCost*aCostbase.toFixed(2)));
+            }
             return (aTickCost * aCostbase);
         }
 
