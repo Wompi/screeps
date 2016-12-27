@@ -83,8 +83,15 @@ class GameManager
             {
                 continue;
             }
-            Game.rooms[aName].registerRoomObject(aCreep,ROOM_OBJECT_TYPE.creep);
-            this.mCreepManager.registerCreep(aCreep);
+
+            //if (aCreep.myRole == 'fixer')
+            {
+                this.mCreepManager.registerCreep(aCreep);
+            }
+            //else
+            {
+                Game.rooms[aName].registerRoomObject(aCreep,ROOM_OBJECT_TYPE.creep);
+            }
         }
     }
 

@@ -20,30 +20,12 @@ class FixerRole extends require('role.creep.AbstractRole')
         var myRoomContainers  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
         var myRoomSpawns  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
         var myRoomResources  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.resource);
-        var myRoomLinks  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
-        var myRoomExtensions  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.extension);
-        var myRoomTowers  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.tower);
 
-        var myContainers = _.filter(myRoomContainers, (aBox) => { return aBox.store[RESOURCE_ENERGY] > 0 });
-        var myLinks = _.filter(myRoomLinks, (aLink) => { return aLink.energy > 0 });
-        //var myExtensions = _.filter(myRoomExtensions, (aExtension) => { return aExtension.energy > 0 });
-        var myTowers = _.filter(myRoomTowers, (aTower) => { return aTower.energy > 0 });
-
-        _.forEach(myLinks, (aLink) => { myContainers.push(aLink);});
-        //_.forEach(myExtensions, (aExtension) => { myContainers.push(aExtension);});
-        _.forEach(myTowers, (aTower) => { myContainers.push(aTower);});
-
-
-        if (!_.isUndefined(aRoom.storage) && aRoom.storage.store[RESOURCE_ENERGY] > 0)
+        var myContainers = [].concat(myRoomContainers);
+        if (!_.isUndefined(aRoom.storage))
         {
             myContainers.push(aRoom.storage);
         }
-
-        if (!_.isUndefined(aRoom.terminal) && aRoom.terminal.store[RESOURCE_ENERGY] > 0)
-        {
-            myContainers.push(aRoom.terminal);
-        }
-
 
         var aRescource = myRoomResources[0];
         var aSpawn = myRoomSpawns[0];
@@ -51,6 +33,7 @@ class FixerRole extends require('role.creep.AbstractRole')
         {
             //logERROR('DERP ---- '+a);
             var result = a.pos.getRangeTo(pCreep);
+            if (a.store[RESOURCE_ENERGY] == 0) result = MAX_ROOM_RANGE;
             return result;
         });
 

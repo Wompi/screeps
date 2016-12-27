@@ -63,7 +63,7 @@ module.exports.loop = function ()
     logWARN('PROFILE MAINTENANCE: '+(b-a));
 
 
-    logDERP(`<progress value='75' max='100'/>`);
+    //logDERP(`<progress style='width: 1000px;' value='75' max='100'/>`);
 
     var endCPU = Game.cpu.getUsed();
     console.log(
@@ -75,17 +75,8 @@ module.exports.loop = function ()
     );
 
     // Test Stuff
-    //Test.checkRoadMap('E66N49');
-    // var a = Game.cpu.getUsed();
-    // Test.gravityTest('E65N49');
-    // var b = Game.cpu.getUsed();
-    // logWARN('PROFILE GRAVITY: '+(b-a));
-
-    // => '<p>fred, barney, &amp; pebbles</p>'
     var a = Game.cpu.getUsed();
-    // var aCreep = Game.creeps['Fixer E65N49'];
     var oFixer = aGameManager.mFixerOperation;
-
     _.forEach(aGameManager.mCreepManager.getCreepsForRole('fixer'), (aFixer) =>
     {
         oFixer.registerEntity(aFixer,ROOM_OBJECT_TYPE.creep);
@@ -94,24 +85,6 @@ module.exports.loop = function ()
     var b = Game.cpu.getUsed();
     logWARN('PROFILE: operations fixer - '+(b-a));
 
-
-    // var a = Game.cpu.getUsed();
-    // _.forEach(Game.spawns, (aSpawn) =>
-    // {
-    //     var aPos = aSpawn.getSpawnPos();
-    //     logDERP(' Spawnpos: '+JSON.stringify(aPos));
-    // })
-    // var b = Game.cpu.getUsed();
-    // logWARN('PROFILE: spawn positions - '+(b-a));
-
-    // Formula.calcHauler();
-    // _.forEach(Game.spawns, (aSpawn) =>
-    // {
-    //     Formula.calcMineralMiner(aSpawn);
-    // });
-
-
-    //Formula.calcMineralHauler();
 
     Util.getMineralStorage();
     //runBrawler();

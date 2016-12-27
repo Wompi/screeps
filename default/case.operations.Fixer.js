@@ -1,40 +1,73 @@
+var FixerNode = require('case.operations.FixerNode');
+var FixerRole = require('case.operations.FixerRole');
+
 class OperationsFixer
 {
     constructor()
     {
         this.mOperationEntities = {};
-        this.FIXER_GRAPH =
-        [
-            {   x: 42,   y: 41, roomName:"E66N49", next:  1, },
-            {   x: 44,   y: 26, roomName:"E66N49", next:  2, },
-            {   x: 31,   y: 25, roomName:"E66N49", next:  3, },
-            {   x: 13,   y: 39, roomName:"E66N49", next:  4, },
-            {   x:  1,   y: 36, roomName:"E66N49", next:  5, },
-
-            {   x: 48,   y: 36, roomName:"E65N49", next:  6, },
-            {   x: 33,   y: 25, roomName:"E65N49", next:  7, },
-            {   x: 30,   y: 43, roomName:"E65N49", next:  8, },
-            {   x: 28,   y: 48, roomName:"E65N49", next:  9, },
-            {   x: 20,   y: 18, roomName:"E65N49", next: 10, },
-            {   x: 45,   y: 27, roomName:"E65N49", next: 11, },
-            {   x:  1,   y: 11, roomName:"E65N49", next: 12, },
-
-            {   x: 12,   y: 48, roomName:"E66N49", next: 13, },
-
-            {   x: 12,   y:  1, roomName:"E66N48", next: 14, },
-            {   x: 45,   y: 25, roomName:"E66N48", next: 15, },
-            {   x: 37,   y: 40, roomName:"E66N48", next: 16, },
-            {   x: 32,   y: 43, roomName:"E66N48", next: 17, },
-            {   x: 29,   y: 43, roomName:"E66N48", next:  0, },
-        ];
+        this.mNode = new FixerNode();
+        this.mRole = new FixerRole(this);
+        this.FIXER_COST = 400;
     }
-
 
     processOperation()
     {
-        logDERP('Roads: '+this.getEntities(ROOM_OBJECT_TYPE.road).length);
-        logDERP('Container: '+this.getEntities(ROOM_OBJECT_TYPE.container).length);
+        this.printRepairState();
+
         this.roadGraph();
+        //this.handleCreep();
+    }
+
+    handleCreep()
+    {
+        var myFixers = this.getEntities(ROOM_OBJECT_TYPE.creep);
+        if (myFixers.length == 0)
+        {
+            var aSpawn = this.getSpawn();
+            this.spawnCreep(aSpawn);
+        }
+        else
+        {
+            _.forEach(myFixers, (aFixer) => {this.mRole.processRole(aFixer)});
+            logDERP('FIXER ROLE ..... ');
+        }
+    }
+
+    getSpawn()
+    {
+        var aSpawn = _.min(Game.spawns, (a) =>
+        {
+            if (a.room.energyAvailable < this.FIXER_COST) return MAX_ROOM_RANGE
+            var aSpawnPos = a.getSpawnPos();
+            if (_.isUndefined(aSpawnPos)) return MAX_ROOM_RANGE;
+            var aLen = Util.getPath(aSpawnPos,this.mNode.getCurrentNode()).path.length;
+            //logDERP('a = '+a.name+' len = '+aLen+' pos = '+JSON.stringify(aSpawnPos));
+            return aLen;
+        });
+        return aSpawn;
+    }
+
+    spawnCreep(pSpawn)
+    {
+        var aBody = [WORK,WORK,CARRY,CARRY,MOVE,MOVE];
+
+        var aMem =
+        {
+            role: 'fixer',
+        };
+
+        logDERP('Fixer operations: '+pSpawn.name);
+        // var result = pSpawn.createCreep(aBody,'Fixer',aMem);
+        // if (typeof result === 'string')
+        // {
+        //     logWARN('New FIXER Creep '+result+' .. '+ErrorSting(result));
+        //     Game.creeps[result].init();
+        // }
+        // else
+        // {
+        //     logERROR('Something is fishy with FIXER spawn in room '+pSpawn.room.name+' .. ');
+        // }
     }
 
     getEntities(pEntityType)
@@ -44,6 +77,24 @@ class OperationsFixer
         return ( result == undefined ? [] : result );
     }
 
+
+    printRepairState()
+    {
+        var myRoads = this.getEntities(ROOM_OBJECT_TYPE.road);
+
+        var maxSumRoads = _.sum(myRoads,'hitsMax');
+        var hitsSumRoads = _.sum(myRoads,'hits');
+        logDERP('ROADS:\t'+`<progress style='width: 500px;' value='${ hitsSumRoads }' max='${ maxSumRoads }'/>`);
+
+        var myContainer = this.getEntities(ROOM_OBJECT_TYPE.container)
+        var maxSumBox = _.sum(myContainer,'hitsMax');
+        var hitsSumBox = _.sum(myContainer,'hits');
+        logDERP('BOXS:\t'+`<progress style='width: 500px;' value='${ hitsSumBox }' max='${ maxSumBox }'/>`);
+
+
+        logDERP('Roads: '+myRoads.length);
+        logDERP('Container: '+myContainer.length);
+    }
 
     registerEntity(pEntity, pEntityType)
     {

@@ -233,7 +233,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
         var myRoomTerminals = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.terminal);
         var myRoomLinks = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
 
-        var myIN = _.filter(myRoomContainers, (a) => { return a.isIN() });
+        var myIN = _.filter(myRoomContainers, (a) => { return a.isIN() }).reverse();
         var myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT()});
 
         var myRoomController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);

@@ -9,39 +9,25 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return true;
+        return false;
     }
 
-    processSpawn(pSpawn)
+    processSpawn(pOperation)
     {
         logDEBUG('FIXER SPAWN PROCESSED.....');
         if (!this.isSpawnValid(pSpawn)) return;
 
-        var aRoom = pSpawn.room;
-
-        var myRoomCreeps = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);
-
-        var myRole = new CREEP_ROLE[this.myName].role(this.myName);
-        var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});
-
-
-        if (myCreeps.length > 0)
-        {
-            return;
-        }
+        var myCreeps = pOperation.getEntities(ROOM_OBJECT_TYPE.creep);
+        if (myCreeps.length > 0) return;
 
         // TODO: implement a real miner spawn here
-        this.spawnNormalCreep(pSpawn);
+        this.spawnNormalCreep(pOperation);
     }
 
-    spawnNormalCreep(pSpawn)
+    spawnNormalCreep(pOperation)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable < 300)
-        {
-            aBody = [WORK,CARRY,MOVE];
-        }
-        else if (pSpawn.room.energyAvailable >= 400)
+        if (pSpawn.room.energyAvailable >= 400)
         {
             aBody = [WORK,WORK,CARRY,CARRY,MOVE,MOVE];
         }
