@@ -63,8 +63,8 @@ var mod =
         StructureTerminal.LAB_STOCK =
         {
             [RESOURCE_ENERGY]: 0,
-            [RESOURCE_ZYNTHIUM]: 0,
-            [RESOURCE_UTRIUM]: 0,
+            [RESOURCE_ZYNTHIUM]: 50000,
+            [RESOURCE_UTRIUM]: 50000,
         };
 
     }

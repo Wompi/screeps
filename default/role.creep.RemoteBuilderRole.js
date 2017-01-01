@@ -7,7 +7,7 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
     isRoleActive()
     {
-        return false;
+        return true;
     }
 
     processRole(pCreep)
@@ -98,16 +98,32 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
             // move back to start room
             if (isRemote)
             {
-                var aHome = pTask.aCreep.memory.home;
-                var aDerp = Game.getObjectById(aHome);
-                if (!_.isNull(aDerp))
-                {
-                    pTask.aMove = aDerp;
-                }
-                else
-                {
-                    logERROR('REMOTE BUILDER HAS NO HOME saved .... fix this!');
-                }
+                // var aRoom = pTask.aCreep.room;
+                // var myRoomBoxs = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
+                // var myBoxs = _.filter(myRoomBoxs, (a) => { return a.store[RESOURCE_ENERGY] > 1499 ;});
+                //
+                // var aBox = _.min(myBoxs, (a) =>
+                // {
+                //     return pTask.aCreep.pos.getRangeTo(a);
+                // });
+                // logDERP('DERP: '+JSON.stringify(aBox));
+                // if (_.isNull(aBox))
+                // {
+                    var aHome = pTask.aCreep.memory.home;
+                    var aDerp = Game.getObjectById(aHome);
+                    if (!_.isNull(aDerp))
+                    {
+                        pTask.aMove = aDerp;
+                    }
+                    else
+                    {
+                        logERROR('REMOTE BUILDER HAS NO HOME saved .... fix this!');
+                    }
+                // }
+                // else
+                // {
+                //     pTask.aMove = aBox;
+                // }
             }
             else
             {
@@ -133,7 +149,32 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
         var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name);
 
-        if (isRemote) return pTask;
+        if (isRemote)
+        {
+            // var aRoom = pTask.aCreep.room;
+            // var myRoomBoxs = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
+            // var myBoxs = _.filter(myRoomBoxs, (a) => { return a.store[RESOURCE_ENERGY] > 1499 ;});
+            //
+            // var aBox = _.min(myBoxs, (a) =>
+            // {
+            //     return pTask.aCreep.pos.getRangeTo(a);
+            // });
+            // logDERP(JSON.stringify(aBox))
+            // if (_.isNull(aBox))
+            // {
+                //logDERP('NULL PASS')
+                return pTask;
+//             }
+//             else
+//             {
+//                 logDERP('NULL CHECK ' +JSON.stringify(aBox))
+//                 var myDelta = pTask.aCreep.carryCapacity - _.sum(pTask.aCreep.carry);
+//                 pTask.aWithdraw.aTarget = aBox;
+// //                pTask.aWithdraw.aAmount = _.min([myDelta,aBox.store[RESOURCE_ENERGY]]);
+//                 pTask.aWithdraw.aAmount = myDelta;
+//                 return pTask;
+//             }
+        }
 
         var aStorage = pTask.aCreep.room.storage;
         if (pTask.aCreep.pos.isNearTo(aStorage))

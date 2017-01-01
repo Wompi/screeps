@@ -10,6 +10,40 @@ class CaseConsole
         console.log('DERP!');
     }
 
+
+    newRoom()
+    {
+        var myFlags = _.filter(Game.flags,Flag.FLAG_COLOR.construction.planing.filter);
+        if (myFlags.length == 0 ) return;
+
+        logDERP(JSON.stringify(myFlags[0]));
+
+
+        var aRoom = myFlags[0].room
+        if (_.isUndefined(aRoom)) return;
+
+        var aPos = myFlags[0].pos;
+        var bPos = myFlags[1].pos;
+
+        var aPath = Util.getPath(aPos,bPos);
+
+
+        _.forEach(aPath.path,(aPathPos) =>
+        {
+            logDERP('DERP: '+JSON.stringify(aPathPos))
+            aRoom.createFlag(aPathPos);
+            var aLook = aRoom.lookForAt(LOOK_FLAGS,aPathPos.x,aPathPos.y);
+            if (aLook.length == 0)
+            {
+                //logDERP('aLook = '+JSON.stringify(aLook));
+                aRoom.createFlag(aPathPos.x,aPathPos.y,undefined,COLOR_YELLOW,COLOR_YELLOW);
+            }
+        })
+
+
+    }
+
+
     move(id, direction)
     {
         var aObj = Game.getObjectById(id);
@@ -20,6 +54,71 @@ class CaseConsole
         }
         aObj.move(direction);
     }
+
+
+    /**
+     * BY HELAM......
+     * console function that prints:
+     *  gcl status
+     *  rcl status and significant missing structures for each claimed room
+     */
+    roomLevels()
+    {
+        var gclString = `===== GCL =====`;
+        var gclPercentage = ((Game.gcl.progress / Game.gcl.progressTotal) * 100.0).toFixed(2)
+        gclString += `\n\tLEVEL: ${Game.gcl.level}\tprogress: ${gclPercentage} %\t<progress value="${Game.gcl.progress}" max="${Game.gcl.progressTotal}"></progress>`;
+        var string = "\n===== Room Levels =====";
+
+        // \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        // change the contents of these 2 functions to take advantage of your own caching
+        // commented out my own cached stuff to put in code that should work regardless of code base
+        let structures = Object.keys(Game.structures).map(id=>Game.structures[id]);
+        let structuresByRoom = _.groupBy(structures, s=>s.room.name);
+        for (let roomName in structuresByRoom) structuresByRoom[roomName] = _.groupBy(structuresByRoom[roomName], 'structureType');
+
+        function getRoomStructuresByType(room)
+        {
+            return structuresByRoom[room.name] || {};
+            //return room.structuresByType;
+        }
+
+        let constructionSites = Object.keys(Game.constructionSites).map(id=>Game.constructionSites[id]);
+        let sitesByRoom = _.groupBy(constructionSites, s=>s.pos.roomName);
+        for (let roomName in sitesByRoom) sitesByRoom[roomName] = _.groupBy(sitesByRoom[roomName], 'structureType');
+
+        function getRoomConstructionSitesByType(room)
+        {
+            return sitesByRoom[room.name] || {};
+            //return room.constructionSitesByType;
+        }
+        // /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+
+        Object.keys(Game.rooms).map(name => Game.rooms[name])
+            .filter( r => r.controller && r.controller.my )
+            .sort( (a,b) => b.controller.level - a.controller.level || b.controller.progress - a.controller.progress )
+            .forEach( room => {
+                let rclPercentage = ((room.controller.progress / room.controller.progressTotal) * 100.0).toFixed(1);
+                rclPercentage = " " + rclPercentage;
+                rclPercentage = rclPercentage.substring(rclPercentage.length - 4);
+
+                string += `\n\n\tRoom ${room.name} :\tLevel ${room.controller.level}`;
+                if (room.controller.level < 8) {
+                    string += `\t\tProgress: ${rclPercentage} %\t<progress value="${room.controller.progress}" max="${room.controller.progressTotal}"></progress>`;
+                }
+
+                let roomLevel = room.controller.level;
+                Object.keys(CONTROLLER_STRUCTURES).forEach( type => {
+                    let numStructures = (getRoomStructuresByType(room)[type] || []).length;
+                    numStructures = numStructures + (getRoomConstructionSitesByType(room)[type] || []).length;
+                    let numPossible = CONTROLLER_STRUCTURES[type][roomLevel];
+                    if (type !== STRUCTURE_CONTAINER && numPossible < 2500 && numStructures < numPossible) {
+                        string += `\t | <font color="#00ffff">${type}'s missing: ${numPossible - numStructures}</font>`;
+                    }
+                });
+            });
+
+        console.log(gclString + string);
+    };
 
 
     linkCost()

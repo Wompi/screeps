@@ -51,7 +51,7 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
         var roomGraph = Room.FIXER_GRAPH[pSpawn.room.name];
         if (_.isUndefined(roomGraph))
         {
-            logERROR(' ROOM '+this.room.name+' HAS NO FIXER_GRAPH ENTRY .. can not spawn a fixer!')
+            logERROR(' ROOM  HAS NO FIXER_GRAPH ENTRY .. can not spawn a fixer!')
             return;
         }
         var aMem =

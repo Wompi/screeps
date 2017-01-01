@@ -35,7 +35,7 @@ class ConstructorRole extends require('role.creep.AbstractRole')
         if (_.isUndefined(aFlag)) return;
 
         var aBox = this.findEnergyContainer(aRoom,pCreep);
-
+        //logDERP('aBox = '+aBox.structureType);
         if (_.isUndefined(aBox)) return;
 
         var ignore = true;
@@ -108,10 +108,20 @@ class ConstructorRole extends require('role.creep.AbstractRole')
         var myLinks = _.filter(myRoomLinks, (a) => { return (a.energy > 0) });
         var myExtensions = _.filter(myRoomExtensions, (a) => { return (a.energy > 0) });
 
+        myContainers  =myContainers.concat(myLinks);
+
+
         var aStorage = pRoom.storage;
-        if (!_.isUndefined(aStorage) && aStorage.store[RESOURCE_ENERGY] > 0)
+        if (!_.isUndefined(aStorage) && aStorage.store[RESOURCE_ENERGY] > 0 )
         {
-            myContainers.push(aStorage);
+            var derp = _.filter(myLinks, (a) =>
+            {
+                return a.pos.isNearTo(pCreep);
+            });
+            if (derp.length == 0)
+            {
+                myContainers.push(aStorage);
+            }
         }
 
         var aBox = undefined;

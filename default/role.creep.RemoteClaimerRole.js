@@ -83,7 +83,7 @@ class RemoteClaimerRole extends require('role.creep.AbstractRole')
 
         var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name);
 
-        if (_.sum(pTask.aCreep.carry) == 0)
+        if (_.sum(pTask.aCreep.carry) == 0 && pTask.aCreep.getActiveBodyparts(CARRY) > 0)
         {
             // move back to start room
             if (isRemote)
@@ -111,7 +111,7 @@ class RemoteClaimerRole extends require('role.creep.AbstractRole')
 
     assignWithdrawTarget(pTask)
     {
-
+        if (pTask.aCreep.getActiveBodyparts(CARRY) == 0) return pTask;
         var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name);
 
         if (isRemote) return pTask;

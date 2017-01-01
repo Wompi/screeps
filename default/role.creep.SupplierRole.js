@@ -233,30 +233,72 @@ class SupplierRole extends require('role.creep.AbstractRole')
         var myRoomTerminals = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.terminal);
         var myRoomLinks = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
 
-        var myIN = _.filter(myRoomContainers, (a) => { return a.isIN() }).reverse();
-        var myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT()});
+        var myRoomExtensionBays = pRoom.myExtensionBays;
 
-        var myRoomController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);
-
-        myOUT = myOUT.concat(_.filter(myRoomLinks, (aLink) =>
+        var myExtensionbays = _.filter(myRoomExtensionBays, (aBox) =>
         {
-            var result = true;
-            if (aLink.isReceiver())
+            return aBox.store[RESOURCE_ENERGY] < 1000;
+        });
+
+        var myIN = undefined;
+        var myOUT = undefined;
+        if (myExtensionbays.length > 0)
+        {
+            myIN = myExtensionbays;
+
+            var myRoomSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
+            var mySources = _.filter(myRoomSources, (aSource) =>
             {
-                _.forEach(myRoomController, (aController) =>
+                return aSource.hasMiningBox && aSource.myMiningBoxes[0].store[RESOURCE_ENERGY] > 0;
+            });
+
+            myOUT = [];
+            _.forEach(mySources, (a) =>
+            {
+                myOUT.push(a.myMiningBoxes[0]);
+            })
+        }
+        else
+        {
+            myIN = _.filter(myRoomContainers, (a) => { return a.isIN() }).reverse();
+            myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT()});
+        }
+
+        if (myExtensionbays.length > 0)
+        {
+            var aStorage = pRoom.storage
+            if (!_.isUndefined(aStorage))
+            {
+                if (aStorage.store[RESOURCE_ENERGY] > 0)
                 {
-                    if (aController.pos.inRangeTo(aLink,3))
-                    {
-                        result = false;
-                    }
-                });
+                    myOUT.push(aStorage);
+                }
             }
-            else
+        }
+        else
+        {
+            var myRoomController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);
+
+            myOUT = myOUT.concat(_.filter(myRoomLinks, (aLink) =>
             {
-                result = false;
-            }
-            return result;
-        }));
+                var result = true;
+                if (aLink.isReceiver())
+                {
+                    _.forEach(myRoomController, (aController) =>
+                    {
+                        if (aController.pos.inRangeTo(aLink,3))
+                        {
+                            result = false;
+                        }
+                    });
+                }
+                else
+                {
+                    result = false;
+                }
+                return result;
+            }));
+        }
         //
         // var aStorage = pRoom.storage
         // if (!_.isUndefined(aStorage))

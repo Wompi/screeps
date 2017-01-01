@@ -21,7 +21,7 @@ class RemoteClaimerSpawn extends require('spawn.creep.AbstractSpawn')
         var aRoom = pSpawn.room;
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
-        var myCreeps = _.filter(Game.creeps,(a) => { return a.myRole.myName == myRole.myName});
+        var myCreeps = _.filter(Game.creeps,(a) => { return a.memory.role== 'remote claimer'});
 
         if (myCreeps.length > 0)
         {
@@ -63,9 +63,11 @@ class RemoteClaimerSpawn extends require('spawn.creep.AbstractSpawn')
         var aRoom = aSpawn.room;
 
         var aBody = undefined;
-        if (aRoom.energyCapacityAvailable >= 1050)
+//        if (aRoom.energyCapacityAvailable >= 1050)
+        if (aRoom.energyCapacityAvailable >= 700)
         {
-            aBody = [CLAIM,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+            //aBody = [CLAIM,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+            aBody = [CLAIM,MOVE,MOVE];
         }
         if (_.isUndefined(aBody)) return;
 

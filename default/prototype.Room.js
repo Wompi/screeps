@@ -77,7 +77,10 @@ var mod =
                 {
                     if (_.isUndefined(this._myWounded) )
                     {
-                        var myRoomCreeps = this.getRoomObjects(ROOM_OBJECT_TYPE.creep);
+                        //var myRoomCreeps = this.getRoomObjects(ROOM_OBJECT_TYPE.creep);
+
+                        var myRoomCreeps = this.find(FIND_MY_CREEPS);
+
                         this._myWounded = _.filter(myRoomCreeps,(aCreep) => { return (aCreep.hits < aCreep.hitsMax)});
                     }
                     return this._myWounded;
@@ -311,6 +314,10 @@ var mod =
             [
                 {   x: 37,  y: 24,   },
             ],
+            'E64N49':
+            [
+                {   x: 24,  y: 22, },
+            ],
         };
 
         Room.IDLE_POSITIONS =
@@ -327,6 +334,11 @@ var mod =
             [
                 {   x: 33,  y: 26,   },
             ],
+            'E64N49':
+            [
+                {   x: 26,  y: 19, },
+            ],
+
         };
 
         Room.FIXER_GRAPH =
@@ -352,10 +364,18 @@ var mod =
             [
                 {   x: 13,  y:  4,  next: 1,    },
                 {   x: 44,  y: 25,  next: 2,    },
-                {   x: 32,  y: 43,  next: 3,    },
-                {   x: 30,  y: 42,  next: 4,    },
+                {   x: 42,  y: 40,  next: 3,    },
+                {   x: 32,  y: 43,  next: 4,    },
+                {   x: 30,  y: 42,  next: 5,    },
                 {   x: 37,  y: 40,  next: 0,    },
             ],
+            'E64N49':
+            [
+                {   x:  5,  y:  6,  next: 1,    },
+                {   x: 48,  y: 11,  next: 2,    },
+                {   x: 32,  y: 27,  next: 0,    },
+            ],
+
         };
     }
 };

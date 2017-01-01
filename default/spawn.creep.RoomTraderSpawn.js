@@ -23,7 +23,7 @@ class RoomTraderSpawn extends require('spawn.creep.AbstractSpawn')
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(Game.creeps,(a) =>
         {
-            return !a.spawning && a.myRole.myName == myRole.myName
+            return !a.spawning && a.memory.role == 'room trader'
         });
 
         if (myCreeps.length > 0)
@@ -75,19 +75,19 @@ class RoomTraderSpawn extends require('spawn.creep.AbstractSpawn')
 
         if (!canStore) return;
 
-        // the big hauler can carry 9 x 1400 for one live time - we only spawn a hauler when he can use his full
+        // the big hauler can carry 9 x 1600 for one live time - we only spawn a hauler when he can use his full
         // live time to carry stuff
-        if (aMineralAmount.mineralAmount < 12600) return;
+        if (aMineralAmount.mineralAmount < 14400) return;
 
 
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 2100)
+        if (pSpawn.room.energyAvailable >= 2400)
         {
             // TODO: adjust this to the current amount
             // the trader has 79 moves for one trip and can travel 9 times back and forth
             // so do the math
-            var aCarry = new Array(28).fill(CARRY);
-            var aMove = new Array(14).fill(MOVE);
+            var aCarry = new Array(32).fill(CARRY);
+            var aMove = new Array(16).fill(MOVE);
 
             aBody = aCarry.concat(aMove);
         }

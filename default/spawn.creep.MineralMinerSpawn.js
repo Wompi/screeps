@@ -71,7 +71,7 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
             }
             else
             {
-                logERROR('MINERAL MINER something fishy with creep creation .. ');
+                logERROR('MINERAL MINER something fishy with creep creation .. '+ErrorSting(result));
             }
         }
     }

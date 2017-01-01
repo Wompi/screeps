@@ -21,7 +21,7 @@ class RemoteReserveSpawn extends require('spawn.creep.AbstractSpawn')
         var aRoom = pSpawn.room;
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
-        var myCreeps = _.filter(Game.creeps,(a) => { return a.myRole.myName == myRole.myName});
+        var myCreeps = _.filter(Game.creeps,(a) => { return a.memory.role == 'notimplmented'});
 
         if (myCreeps.length > 0)
         {

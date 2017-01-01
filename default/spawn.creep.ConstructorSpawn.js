@@ -60,15 +60,16 @@ class ConstructorSpawn extends require('spawn.creep.AbstractSpawn')
 
     spawnCalculatedCreep(pSpawn)
     {
-        if (pSpawn.room.energyAvailable < 550) return;
+        if (pSpawn.room.energyAvailable < 300) return;
         var aBody = undefined;
         // if (pSpawn.room.energyAvailable >= 550)
         // {
         //     aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
         // }
-        if (pSpawn.room.energyAvailable >= 550)
+        if (pSpawn.room.energyAvailable >= 300)
         {
-            aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+            //aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+            aBody = [WORK,CARRY,CARRY,MOVE,MOVE];
         }
         if (_.isUndefined(aBody)) return;
 

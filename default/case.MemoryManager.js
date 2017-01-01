@@ -1,5 +1,31 @@
 var mod =
 {
+    // // Useful for ensuring that memory objects exist.
+    // // This can be done like this:
+    // const sourcesForRoom = ensure(Memory, 'sourcesForRoom');  // roomName --> [source]
+    // for (const room of _.values(Game.rooms))
+    // {
+    //     ensure(sourcesForRoom, room.name, () => room.find(FIND_SOURCES));
+    // }
+    //
+
+    // // ensure() avoids this kind of repeated pattern in your code
+    // if (!Memory.sourcesForRoom) Memory.sourcesForRoom = {};
+    // const sourcesForRoom = Memory.sourcesForRoom;
+    ensure: function(parent, childKey, constructor = ()=>({}))
+    {  // ensures that the child object exists.
+        let child = parent[childKey];
+        if (!child)
+        {
+            child = constructor();
+            parent[childKey] = child;
+        }
+        return child;
+    },
+
+
+
+
     cacheMemory: function(propertyValue,rootMemory,loop,filter,receiver)
     {
         if (_.isUndefined(propertyValue) )

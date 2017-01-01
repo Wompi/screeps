@@ -9,7 +9,7 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return false;
+        return true;
     }
 
     processSpawn(pSpawn)
@@ -21,9 +21,9 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
         var aRoom = pSpawn.room;
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
-        var myCreeps = _.filter(Game.creeps,(a) => { return a.myRole.myName == myRole.myName});
+        var myCreeps = _.filter(Game.creeps,(a) => { return a.memory.role == 'remote builder'});
 
-        if (myCreeps.length > 1)
+        if (myCreeps.length > 0)
         {
             return;
         }
@@ -55,21 +55,22 @@ class RemoteBuilderSpawn extends require('spawn.creep.AbstractSpawn')
         for (var aID in Game.spawns)
         {
             var spawn = Game.spawns[aID];
-            if (spawn.room.energyCapacityAvailable < 2100) continue;
+            if (spawn.room.energyCapacityAvailable < 2650) continue;
             if (aFlag.pos.getRangeTo(spawn) < aFlag.pos.getRangeTo(aSpawn))
             {
                 aSpawn = spawn;
             }
         }
         var aRoom = aSpawn.room;
+        logDERP('DERP: '+aRoom.name);
 
         var aBody = undefined;
 
-        if (aRoom.energyCapacityAvailable >= 2100)
+        if (aRoom.energyCapacityAvailable >= 2650)
         {
             var aWork  = new Array(3).fill(WORK);
-            var aCarry = new Array(23).fill(CARRY);
-            var aMove  = new Array(13).fill(MOVE);
+            var aCarry = new Array(30).fill(CARRY);
+            var aMove  = new Array(17).fill(MOVE);
 
             aBody = aWork.concat(aCarry).concat(aMove);
         }

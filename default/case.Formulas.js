@@ -100,7 +100,11 @@ class Formulas
         var aWork = new Array(aA).fill(WORK);
         var aMove = new Array(aB).fill(MOVE);
         var aBody = aWork.concat(aMove);
+
+        //var aCost = aWork.length * 100 + aMove.length * 50;
+
         logDERP('aStartPath: '+aStartLength+' aT = '+aT+' aA_wanted = '+aA_wanted+' aA_possible = '+aA_possible+' aA = '+aA+' aBody = '+JSON.stringify(_.countBy(aBody)));
+        //logDERP('enrgyCap: '+MY_ENERGY+' aCost: = '+aCost);
         return aBody;
     }
 
@@ -112,10 +116,12 @@ class Formulas
     // - C = A * 75  ->     A = C/75
     calcHauler()
     {
-        var aSpawn = Game.spawns['Casepool'];
+        var aSpawn = Game.spawns['Derpppool'];
         var aRoom = aSpawn.room;
-        var aStorage = aRoom.storage;
-        var aSourcePos = new RoomPosition(41,21,aRoom.name);
+        var aSourcePos = new RoomPosition(37,27,aRoom.name);
+
+        var aDropPos = new RoomPosition(38,8,aRoom.name);
+
         var MY_ENERGY = aRoom.energyAvailable;
 
         var aSpawnPos = aSpawn.getSpawnPos();
@@ -124,7 +130,7 @@ class Formulas
             return;
         }
         var aStartPath = Util.getPath(aSpawnPos,aSourcePos);
-        var aTravelPath = Util.getPath(aSourcePos,aStorage.pos);
+        var aTravelPath = Util.getPath(aSourcePos,aDropPos);
 
         logDERP(' aStartPath: '+aStartPath.path.length);
         logDERP(' aTravelPath: '+aTravelPath.path.length);

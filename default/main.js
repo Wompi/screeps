@@ -4,6 +4,9 @@ var RoomManager = require('case.controller.RoomManager');
 var RoomTraderManager = require('case.controller.RoomTraderManager');
 var RemoteManager = require('case.controller.RemoteManager');
 
+var TimeLine = require('case.main.TimeLine');
+
+
 module.exports.loop = function ()
 {
     var startCPU = Game.cpu.getUsed();
@@ -46,8 +49,8 @@ module.exports.loop = function ()
     aRoomTraderManager.process();
 
     console.log('------------------------ REMOTE MANAGER ----------------------------------------------');
-    // var aRemoteManagerManager = new RemoteManager();
-    // aRemoteManagerManager.process();
+    var aRemoteManagerManager = new RemoteManager();
+    aRemoteManagerManager.process();
 
 
 
@@ -75,21 +78,44 @@ module.exports.loop = function ()
     );
 
     // Test Stuff
-    var a = Game.cpu.getUsed();
-    var oFixer = aGameManager.mFixerOperation;
-    _.forEach(aGameManager.mCreepManager.getCreepsForRole('fixer'), (aFixer) =>
-    {
-        oFixer.registerEntity(aFixer,ROOM_OBJECT_TYPE.creep);
-    })
-    oFixer.processOperation();
-    var b = Game.cpu.getUsed();
-    logWARN('PROFILE: operations fixer - '+(b-a));
+    // var a = Game.cpu.getUsed();
+    // var oFixer = aGameManager.mFixerOperation;
+    // _.forEach(aGameManager.mCreepManager.getCreepsForRole('fixer'), (aFixer) =>
+    // {
+    //     oFixer.registerEntity(aFixer,ROOM_OBJECT_TYPE.creep);
+    // })
+    // oFixer.processOperation();
+    // var b = Game.cpu.getUsed();
+    // logWARN('PROFILE: operations fixer - '+(b-a));
 
 
     Util.getMineralStorage();
+
+
+
+    // var a = Game.cpu.getUsed();
+    // var aTimeLine = new TimeLine();
+    // aTimeLine.populateCreeps();
+    // var b = Game.cpu.getUsed();
+    // logWARN('PROFILE: timeline processing - '+(b-a));
+
+
+    var aRoom = Game.rooms['E64N49'];
+    var aBody = Formula.calcUpgrader(aRoom);
+    logDERP('U: '+JSON.stringify(aBody));
+
+
     //runBrawler();
+    //runScout();
 };
 
+runScout = function()
+{
+    var myScout = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'scout'})
+    if (_.isUndefined(myScout)) return;
+
+    myScout.moveTo(new RoomPosition(25,25,'E64N49'));
+}
 
 runBrawler = function()
 {
@@ -98,13 +124,13 @@ runBrawler = function()
     // for starters we only handle one fixer
     var aCreep = myCreeps[0];
 
-
+    logDERP('BLARK')
 
     var aRoom = aCreep.room;
 
     if (aRoom.name != 'E66N48')
     {
-        var resultA = aCreep.moveTo(new RoomPosition(25,25,'E66N48'));
+        var resultA = aCreep.moveTo(new RoomPosition(25,25,'E64N49'));
         return;
     }
 

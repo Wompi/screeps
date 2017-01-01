@@ -248,7 +248,18 @@ class MinerRole extends require('role.creep.AbstractRole')
 
     checkLinkTransferTarget(pTask)
     {
-        if (pTask.aRoom.energyAvailable < 500) return pTask;
+        var myRoomExtensionBays = pTask.aRoom.myExtensionBays;
+
+        var myExtensionbays = _.filter(myRoomExtensionBays, (aBox) =>
+        {
+            return aBox.store[RESOURCE_ENERGY] < 1000;
+        });
+
+
+        if ( !(pTask.aSource.hasMiningBox && pTask.aSource.myMiningBoxes[0].store[RESOURCE_ENERGY] > 1000) && myExtensionbays.length > 0 ) return pTask;
+
+
+        //if (pTask.aRoom.energyAvailable < 500) return pTask;
 
         var myRoomLinks = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
         if (myRoomLinks.length == 0 ) return pTask;

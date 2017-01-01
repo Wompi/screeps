@@ -115,6 +115,7 @@ class RoomManager
            }
            else
            {
+               logDERP('DEPR');
                aTower.healWounded();
                aTower.repairStructure();
            }

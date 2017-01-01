@@ -20,6 +20,7 @@ class CreepManager
 
         var value = this.mCreeps[aRole.toString()];
 
+
         if (_.isUndefined(value))
         {
             this.mCreeps[aRole.toString()] = [];
@@ -35,6 +36,7 @@ class CreepManager
         _.forEach(_.keys(this.mCreeps), (aKey) =>
         {
             aReport.push([aKey,this.mCreeps[aKey].length]);
+
         });
 
         var aTable = Test.table(aHeader,aReport);

@@ -92,6 +92,12 @@ var mod =
                    secondaryColor: COLOR_GREY,
                    filter: {'color': COLOR_GREEN, 'secondaryColor': COLOR_GREY },
                },
+               planing:
+               {
+                   color: COLOR_ORANGE,
+                   secondaryColor: COLOR_ORANGE,
+                   filter: {'color': COLOR_ORANGE, 'secondaryColor': COLOR_ORANGE },
+               },
            },
            remote:
            {
