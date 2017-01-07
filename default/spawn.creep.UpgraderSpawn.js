@@ -24,15 +24,15 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});
 
-        if (myCreeps.length > 0)
-        {
-            return;
-        }
-
         var hasEmergency = aRoom.hasEmergencyState();
 
         var myRoomContainers = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
         if (myRoomContainers.length < 2 ) return;
+
+        // if (myCreeps.length > 0)
+        // {
+        //     return;
+        // }
 
 
         if (hasEmergency)
@@ -43,17 +43,22 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
         else
         {
             // TODO: implement a real miner spawn here
-            this.spawnNormalCreep(pSpawn,aRoom);
+            this.spawnNormalCreep(pSpawn,aRoom,myCreeps);
         }
 
         logDERP(' ---------------- UPGRADER SPAWN -----------------');
     }
 
-    spawnNormalCreep(pSpawn,pRoom)
+    spawnNormalCreep(pSpawn,pRoom, pMyCreeps)
     {
         if (pSpawn.room.energyAvailable < 300) return;
         var aUpgraderConfig = Formula.calcUpgrader(pRoom);
         if (_.isUndefined(aUpgraderConfig)) return;
+
+        if (pMyCreeps.length > _.min([4,aUpgraderConfig.aCount]))
+        {
+            return;
+        }
 
         var workArr = new Array(aUpgraderConfig.work).fill(WORK);
         var carryArr = new Array(aUpgraderConfig.carry).fill(CARRY);

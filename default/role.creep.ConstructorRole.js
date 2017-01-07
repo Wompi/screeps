@@ -17,14 +17,17 @@ class ConstructorRole extends require('role.creep.AbstractRole')
 
         var aRoom = pCreep.room;
         var myRoomSpawns = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
-        if (myRoomSpawns.length == 0) return;
+        //if (myRoomSpawns.length == 0) return;
         var aSpawn = myRoomSpawns[0];
 
         var myRoomConstructionSites = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.constructionSite);
         myRoomConstructionSites = myRoomConstructionSites.reverse();
         if (myRoomConstructionSites.length == 0)
         {
-            this.moveToRecycle(aRoom,pCreep,aSpawn);
+            if (!_.isUndefined(aSpawn))
+            {
+                this.moveToRecycle(aRoom,pCreep,aSpawn);
+            }
             this.removeFlags();
             return;
         }
@@ -39,16 +42,20 @@ class ConstructorRole extends require('role.creep.AbstractRole')
         if (_.isUndefined(aBox)) return;
 
         var ignore = true;
-        if (pCreep.pos.inRangeTo(aSpawn,3))
+        if (!_.isUndefined(aSpawn))
         {
-            ignore = false;
-        }
 
-        if (pCreep.ticksToLive < 100 )
-        {
-            var result = pCreep.moveTo(aSpawn.pos,{ignoreCreeps: ignore});
-            logDEBUG('BUILDER '+pCreep.name+' back to spawn for emergency repair ... '+ErrorSting(result));
-            return;
+            if (pCreep.pos.inRangeTo(aSpawn,3))
+            {
+                ignore = false;
+            }
+            
+            if (pCreep.ticksToLive < 100 )
+            {
+                var result = pCreep.moveTo(aSpawn.pos,{ignoreCreeps: ignore});
+                logDEBUG('BUILDER '+pCreep.name+' back to spawn for emergency repair ... '+ErrorSting(result));
+                return;
+            }
         }
 
         if (pCreep.carry.energy == 0 && !pCreep.pos.isNearTo(aBox.pos))
@@ -59,19 +66,20 @@ class ConstructorRole extends require('role.creep.AbstractRole')
         else
         {
             // adjust this when we have more spawns in a room
-            if (pCreep.pos.isNearTo(aSpawn.pos) && (pCreep.getLiveRenewTicks() > 0))
+            if (!_.isUndefined(aSpawn))
             {
-                logDEBUG('BUILDER '+pCreep.name+' waites for full repair .. ');
-                // wait till full repair
-                return;
-            }
+                if (pCreep.pos.isNearTo(aSpawn.pos) && (pCreep.getLiveRenewTicks() > 0))
+                {
+                    logDEBUG('BUILDER '+pCreep.name+' waites for full repair .. ');
+                    // wait till full repair
+                    return;
+                }
 
-
-
-            if (pCreep.ticksToLive < 500 && pCreep.pos.getRangeTo(aSpawn.pos) < 3)
-            {
-                var result = pCreep.moveTo(aSpawn.pos,{ignoreCreeps: ignore});
-                logDEBUG('BUILDER '+pCreep.name+' back to spawn for fixup repair ... '+ErrorSting(result));
+                if (pCreep.ticksToLive < 500 && pCreep.pos.getRangeTo(aSpawn.pos) < 3)
+                {
+                    var result = pCreep.moveTo(aSpawn.pos,{ignoreCreeps: ignore});
+                    logDEBUG('BUILDER '+pCreep.name+' back to spawn for fixup repair ... '+ErrorSting(result));
+                }
             }
 
 

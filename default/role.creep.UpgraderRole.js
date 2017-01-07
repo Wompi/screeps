@@ -84,7 +84,7 @@ class UpgraderRole extends require('role.creep.AbstractRole')
     {
         if (!_.isUndefined(pTask.aTransfer.aTarget)) return pTask;
         if (!pTask.aRoom.my) return pTask;
-        if (!_.isUndefined(pTask.aMove)) return pTask;
+        //if (!_.isUndefined(pTask.aMove)) return pTask;
         if (!_.isUndefined(pTask.aPickup.aTarget)) return pTask;
 
         // better save than sorry so 2 times the upgrade power
@@ -197,7 +197,7 @@ class UpgraderRole extends require('role.creep.AbstractRole')
     assignUpgradeTarget(pTask)
     {
         if (!pTask.aRoom.my) return pTask;
-        if (!_.isUndefined(pTask.aMove)) return pTask;
+        //if (!_.isUndefined(pTask.aMove)) return pTask;
 
         var myRoomControllers = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);
         var aController = myRoomControllers[0];
@@ -239,12 +239,37 @@ class UpgraderRole extends require('role.creep.AbstractRole')
             // consider for later tojust update the pos and the upgrader might be filled with links
             return { aBox: undefined, aPos: undefined};
         }
+
+        var aLook = aControllerBox.pos.lookFor(LOOK_CREEPS);
+
+        var aPossiblePos = aControllerBox.pos;
+        if (aLook.length > 0)
+        {
+            var dX = [ 1, 1, 0,-1,-1,-1];
+            var dY = [ 0, 1, 1, 1, 0,-1];
+
+            var result = [];
+            for (var i=0; i<dX.length; i++)
+            {
+                var nX = aControllerBox.pos.x+dX[i];
+                var nY = aControllerBox.pos.y+dY[i];
+                var derp = new RoomPosition(nX,nY,pRoom.name);
+
+                if (derp.lookFor(LOOK_CREEPS).length == 0)
+                {
+                    aPossiblePos = derp;
+                    break;
+                }
+            };
+        }
+
+
         var myRoomSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
         var myMiningBoxes = [];
         _.forEach(myRoomSources,(a) => { if (a.hasMiningBox) myMiningBoxes = myMiningBoxes.concat(a.myMiningBoxes);});
 
 
-        var result = { aBox: aControllerBox, aPos: aControllerBox.pos }
+        var result = { aBox: aControllerBox, aPos: aPossiblePos }
         _.forEach(myMiningBoxes, (a) =>
         {
             // TODO: uncomment this if the road is build in E66

@@ -9,7 +9,7 @@ class RoomTraderSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return true;
+        return false;
     }
 
     processSpawn(pSpawn)

@@ -12,7 +12,7 @@ class Utillities
             plainCost: 2,
             swampCost: 5,
             range: 1,
-            maxOps: 2000,
+            maxOps: 4000,
             roomCallback: function(roomName)
             {
                 let room = Game.rooms[roomName];

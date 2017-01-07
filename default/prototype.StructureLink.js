@@ -11,7 +11,9 @@ var mod =
                 {
                     if (_.isUndefined(this._store) )
                     {
-                        this._store = { [RESOURCE_ENERGY]:this.energy };
+                        var aCap = this.energy == 0 ? 0 : (this.energyCapacity*0.80);
+
+                        this._store = { [RESOURCE_ENERGY]:aCap};
                     }
                     return this._store;
                 }
@@ -29,6 +31,15 @@ var mod =
                 }
             },
         });
+
+        StructureLink.prototype.registerHauler = function(aCreep)
+        {
+            if (_.isUndefined(aCreep)) return;
+
+            logDERP('aCreep = '+JSON.stringify(aCreep))
+            if ( aCreep.memory.role != 'supplier') return;
+            this.myHauler = aCreep;
+        }
 
         StructureLink.prototype.isEnergyNeeded = function()
         {

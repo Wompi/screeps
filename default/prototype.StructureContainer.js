@@ -52,6 +52,14 @@ var mod =
             return { mineralKey: aType , mineralAmount: aMineralStore[aType] };
         };
 
+        StructureContainer.prototype.registerHauler = function(aCreep)
+        {
+            if (_.isUndefined(aCreep)) return;
+
+            logDERP('aCreep = '+JSON.stringify(aCreep))
+            if ( aCreep.memory.role != 'supplier') return;
+            this.myHauler = aCreep;
+        }
 
         StructureContainer.prototype.isOUT = function()
         {
@@ -117,7 +125,7 @@ var mod =
                         if (aBox.pos.isEqualTo(this.pos))
                         {
                             // TODO: oh boy this is horrible - find a less CPU intensive way to check this
-                            if (_.sum(this.store) < 1000)
+                            if (_.sum(this.store) < 1500)
                             {
                                 //logDERP(' --- (adjusted) IN BOX --- ['+this.pos.x+' '+this.pos.y+']')
                                 result = true;

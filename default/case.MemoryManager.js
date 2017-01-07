@@ -23,9 +23,6 @@ var mod =
         return child;
     },
 
-
-
-
     cacheMemory: function(propertyValue,rootMemory,loop,filter,receiver)
     {
         if (_.isUndefined(propertyValue) )

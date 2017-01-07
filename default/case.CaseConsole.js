@@ -11,6 +11,11 @@ class CaseConsole
     }
 
 
+    clearLog()
+    {
+        console.log("<script>angular.element(document.getElementsByClassName('fa fa-trash ng-scope')[0].parentNode).scope().Console.clear()</script>")
+    }
+
     newRoom()
     {
         var myFlags = _.filter(Game.flags,Flag.FLAG_COLOR.construction.planing.filter);
@@ -31,7 +36,6 @@ class CaseConsole
         _.forEach(aPath.path,(aPathPos) =>
         {
             logDERP('DERP: '+JSON.stringify(aPathPos))
-            aRoom.createFlag(aPathPos);
             var aLook = aRoom.lookForAt(LOOK_FLAGS,aPathPos.x,aPathPos.y);
             if (aLook.length == 0)
             {
@@ -44,15 +48,17 @@ class CaseConsole
     }
 
 
-    move(id, direction)
+    move(pCreepName)
     {
-        var aObj = Game.getObjectById(id);
-        if (_.isNull(aObj))
-        {
-            logERROR('Could not found Object ID!');
-            return;
-        }
-        aObj.move(direction);
+        Game.creeps[pCreepName].override()
+    // {
+    //     var aObj = Game.getObjectById(id);
+    //     if (_.isNull(aObj))
+    //     {
+    //         logERROR('Could not found Object ID!');
+    //         return;
+    //     }
+    //     aObj.move(direction);
     }
 
 

@@ -80,6 +80,12 @@ var mod =
 
                 if (aCreep.pos.isNearTo(this.pos) && (aCreep.getLiveRenewTicks() > 0))
                 {
+                    if (_.any(aCreep.body, i => !!i.boost))
+                    {
+                        logDEBUG('SPAWN '+this.name+' refuse to repair '+aCreep.name+' because he is boosted!');
+                        continue;
+                    }
+
                     if (aCreepRole.myName == 'upgrader')
                     {
                         logDEBUG('SPAWN '+this.name+' refuse to repair '+aCreep.name+' because he is a upgrader!');

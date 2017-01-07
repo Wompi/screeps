@@ -82,6 +82,8 @@ class RoomManager
 
        _.forEach(myRoomSpawns, (a) => { a.processSpawn(aSpawn); });
 
+
+       var myCreeps = this.myRoom.find(FIND_MY_CREEPS);
        var spawnLoop = aSpawn =>
        {
            aSpawn.repairCreep(myCreeps);
@@ -115,7 +117,6 @@ class RoomManager
            }
            else
            {
-               logDERP('DEPR');
                aTower.healWounded();
                aTower.repairStructure();
            }

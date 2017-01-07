@@ -78,6 +78,43 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
         if (!_.isUndefined(pTask.aMove)) return pTask;
         if ( _.sum(pTask.aExtensionBay.store) == 0 ) return pTask;
 
+        logDERP('DERP');
+        var myRoomLabs = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.lab);
+        var myLabs = _.filter(myRoomLabs, (aLab) =>
+        {
+            //logDERP('a= '+aSpawn.isEnergyNeeded()+' b= '+aSpawn.pos.isNearTo(pTask.aCreep))
+            return aLab.energy < aLab.energyCapacity && aLab.pos.isNearTo(pTask.aCreep);
+        })
+        if (myLabs.length > 0)
+        {
+            logDERP('EXTENDSION: lab fill');
+            var aLab = myLabs[0];
+            var eA = pTask.aCreep.carry.energy;
+            var eE =  aLab.energyCapacity - aLab.energy;
+            var aAmount = _.min([eA,eE]);
+            pTask.aTransfer.aTarget = aLab;
+            pTask.aTransfer.aAmount = aAmount;
+            return pTask;
+        }
+
+        var myRoomSpawns = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
+        var mySpawns = _.filter(myRoomSpawns, (aSpawn) =>
+        {
+            //logDERP('a= '+aSpawn.isEnergyNeeded()+' b= '+aSpawn.pos.isNearTo(pTask.aCreep))
+            return aSpawn.isEnergyNeeded() && aSpawn.pos.isNearTo(pTask.aCreep);
+        })
+        if (mySpawns.length > 0)
+        {
+            //logDERP('EXTENDSION: spawn fill');
+            var aSpawn = mySpawns[0];
+            var eA = pTask.aCreep.carry.energy;
+            var eE =  aSpawn.energyCapacity - aSpawn.energy;
+            var aAmount = _.min([eA,eE]);
+            pTask.aTransfer.aTarget = aSpawn;
+            pTask.aTransfer.aAmount = aAmount;
+            return pTask;
+        }
+
         var myRoomExtensions = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.extension);
         var myExtensions = _.filter(myRoomExtensions,(a) =>
         {
@@ -142,7 +179,7 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
     {
         if (_.isUndefined(pTask.aExtensionBay)) return pTask;
 
-        if (!pTask.aCreep.pos.inRangeTo(pTask.aExtensionBay,1) ||  _.sum(pTask.aExtensionBay.store) < pTask.aCreep.carryCapacity )
+        if (!pTask.aCreep.pos.isNearTo(pTask.aExtensionBay) ||  _.sum(pTask.aExtensionBay.store) < pTask.aCreep.carryCapacity )
         {
             pTask.aMove = pTask.aExtensionBay;
         }
@@ -157,7 +194,39 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
             });
             if (myExtensions.length == 0) // all extensions full
             {
-                if (!pTask.aCreep.pos.isEqualTo(pTask.aExtensionBay.pos))
+                var myRoomLabs = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.lab);
+                var myLabs = _.filter(myRoomLabs, (aLab) =>
+                {
+                    //logDERP('a= '+aSpawn.isEnergyNeeded()+' b= '+aSpawn.pos.isNearTo(pTask.aCreep))
+                    return aLab.energy < aLab.energyCapacity && aLab.pos.getRangeTo(pTask.aExtensionBay) <= 2;
+                })
+
+                var myRoomSpawns = pTask.aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
+                var mySpawns = _.filter(myRoomSpawns, (aSpawn) =>
+                {
+                    //logDERP('a= '+aSpawn.isEnergyNeeded()+' b= '+aSpawn.pos.isNearTo(pTask.aCreep))
+                    return aSpawn.isEnergyNeeded() && aSpawn.pos.getRangeTo(pTask.aExtensionBay) <= 2;
+                })
+
+                if (myLabs.length > 0)
+                {
+                    logDERP('EXTENDSION: lab move');
+                    var aLab = myLabs[0];
+                    if (!pTask.aCreep.pos.isNearTo(aLab))
+                    {
+                        pTask.aMove  = aLab;
+                    }
+                }
+                else if (mySpawns.length > 0)
+                {
+                    logDERP('EXTENDSION: spawn move');
+                    var aSpawn = mySpawns[0];
+                    if (!pTask.aCreep.pos.isNearTo(aSpawn))
+                    {
+                        pTask.aMove  = aSpawn;
+                    }
+                }
+                else if (!pTask.aCreep.pos.isEqualTo(pTask.aExtensionBay.pos))
                 {
                     pTask.aMove = pTask.aExtensionBay;
                 }

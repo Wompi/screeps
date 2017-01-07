@@ -33,23 +33,32 @@ class SupplierRole extends require('role.creep.AbstractRole')
         var mySuppliers = this.findSupplierTargets(aRoom);
         var aTower = this.processTowerSupply(aRoom,pCreep);
 
-        if (pCreep.pos.isNearTo(aSpawn) && aSpawn.isEnergyNeeded())
+        var ignore = true;
+        if (!_.isUndefined(aSpawn))
         {
-            var result = pCreep.transfer(aSpawn,RESOURCE_ENERGY);
-            logDEBUG('SUPPLIER '+pCreep.name+' transfers ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] ... '+ErrorSting(result));
-        }
+            if (pCreep.pos.inRangeTo(aSpawn,3))
+            {
+                ignore = false;
+            }
 
-        if (!aSpawn.spawning && pCreep.pos.isNearTo(aSpawn) && (pCreep.getLiveRenewTicks() > 0))
-        {
-            logDEBUG('SUPPLIER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+']');
-            return;
-        }
+            if (pCreep.pos.isNearTo(aSpawn) && aSpawn.isEnergyNeeded())
+            {
+                var result = pCreep.transfer(aSpawn,RESOURCE_ENERGY);
+                logDEBUG('SUPPLIER '+pCreep.name+' transfers ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] ... '+ErrorSting(result));
+            }
 
-        if (pCreep.ticksToLive < 100 )
-        {
-            var result = pCreep.moveTo(aSpawn,{ignoreCreeps: true});
-            logDEBUG('SUPPLIER '+pCreep.name+' back to spawn ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] for emergency repair ... '+ErrorSting(result));
-            return;
+            if (!aSpawn.spawning && pCreep.pos.isNearTo(aSpawn) && (pCreep.getLiveRenewTicks() > 0))
+            {
+                logDEBUG('SUPPLIER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+']');
+                return;
+            }
+
+            if (pCreep.ticksToLive < 100 )
+            {
+                var result = pCreep.moveTo(aSpawn,{ignoreCreeps: ignore});
+                logDEBUG('SUPPLIER '+pCreep.name+' back to spawn ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] for emergency repair ... '+ErrorSting(result));
+                return;
+            }
         }
 
         //
@@ -77,6 +86,19 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 //logDERP('SUPPLIER - adjustment to  ----OUT---- box list because all other boxes are full ...');
                 aNextOUT = aRoom.storage;
             }
+            else if (!_.isUndefined(aNextOUT))
+            {
+                if (aNextOUT != aRoom.storage)
+                {
+                    var myCreeps = _.min(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep), (aCreep) =>
+                    {
+                        return aCreep.pos.getRangeTo(aNextOUT) && _.sum(aCreep.carry) == 0;
+                    })
+
+
+                    aNextOUT.registerHauler(myCreeps[0]);
+                }
+            }
 
             if (_.isUndefined(aNextOUT))
             {
@@ -94,7 +116,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
                 if (!pCreep.pos.isEqualTo(aPos))
                 {
-                    var result = pCreep.moveTo(aPos,{ignoreCreeps: true});
+                    var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
                     logDEBUG('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
                 }
 
@@ -103,7 +125,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
             if (!pCreep.pos.isNearTo(aNextOUT))
             {
-                var result = pCreep.moveTo(aNextOUT,{ignoreCreeps: true,range:1});
+                var result = pCreep.moveTo(aNextOUT,{ignoreCreeps: ignore,range:1});
                 logDEBUG('SUPPLIER '+pCreep.name+' moves to next grab box ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
             }
 
@@ -125,7 +147,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
         {
             if (!pCreep.pos.isNearTo(aTower))
             {
-                var result = pCreep.moveTo(aTower,{ignoreCreeps: true});
+                var result = pCreep.moveTo(aTower,{ignoreCreeps: ignore});
                 logDEBUG('SUPPLIER moves to resupply tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
             }
             else
@@ -141,7 +163,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
             {
                 if (!pCreep.pos.isNearTo(aStorage))
                 {
-                    var result = pCreep.moveTo(aStorage,{ignoreCreeps: true,range:1});
+                    var result = pCreep.moveTo(aStorage,{ignoreCreeps: ignore,range:1});
                     logDEBUG('SUPPLIER '+pCreep.name+' moves to storage  .. '+ErrorSting(result));
                 }
 
@@ -191,7 +213,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                     var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
                     if (!pCreep.pos.isEqualTo(aPos))
                     {
-                        var result = pCreep.moveTo(aPos,{ignoreCreeps: true});
+                        var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
                         logDERP('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
                     }
                     return;
@@ -199,7 +221,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
                 if (!pCreep.pos.isNearTo(aNextIN))
                 {
-                    var result = pCreep.moveTo(aNextIN,{ignoreCreeps: true,range:1});
+                    var result = pCreep.moveTo(aNextIN,{ignoreCreeps: ignore,range:1});
                     logDEBUG('SUPPLIER '+pCreep.name+' moves to next drop box ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
                 }
 
@@ -261,7 +283,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
         else
         {
             myIN = _.filter(myRoomContainers, (a) => { return a.isIN() }).reverse();
-            myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT()});
+            myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT() && _.isUndefined(a.myHauler)});
         }
 
         if (myExtensionbays.length > 0)
@@ -286,7 +308,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 {
                     _.forEach(myRoomController, (aController) =>
                     {
-                        if (aController.pos.inRangeTo(aLink,3))
+                        if (aController.pos.inRangeTo(aLink,4))
                         {
                             result = false;
                         }

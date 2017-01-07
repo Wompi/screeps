@@ -1,6 +1,6 @@
 class Formulas
 {
-    constructore()
+    constructor()
     {
 
     }
@@ -49,7 +49,18 @@ class Formulas
 
     }
 
-
+    // B = 2*A;
+    // C = (A+B) / 2
+    // E = A * 100 * B * 50 + C * 50;
+    calcBuilder(pRoom)
+    {
+        var MY_ENERGY = pRoom.energyCapacityAvailable;
+        var aMax = ( 50 * 2 ) / 9
+        var aWork = _.floor(_.min([aMax,MY_ENERGY / 275]));
+        var aCarry = 2*aWork;
+        var aMove = _.ceil((aWork+aCarry)/2);
+        logDERP('BUILDER:('+pRoom.name+') work = '+aWork+' carry = '+aCarry+' move = '+aMove);
+    }
 
     // formula:
     // - B = A/2 (roads)
@@ -101,10 +112,10 @@ class Formulas
         var aMove = new Array(aB).fill(MOVE);
         var aBody = aWork.concat(aMove);
 
-        //var aCost = aWork.length * 100 + aMove.length * 50;
+        var aCost = aWork.length * 100 + aMove.length * 50;
 
         logDERP('aStartPath: '+aStartLength+' aT = '+aT+' aA_wanted = '+aA_wanted+' aA_possible = '+aA_possible+' aA = '+aA+' aBody = '+JSON.stringify(_.countBy(aBody)));
-        //logDERP('enrgyCap: '+MY_ENERGY+' aCost: = '+aCost);
+        logDERP('enrgyCap: '+MY_ENERGY+' aCost: = '+aCost);
         return aBody;
     }
 
@@ -114,96 +125,76 @@ class Formulas
     // - C = A * 50 + B * 50
     // - C = A * 50 + A * 25
     // - C = A * 75  ->     A = C/75
-    calcHauler()
+    // A = aTravelPath.path.length * 2 * aSourceHarvest / 50
+    // E = A * 50 + A/2 * 50 = A * 75
+    calcHauler(pRoom)
     {
-        var aSpawn = Game.spawns['Derpppool'];
-        var aRoom = aSpawn.room;
-        var aSourcePos = new RoomPosition(37,27,aRoom.name);
+        var myRoomSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
+        var myRoomSpawns = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn);
+        var aController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller)[0];
 
-        var aDropPos = new RoomPosition(38,8,aRoom.name);
+        var aBox = aController.myUpgraderBoxes[0];
+        var myExtensionBays = pRoom.myExtensionBays;
 
-        var MY_ENERGY = aRoom.energyAvailable;
 
-        var aSpawnPos = aSpawn.getSpawnPos();
-        if (_.isUndefined(aSpawnPos))
+        var MY_ENERGY = pRoom.energyCapacityAvailable;
+
+        _.forEach(myRoomSources, (aSource) =>
         {
-            return;
-        }
-        var aStartPath = Util.getPath(aSpawnPos,aSourcePos);
-        var aTravelPath = Util.getPath(aSourcePos,aDropPos);
+            var aTravelPath = Util.getPath(aSource.pos,aBox.pos);
 
-        logDERP(' aStartPath: '+aStartPath.path.length);
-        logDERP(' aTravelPath: '+aTravelPath.path.length);
+            var aSourceHarvest = 10 ; // 10 per ticks
+            var aHaulCap_needed = aTravelPath.path.length * 2 * aSourceHarvest;
 
+
+            var aA_possible = _.floor(_.min([50 / 1.5  ,MY_ENERGY / 75]));
+
+            var aA_wanted = _.floor(_.min([50 / 1.5  ,_.ceil(aHaulCap_needed/50)]));
+            logDERP('aTravelPath: '+aTravelPath.path.length+' aHaulCap_needed = '+aHaulCap_needed+' aA_possible = '+aA_possible+' aA_wanted = '+aA_wanted);
+        })
 
     }
 
-
-
+    // - C = A/2 (roads)
+    // - B = 1
+    // - E = A * 100 + B * 50 + C * 50
+    //
+    // - A = (E- 75) / 125
     calcUpgrader(pRoom)
     {
-        var aBody = undefined;
+        var MY_ENERGY = pRoom.energyCapacityAvailable;
+
         var myRoomMiningSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
         var myRoomController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);
         if (myRoomController.length == 0) return undefined;
 
         var aController = myRoomController[0];
-        var aMaintenceCost = pRoom.myMaintenanceCost;
         var isCloseToSpawn = aController.isCloseToSpawn;
-        var MY_ENERGY = pRoom.energyAvailable;
-        // TODO: if we ever use remote mining - count in here the resources for this
-        var aWorkParts = _.max([1,_.ceil((15000 * myRoomMiningSources.length - aMaintenceCost)/ 1500)]); // we maintain at least one workpart for the upgraders
 
-        // a = [1...20]
-        // b = 1
-        // c - (close to spawn) 1 (else) (a+b)/2
-        // energy = a*100 + b*50 + c*50
-        var aWork = 0;
-        var aCarry = 0;
-        var aMove = 0;
-        var aCost = 0;
+        var aCarry_possible = 1;
+        var aWork_possible = _.floor(_.min([ (50 - aCarry)/ 1.5,(MY_ENERGY - 75 ) / 125]));
+        var aMove_possible = isCloseToSpawn ? 1 : _.ceil((aWork_possible) / 2);
 
-        for (var i=1; i<20; i++)
-        {
-            if (isCloseToSpawn)
-            {
-                aWork = _.min([i,aWorkParts]);
-                aCarry = 1;
-                aMove = 1;
-            }
-            else
-            {
-                aWork = _.min([i,aWorkParts]);
-                aCarry = 1;
-                aMove = _.ceil((aWork+aCarry)/2)
-            }
-            aCost = aWork*BODYPART_COST[WORK] + aCarry*BODYPART_COST[CARRY] + aMove*BODYPART_COST[MOVE];
-            if (aCost > MY_ENERGY || aCarry <= 0)
-            {
-                if (isCloseToSpawn)
-                {
-                    aWork = _.min([i-1,aWorkParts]);
-                    aCarry = 1;
-                    aMove = 1;
-                }
-                else
-                {
-                    aWork = _.min([i-1,aWorkParts]);
-                    aCarry = 1;
-                    aMove = _.ceil((aWork+aCarry)/2)
-                }
-                aCost = aWork*BODYPART_COST[WORK] + aCarry*BODYPART_COST[CARRY] + aMove*BODYPART_COST[MOVE];
-                break;
-            }
-        }
-        if (aWork == 0 || aCarry == 0 || aMove == 0) return undefined;
+        var aMaintenceCost = pRoom.myMaintenanceCost;
+        var aWork_wanted = _.max([1,_.ceil((15000 * myRoomMiningSources.length - aMaintenceCost)/ 1500)]); // we maintain at least one workpart for the upgraders
+        aWork_wanted = _.floor(_.min([ (50 - aCarry)/ 1.5,aWork_wanted]));
 
+        var aCarry_wanted = 1;
+        var aMove_wanted = isCloseToSpawn ? 1 : _.ceil((aWork_wanted) / 2);
 
-        logDERP('aWorkParts = '+aWorkParts+' aWork = '+aWork+' aCarry = '+aCarry+' aMove = '+aMove+' aCost = '+aCost);
+        var aCount = _.floor(aWork_wanted/aWork_possible);
 
-        return {work: aWork, carry: aCarry, move: aMove, cost: aCost};
+        //logDERP('UPGRADER:('+pRoom.name+') work = '+aWork_possible+'/'+aWork_wanted+' carry = '+aCarry_possible+'/'+aCarry_wanted+' move = '+aMove_possible+'/'+aMove_wanted);
+        //logDERP('COUNT: '+aCount);
+
+        var aWork = _.min([aWork_possible,aWork_wanted]);
+        var aCarry = _.min([aCarry_possible,aCarry_wanted]);
+        var aMove = _.min([aMove_possible,aMove_wanted]);
+
+        var aCost = aWork * BODYPART_COST[WORK] + aCarry * BODYPART_COST[CARRY] + aMove * BODYPART_COST[MOVE];
+
+        return {work: aWork, carry: aCarry, move: aMove, cost: aCost, aCount: aCount};
     }
-
 
 
     // This function calculates the optimal remoteminer when we need to carry as well

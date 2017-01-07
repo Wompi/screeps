@@ -22,16 +22,16 @@ class FixerRole extends require('role.creep.AbstractRole')
         var myRoomResources  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.resource);
         var myRoomLinks  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
         var myRoomExtensions  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.extension);
-        var myRoomTowers  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.tower);
+        //var myRoomTowers  = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.tower);
 
         var myContainers = _.filter(myRoomContainers, (aBox) => { return aBox.store[RESOURCE_ENERGY] > 0 });
         var myLinks = _.filter(myRoomLinks, (aLink) => { return aLink.energy > 0 });
         //var myExtensions = _.filter(myRoomExtensions, (aExtension) => { return aExtension.energy > 0 });
-        var myTowers = _.filter(myRoomTowers, (aTower) => { return aTower.energy > 0 });
+        //var myTowers = _.filter(myRoomTowers, (aTower) => { return aTower.energy > 0 });
 
         _.forEach(myLinks, (aLink) => { myContainers.push(aLink);});
         //_.forEach(myExtensions, (aExtension) => { myContainers.push(aExtension);});
-        _.forEach(myTowers, (aTower) => { myContainers.push(aTower);});
+        //_.forEach(myTowers, (aTower) => { myContainers.push(aTower);});
 
 
         if (!_.isUndefined(aRoom.storage) && aRoom.storage.store[RESOURCE_ENERGY] > 0)
@@ -55,19 +55,22 @@ class FixerRole extends require('role.creep.AbstractRole')
         });
 
         var ignore = true;
-        if (pCreep.pos.inRangeTo(aSpawn,3))
+        if (!_.isUndefined(aSpawn))
         {
-            ignore = false;
-        }
+            if (pCreep.pos.inRangeTo(aSpawn,3))
+            {
+                ignore = false;
+            }
 
-        if (pCreep.pos.isNearTo(aSpawn.pos) && (pCreep.getLiveRenewTicks() > 0))
-        {
-            logDEBUG('FIXER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] .. ');
-            // wait till full repair
+            if (pCreep.pos.isNearTo(aSpawn.pos) && (pCreep.getLiveRenewTicks() > 0))
+            {
+                logDEBUG('FIXER '+pCreep.name+' waites for full repair at ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] .. ');
+                // wait till full repair
 
-            //TODO: consider repairing nearby strucures here aswelll
+                //TODO: consider repairing nearby strucures here aswelll
 
-            return;
+                return;
+            }
         }
 
         if (pCreep.carry.energy == 0 && !pCreep.pos.isNearTo(aCloseContainer.pos))
