@@ -57,10 +57,10 @@ class FixerRole extends require('role.creep.AbstractRole')
         var ignore = true;
         if (!_.isUndefined(aSpawn))
         {
-            if (pCreep.pos.inRangeTo(aSpawn,3))
-            {
-                ignore = false;
-            }
+            // if (pCreep.pos.inRangeTo(aSpawn,3))
+            // {
+            //     ignore = false;
+            // }
 
             if (pCreep.pos.isNearTo(aSpawn.pos) && (pCreep.getLiveRenewTicks() > 0))
             {

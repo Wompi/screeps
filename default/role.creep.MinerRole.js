@@ -256,7 +256,7 @@ class MinerRole extends require('role.creep.AbstractRole')
         });
 
 
-        if ( !(pTask.aSource.hasMiningBox && pTask.aSource.myMiningBoxes[0].store[RESOURCE_ENERGY] > 1000) && myExtensionbays.length > 0 ) return pTask;
+    //    if ( !(pTask.aSource.hasMiningBox && pTask.aSource.myMiningBoxes[0].store[RESOURCE_ENERGY] > 1000) && myExtensionbays.length > 0 ) return pTask;
 
 
         //if (pTask.aRoom.energyAvailable < 500) return pTask;

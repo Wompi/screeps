@@ -6,6 +6,11 @@ var RemoteManager = require('case.controller.RemoteManager');
 
 var TimeLine = require('case.main.TimeLine');
 
+
+var StorageOperation = require('case.operations.storage.Operation');
+var ReactionsHaulerOperation = require('case.operations.reactions.hauler.Operation');
+var RemoteMinerOperation = require('case.operations.remote.mining.Operation');
+
 // test stuff
 var MemoryManager = require('case.MemoryManager');
 
@@ -145,11 +150,22 @@ module.exports.loop = function ()
 
     //runBrawler();
     //runScout();
+
+    var aStorageOperation = new StorageOperation();
+    aStorageOperation.processOperation();
+
+    var aRMO_E65N48 = new RemoteMinerOperation(); // a remote mining operation
+    aRMO_E65N48.processOperation();
+
+    var aRHO_E65N49 = new ReactionsHaulerOperation();
+    aRHO_E65N49.processOperation();
+
     //runOxygenHauler();  // run this when the oxygen room has finished his oxygen mining
     //runOxygenTransfer(); // run this when youhvae transfered the oxygen to the lab room
     runLabHauler(); // run this when oxygen is available in the lab room
     //mineralRelations();
     //runUltriumOxideTransfer();
+    //runUtriumHydrideTransfer()
     //runUOBoostLabHauler();
 };
 
@@ -263,8 +279,11 @@ spawnSourceRelations = function()
     var mySources = [];
     _.forEach(Game.rooms, (aRoom) =>
     {
-        mySources = mySources.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source));
-        mySpawns = mySpawns.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn));
+        if (aRoom.my)
+        {
+            mySources = mySources.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source));
+            mySpawns = mySpawns.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn));
+        }
     })
     for (var i=0; i<mySpawns.length;i++)
     {
@@ -275,9 +294,10 @@ spawnSourceRelations = function()
                 var aMod = (Game.time + (i*mySources.length + j)) % (mySpawns.length*mySources.length);
                 if ( aMod == 0)
                 {
-                   var aPath = Util.getPath(aSource.pos,aSpawn.getSpawnPos());
-                   logDERP('Spawn: ['+i+' '+j+']['+aSpawn.name+'] '+'['+aSource.pos.x+' '+aSource.pos.y+'] - '+aPath.path.length+' incomplete='+aPath.incomplete);
-                   Memory.spawnTest[aSpawn.name][aSource.id] = aPath.path.length;
+                    var aSpawnPos = aSpawn.getSpawnPos();
+                    var aPath = Util.getPath(aSource.pos,(_.isUndefined(aSpawnPos) ? aSpawn.pos : aSpawnPos));
+                    logDERP('Spawn: ['+i+' '+j+']['+aSpawn.name+'] '+'['+aSource.pos.x+' '+aSource.pos.y+'] - '+aPath.path.length+' incomplete='+aPath.incomplete);
+                    Memory.spawnTest[aSpawn.name][aSource.id] = aPath.path.length;
                 }
             }
     }
@@ -308,72 +328,16 @@ runScout = function()
     myScout.moveTo(new RoomPosition(25,25,'E64N49'));
 }
 
-
-runUOBoostLabHauler = function()
-{
-    var myBoostHauler = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'uo boost hauler' })
-    var aTerminal = Game.rooms['E65N49'].terminal;
-    var aSpawn = Game.spawns['Nexus Outpost'];
-    var L1_boost = Game.getObjectById('586c4b1463d011e1364344ae');
-
-    if (_.isUndefined(aTerminal.store[RESOURCE_UTRIUM_OXIDE]) && L1_boost.mineralAmount == L1_boost.mineralCapacity && !_.isUndefined(myBoostHauler) && _.sum(myBoostHauler.carry) == 0)
-    {
-        logDERP('No UtriumOxyde in terminal ...');
-        if (!_.isUndefined(myBoostHauler))
-        {
-            myUOTransfer.suicide();
-        }
-        return;
-    }
-
-    if (_.isUndefined(myBoostHauler))
-    {
-        // 2200 = A * 75
-        var aCarry = 1;
-        var aMove = 1;
-
-        var aC = new Array(aCarry).fill(CARRY);
-        var aM = new Array(aMove).fill(MOVE);
-        aBody = aC.concat(aM);
-
-        var aCost = aCarry * 50 + aMove * 50;
-
-        var result = aSpawn.createCreep(aBody,'UO Boost Hauler',{role: 'uo boost hauler'});
-        logDERP('C:('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
-        return;
-    }
-    else
-    {
-        logDERP('UO boost hauler active ......');
-    }
-    if (myBoostHauler.spawning) return;
-
-    if (_.sum(myBoostHauler.carry) == 0)
-    {
-        if (myBoostHauler.ticksToLive < 10) return; // don't grab anything befor dying
-
-        var aDelta = L1_boost.mineralCapacity - L1_boost.mineralAmount;
-        if (myBoostHauler.withdraw(aTerminal,RESOURCE_UTRIUM_OXIDE,_.min([aDelta,myBoostHauler.carryCapacity])) == ERR_NOT_IN_RANGE)
-        {
-            myBoostHauler.moveTo(aTerminal);
-        }
-    }
-    else
-    {
-        if (myBoostHauler.transfer(L1_boost,RESOURCE_UTRIUM_OXIDE) == ERR_NOT_IN_RANGE)
-        {
-            myBoostHauler.moveTo(L1_boost);
-        }
-    }
-}
-
-
 runLabHauler = function()
 {
     var myLabHauler = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'lab hauler' })
 
     var aStorage = Game.rooms['E66N49'].storage;
     var aSpawn = Game.spawns['Casepool'];
+
+    var LAB_RESOURCE_ONE = RESOURCE_HYDROGEN;
+    var LAB_RESOURCE_TWO = RESOURCE_UTRIUM;
+
 
     if (_.isUndefined(myLabHauler))
     {
@@ -398,6 +362,12 @@ runLabHauler = function()
     if (myLabHauler.spawning) return;
 
     var aMovePos = new RoomPosition(40,6,'E66N49');
+
+    if (!myLabHauler.pos.isEqualTo(aMovePos))
+    {
+        myLabHauler.moveTo(aMovePos);
+    }
+
     var L1 = Game.getObjectById('5867921d862806344b052a98');
     var L2 = Game.getObjectById('584ddf9dc45664f473ab147a');
     var L3 = Game.getObjectById('58670e6d0c5eca9113b48bcb');
@@ -410,10 +380,8 @@ runLabHauler = function()
         if (L1.mineralAmount < L2.mineralAmount)
         {
             var aDelta = _.min([L1.mineralCapacity - L1.mineralAmount,myLabHauler.carryCapacity]);
-            if (myLabHauler.withdraw(aStorage,RESOURCE_OXYGEN,aDelta) == ERR_NOT_IN_RANGE)
-            {
-                myLabHauler.moveTo(aMovePos);
-            }
+            myLabHauler.withdraw(aStorage,LAB_RESOURCE_ONE,aDelta)
+
             if (aDelta == 0)
             {
                 var result = myLabHauler.cancelOrder('withdraw');
@@ -423,10 +391,7 @@ runLabHauler = function()
         else if (L2.mineralAmount < L2.mineralCapacity)
         {
             var aDelta = _.min([L2.mineralCapacity - L2.mineralAmount,myLabHauler.carryCapacity]);
-            if (myLabHauler.withdraw(aStorage,RESOURCE_UTRIUM,aDelta) == ERR_NOT_IN_RANGE)
-            {
-                myLabHauler.moveTo(aMovePos);
-            }
+            myLabHauler.withdraw(aStorage,LAB_RESOURCE_TWO,aDelta) != OK
             if (aDelta == 0)
             {
                 var result = myLabHauler.cancelOrder('withdraw');
@@ -444,24 +409,27 @@ runLabHauler = function()
     }
     else
     {
-        if (!_.isUndefined(myLabHauler.carry[RESOURCE_UTRIUM]))
+        if (!_.isUndefined(myLabHauler.carry[LAB_RESOURCE_TWO]))
         {
-            if (myLabHauler.transfer(L2,RESOURCE_UTRIUM) == ERR_NOT_IN_RANGE)
-            {
-                myLabHauler.moveTo(aMovePos);
-            }
+            myLabHauler.transfer(L2,LAB_RESOURCE_TWO) == ERR_NOT_IN_RANGE
         }
-        else if (!_.isUndefined(myLabHauler.carry[RESOURCE_OXYGEN]))
+        else if (!_.isUndefined(myLabHauler.carry[LAB_RESOURCE_ONE]))
         {
-            if (myLabHauler.transfer(L1,RESOURCE_OXYGEN) == ERR_NOT_IN_RANGE)
-            {
-                myLabHauler.moveTo(aMovePos);
-            }
+            myLabHauler.transfer(L1,LAB_RESOURCE_ONE) == ERR_NOT_IN_RANGE
         }
         else
         {
-            var aReactionType = REACTIONS[L1.mineralType][L2.mineralType];
 
+            var aReactionType = undefined;
+            if (_.isNull(L1.mineralType) || _.isNull(L2.mineralType))
+            {
+                aReactionType = L3.mineralType;
+
+            }
+            else
+            {
+                aReactionType = REACTIONS[L1.mineralType][L2.mineralType];
+            }
 
             var result = myLabHauler.transfer(aStorage,aReactionType);
             logDERP('Lab hauler storage ('+aReactionType+') - '+ErrorSting(result));
@@ -564,67 +532,6 @@ runUltriumOxideTransfer = function()
 
 
 
-runOxygenTransfer = function()
-{
-    var myOxygenTransfer = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'oxygen transfer' })
-
-    var aTerminal = Game.rooms['E66N49'].terminal;
-    var aStorage = Game.rooms['E66N49'].storage;
-
-    if (_.isUndefined(aTerminal.store[RESOURCE_OXYGEN]) && !_.isUndefined(myOxygenTransfer) && _.sum(myOxygenTransfer.carry) == 0)
-    {
-        logDERP('No Oxygen in terminal ...');
-        if (!_.isUndefined(myOxygenTransfer))
-        {
-            myOxygenTransfer.suicide();
-        }
-        return;
-    }
-    var aSpawn = Game.spawns['Casepool'];
-    if (_.isUndefined(myOxygenTransfer))
-    {
-        // 2200 = A * 75
-
-        var aC = new Array(6).fill(CARRY);
-        var aM = new Array(3).fill(MOVE);
-        aBody = aC.concat(aM);
-
-        var aCost = 6 * 50 + 3 * 50;
-
-        var result = aSpawn.createCreep(aBody,'Oxygen Transfer',{role: 'oxygen transfer'});
-        logDERP('C:('+aSpawn.name+') '+aCost+' aCarry = '+6+' aMove = '+3+' result = '+ErrorSting(result));
-        return;
-    }
-    else
-    {
-        logDERP('Oxygen transfer active ......');
-    }
-    if (myOxygenTransfer.spawning) return;
-
-    var aMovePos = new RoomPosition(38,7,'E66N49');
-    if (_.sum(myOxygenTransfer.carry) == 0)
-    {
-        if (!_.isUndefined(aTerminal.store[RESOURCE_OXYGEN]))
-        {
-            if (myOxygenTransfer.withdraw(aTerminal,RESOURCE_OXYGEN) == ERR_NOT_IN_RANGE)
-            {
-                myOxygenTransfer.moveTo(aMovePos);
-            }
-        }
-    }
-    else
-    {
-        if (!_.isUndefined(myOxygenTransfer.carry[RESOURCE_OXYGEN]))
-        {
-            if ((myOxygenTransfer.transfer(aStorage,RESOURCE_OXYGEN) == ERR_NOT_IN_RANGE) || !myOxygenTransfer.pos.isEqualTo(aMovePos))
-            {
-                myOxygenTransfer.moveTo(aMovePos);
-            }
-        }
-    }
-}
-
-
 runOxygenHauler = function()
 {
 
@@ -634,7 +541,7 @@ runOxygenHauler = function()
     var aTerminal = Game.rooms['E66N48'].terminal;
     var aTransactionCost = Game.market.calcTransactionCost(aTerminal.store[RESOURCE_OXYGEN],'E66N48','E66N49')
 
-    if (_.isUndefined(aStorage.store[RESOURCE_OXYGEN]) && aTerminal.store[RESOURCE_ENERGY] >= aTransactionCost)
+    if (_.isUndefined(aStorage.store[RESOURCE_OXYGEN]) && aTerminal.store[RESOURCE_ENERGY] >= aTransactionCost && !_.isUndefined(myOxygenHauler) && _.sum(myOxygenHauler.carry) == 0)
     {
         logDERP('Oxygen ready for transfer ...');
         return;
@@ -647,8 +554,10 @@ runOxygenHauler = function()
         logDERP('E:('+aSpawn.name+') '+MY_ENERGY+' e: '+aSpawn.room.energyAvailable);
 
         // 2200 = A * 75
-        aCarry = _.floor(MY_ENERGY / 75)
-        aMove = _.ceil(aCarry/2);
+        // aCarry = _.floor(MY_ENERGY / 75)
+        // aMove = _.ceil(aCarry/2);
+        var aCarry = 4
+        var aMove = 2
 
         aC = new Array(aCarry).fill(CARRY);
         aM = new Array(aMove).fill(MOVE);

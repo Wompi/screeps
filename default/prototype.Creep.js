@@ -107,7 +107,7 @@ var mod =
          */
         Creep.prototype.override = function() {
             let directions = [8,1,2,3,4,5,6,7];
-            let labels = ['↖','↑','↗','→','↘','↓','↙','←'];
+            let labels = ['â','â','â','â','â','â','â','â'];
             let buttons = directions.map((dir, idx)=>{
                 let id = this.id;
                 let manualCommand = `Game.creeps.${this.name}.move(${dir});`;

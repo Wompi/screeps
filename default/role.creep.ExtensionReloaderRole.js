@@ -87,7 +87,7 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
         })
         if (myLabs.length > 0)
         {
-            logDERP('EXTENDSION: lab fill');
+            logDERP('EXTENSION: lab fill');
             var aLab = myLabs[0];
             var eA = pTask.aCreep.carry.energy;
             var eE =  aLab.energyCapacity - aLab.energy;
@@ -179,7 +179,7 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
     {
         if (_.isUndefined(pTask.aExtensionBay)) return pTask;
 
-        if (!pTask.aCreep.pos.isNearTo(pTask.aExtensionBay) ||  _.sum(pTask.aExtensionBay.store) < pTask.aCreep.carryCapacity )
+        if (!pTask.aCreep.pos.isNearTo(pTask.aExtensionBay) ||  _.sum(pTask.aExtensionBay.store) < pTask.aCreep.carryCapacity || pTask.aExtensionBay.store[RESOURCE_ENERGY] == 0)
         {
             pTask.aMove = pTask.aExtensionBay;
         }
@@ -238,7 +238,11 @@ class ExtensionReloaderRole extends require('role.creep.AbstractRole')
                     var rA = a.pos.getRangeTo(pTask.aCreep);
                     return rA
                 });
-                if (!pTask.aCreep.pos.isNearTo(aNearExtension))
+                if (!pTask.aCreep.pos.isNearTo(aNearExtension) && !pTask.aCreep.pos.isEqualTo(pTask.aExtensionBay))
+                {
+                    pTask.aMove = pTask.aExtensionBay;
+                }
+                else if (!pTask.aCreep.pos.isNearTo(aNearExtension))
                 {
                     pTask.aMove = aNearExtension;
                 }

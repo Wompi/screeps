@@ -11,7 +11,7 @@ var mod =
                 {
                     if (_.isUndefined(this._store) )
                     {
-                        var aCap = this.energy == 0 ? 0 : (this.energyCapacity*0.80);
+                        var aCap = this.energy == 0 ? 0 : (this.energyCapacity*0.50);
 
                         this._store = { [RESOURCE_ENERGY]:aCap};
                     }

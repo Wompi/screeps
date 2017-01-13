@@ -7,11 +7,10 @@ class Utillities
 
     getPath(pos1,pos2)
     {
-        var myPath = PathFinder.search(pos1,pos2,
+        var myPath = PathFinder.search(pos1,{ pos:pos2, range:1 },
         {
             plainCost: 2,
             swampCost: 5,
-            range: 1,
             maxOps: 4000,
             roomCallback: function(roomName)
             {

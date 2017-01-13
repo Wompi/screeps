@@ -42,7 +42,7 @@ class RoomManager
    // - for later consider a sort of linkmanager and handle the flow through needs
    processLinks()
    {
-       var myLinks = this.myRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
+       var myLinks = this.myRoom.getRoomObjects(ROOM_OBJECT_TYPE.link).reverse();
        if (myLinks.length == 0 ) return;
 
        var myProviders = _.filter(myLinks, (a) => { return a.isProvider()});

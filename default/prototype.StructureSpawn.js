@@ -71,12 +71,7 @@ var mod =
                 // TODO: quickfix - upgraders depent on the current room state and should change there
                 // configuration layout acordingly. until the spawn roles can not handle this the spawn will
                 // not repair upgraders here
-                var aCreepRole = aCreep.myRole;
-                if (_.isUndefined(aCreepRole))
-                {
-                    logERROR('StructureSpawn - creep '+aCreep.name+' has no role - FIX THIS!');
-                    continue;
-                }
+
 
                 if (aCreep.pos.isNearTo(this.pos) && (aCreep.getLiveRenewTicks() > 0))
                 {
@@ -86,7 +81,13 @@ var mod =
                         continue;
                     }
 
-                    if (aCreepRole.myName == 'upgrader')
+                    var aCreepRole = aCreep.myRole;
+                    if (_.isUndefined(aCreepRole))
+                    {
+                        logERROR('StructureSpawn - creep '+aCreep.name+' has no role - FIX THIS!');
+                        //continue;
+                    }
+                    else if (aCreepRole.myName == 'upgrader')
                     {
                         logDEBUG('SPAWN '+this.name+' refuse to repair '+aCreep.name+' because he is a upgrader!');
                         continue;

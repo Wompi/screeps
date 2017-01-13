@@ -9,7 +9,7 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
     isSpawnActive()
     {
-        return false;
+        return true;
     }
 
     isSpawnValid(pSpawn)
@@ -33,7 +33,8 @@ class MineralMinerSpawn extends require('spawn.creep.AbstractSpawn')
 
         var aExtractor = myRoomExtractors[0];
         var aMineralSource = myRoomMineralSources[0];
-        if (!_.isUndefined(aMineralSource.ticksToRegeneration) || aMineralSource.mineralType != RESOURCE_OXYGEN) return;
+        if (!_.isUndefined(aMineralSource.ticksToRegeneration))  return;
+        if (!(aMineralSource.mineralType == RESOURCE_OXYGEN ||  aMineralSource.mineralType == RESOURCE_HYDROGEN)) return;
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
         var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});

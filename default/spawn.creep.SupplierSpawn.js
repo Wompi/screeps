@@ -29,7 +29,7 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
         var myRoomSources = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
 
 
-        if (myCreeps.length > myRoomSources.length)
+        if (myCreeps.length >= myRoomSources.length)
         {
             return;
         }
@@ -63,12 +63,12 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
         {
             aBody = [CARRY,CARRY,MOVE];
         }
-        else if (pSpawn.room.energyAvailable >= 750)
-        {
-            var aCarry = new Array(10).fill(CARRY);
-            var aMove = new Array(5).fill(MOVE);
-            aBody = aCarry.concat(aMove)
-        }
+        // else if (pSpawn.room.energyAvailable >= 750)
+        // {
+        //     var aCarry = new Array(10).fill(CARRY);
+        //     var aMove = new Array(5).fill(MOVE);
+        //     aBody = aCarry.concat(aMove)
+        // }
         else if (pSpawn.room.energyAvailable >= 300)
         {
             aBody = [CARRY,CARRY,CARRY,CARRY,MOVE,MOVE];
@@ -92,11 +92,11 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
     spawnNormalCreep(pSpawn)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 300)
+        if (pSpawn.room.energyAvailable >= 750)
         {
             //aBody = [CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
-            var aCarry = new Array(4).fill(CARRY);
-            var aMove = new Array(2).fill(MOVE);
+            var aCarry = new Array(10).fill(CARRY);
+            var aMove = new Array(5).fill(MOVE);
             aBody = aCarry.concat(aMove)
         }
 

@@ -5,9 +5,28 @@ class Market
 
     }
 
-    deal(pID,pAmount)
+    send(pStartRoomName,pEndRoomName,pType,pAmount,pDescription = 'default transfer')
     {
-        var result = Game.market.deal(pID,pAmount,'E66N49');
+        var aStartRoom = Game.rooms[pStartRoomName];
+        var aStartTerminal = aStartRoom.terminal;
+
+        var aTransactionCost = Game.market.calcTransactionCost(aStartTerminal.store[pType],pStartRoomName,pEndRoomName);
+
+        if (aTransactionCost > aStartTerminal.store[RESOURCE_ENERGY])
+        {
+            logDERP('Terminal has not enough ENERGY -> ['+aTransactionCost+'/'+aStartTerminal.store[RESOURCE_ENERGY]);
+            return;
+        }
+
+
+        var result = aStartTerminal.send(pType, pAmount, pEndRoomName, pDescription);
+        logDERP('Transfer '+pStartRoomName+' -> '+pEndRoomName+' type: '+pType+' amount: '+pAmount+' cost: '+aTransactionCost+' result: '+ErrorSting(result));
+    }
+
+
+    deal(pRoomName,pID,pAmount)
+    {
+        var result = Game.market.deal(pID,pAmount,pRoomName);
         logDERP('Deal closed ... '+ErrorSting(result));
     }
 

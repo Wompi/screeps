@@ -36,10 +36,10 @@ class SupplierRole extends require('role.creep.AbstractRole')
         var ignore = true;
         if (!_.isUndefined(aSpawn))
         {
-            if (pCreep.pos.inRangeTo(aSpawn,3))
-            {
-                ignore = false;
-            }
+            // if (pCreep.pos.inRangeTo(aSpawn,3))
+            // {
+            //     ignore = false;
+            // }
 
             if (pCreep.pos.isNearTo(aSpawn) && aSpawn.isEnergyNeeded())
             {
@@ -70,7 +70,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 var aCapacity = pCreep.carryCapacity;
                 var aDelta = _.sum(a.store);
                 var isValid = aDelta >= aCapacity;
-                //logDERP('OUT BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
+                logDERP('OUT BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
 
                 if (isValid && _.isUndefined(aNextOUT)) aNextOUT = a;
                 else if (isValid)
@@ -178,7 +178,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                     var aCapacity = pCreep.carry.energy;
                     var aDelta = a.storeCapacity - _.sum(a.store);
                     var isValid = aDelta >= aCapacity;
-                    //logDERP('IN BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
+                    logDERP('IN BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
 
                     if (isValid && _.isUndefined(aNextIN))
                     {
@@ -282,7 +282,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
         }
         else
         {
-            myIN = _.filter(myRoomContainers, (a) => { return a.isIN() }).reverse();
+            myIN = _.filter(myRoomContainers, (a) => { return a.isIN() });
             myOUT = _.filter(myRoomContainers, (a) => { return a.isOUT() && _.isUndefined(a.myHauler)});
         }
 
