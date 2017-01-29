@@ -1,132 +1,163 @@
+var ReactionsHaulerMemory = require('case.operations.reactions.hauler.Memory');
+
 class ReactionsHaulerOperation
 {
     constructor()
     {
+        this.mRoomName = 'E65N49';
 
+        this.ROLE_NAME = 'boost hauler';
+        this.MIN_REACTION_AMOUNT = 300;
+        this.mSpawnName = 'Nexus Outpost';
+
+        this.mStorage = undefined;
+        this.mCreep = undefined;
+
+        this.mMemory = new ReactionsHaulerMemory(this);
     }
 
     processOperation()
     {
-        this.processE65N49_UH();
+        //var a = Game.cpu.getUsed();
+        this.setHaulerCreep();
+        this.setHaulerStorage();
+        //var b = Game.cpu.getUsed();
+        //logWARN('PROFILE setHaulerCreep(): '+(b-a));
+
+        //var a = Game.cpu.getUsed();
+        this.mMemory.processMemory();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE processMemory(): '+(b-a));
+
+        // var a = Game.cpu.getUsed();
+        this.spawnReactionHauler();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE spawnReactionHauler(): '+(b-a));
+
+
+        // var a = Game.cpu.getUsed();
+        this.processReactionHauler();
+        // var b = Game.cpu.getUsed();
+        // logWARN('PROFILE processReactionHauler(): '+(b-a));
     }
 
-    processE65N49_UH()
+    processReactionHauler()
     {
-        var myBoostHauler = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'uh boost hauler' })
-        var aStorage = Game.rooms['E65N49'].storage;
-        var aSpawn = Game.spawns['Nexus Outpost'];
-        var L1_boost = Game.getObjectById('5877ecd15dc3eff517f28f15');
+        if (_.isUndefined(this.mCreep)) return;
+        if (_.isUndefined(this.mStorage)) return;
 
-        var LAB_REACTION = RESOURCE_UTRIUM_HYDRIDE;
+        logDERP(this.ROLE_NAME+' '+this.mRoomName+' active ......');
 
-        if ((_.isUndefined(aStorage.store[LAB_REACTION]) || L1_boost.mineralAmount == L1_boost.mineralCapacity) && !_.isUndefined(myBoostHauler) && _.sum(myBoostHauler.carry) == 0)
+        if (_.sum(this.mCreep.carry) == 0)
         {
-            logDERP('No UtriumHydride in storage ...');
-            if (!_.isUndefined(myBoostHauler))
+            if (this.mCreep.ticksToLive < 15)
             {
-                myBoostHauler.suicide();
+                // don't grab anything before dying
+                var aIdlePos = new RoomPosition(31,28,this.mRoomName);
+                this.mCreep.moveTo(aIdlePos);
+                return;
             }
-            return;
-        }
 
-        if (_.isUndefined(myBoostHauler))
+            var myReactions = _.filter(this.mMemory.getReactions(), (aReaction) =>
+            {
+                var aLab = Game.getObjectById(this.mMemory.getLabID(aReaction));
+                if (_.isNull(aLab)) return false;
+                var aDelta = aLab.mineralCapacity - aLab.mineralAmount;
+                var aStoreAmount = this.mStorage.store[aReaction];  // check for undefined
+
+                return aDelta > 0 && !_.isUndefined(aStoreAmount);
+            })
+
+            if (_.isEmpty(myReactions))
+            {
+                // all labs full or no reactions in the storage
+                // consider sucide/move to idle/recycle the creep
+                this.moveToIDLEPosition();
+            }
+            else
+            {
+                var aReaction = myReactions[0];
+                var aLab = Game.getObjectById(this.mMemory.getLabID(aReaction));
+                var aDelta = aLab.mineralCapacity - aLab.mineralAmount;
+                var aStorageAmount = this.mStorage.store[aReaction];
+                if (this.mCreep.withdraw(this.mStorage,aReaction,_.min([aDelta,this.mCreep.carryCapacity,aStorageAmount])) == ERR_NOT_IN_RANGE)
+                {
+                    this.mCreep.moveTo(this.mStorage,{ignoreCreeps: true});
+                    logDERP('Grabbing '+this.ROLE_NAME+' '+this.mRoomName+' -> '+aReaction);
+                }
+            }
+        }
+        else
         {
-            // 2200 = A * 75
+            var aType = _.findKey(this.mCreep.carry, (a,b) =>
+            {
+                //logDERP('a = '+JSON.stringify(a)+' b = '+b);
+                return a > 0;
+            });
+
+            var aLab = Game.getObjectById(this.mMemory.getLabID(aType));
+            if (!_.isNull(aLab))
+            {
+                if (this.mCreep.transfer(aLab,aType) == ERR_NOT_IN_RANGE)
+                {
+                    var result = this.mCreep.moveTo(aLab,{ignoreCreeps: true});
+                    logDERP('Hauling '+this.ROLE_NAME+' '+this.mRoomName+' -> '+aType);
+                }
+            }
+            else
+            {
+                logERROR('ReactionHaulerOperation:processReactionHauler() - NO LAB ID - fix this!');
+            }
+        }
+    }
+
+    spawnReactionHauler()
+    {
+        var aSpawn = Game.spawns[this.mSpawnName];
+
+        var aStorageCondition = !_.isUndefined(this.mStorage) && _.filter(this.mMemory.getReactions(), (aReaction) =>
+        {
+            return !_.isUndefined(this.mStorage.store[aReaction]);
+        }).length > 0;
+
+        var aReactionCondition = _.any(this.mMemory.getReactions(), (aReaction) =>
+        {
+            return this.mMemory.getReactionAmount(aReaction) < this.MIN_REACTION_AMOUNT;
+        })
+
+        var aSpawnCondition =      aReactionCondition
+                                && _.isUndefined(this.mCreep)
+                                && !aSpawn.spawning
+                                && aStorageCondition;
+
+        if (aSpawnCondition)
+        {
             var aCarry = 1;
             var aMove = 1;
 
             var aC = new Array(aCarry).fill(CARRY);
             var aM = new Array(aMove).fill(MOVE);
             var aBody = aC.concat(aM);
-
             var aCost = aCarry * 50 + aMove * 50;
-
-            var result = aSpawn.createCreep(aBody,'UH Boost Hauler',{role: 'uh boost hauler'});
-            logDERP('C(UH boost hauler):('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
-            return;
-        }
-        else
-        {
-            logDERP('UH boost hauler active ......');
-        }
-        if (myBoostHauler.spawning) return;
-
-
-        if (_.sum(myBoostHauler.carry) == 0)
-        {
-            if (myBoostHauler.ticksToLive < 50) return; // don't grab anything befor dying
-
-            var aDelta = L1_boost.mineralCapacity - L1_boost.mineralAmount;
-            if (myBoostHauler.withdraw(aStorage,LAB_REACTION,_.min([aDelta,myBoostHauler.carryCapacity])) == ERR_NOT_IN_RANGE)
-            {
-                myBoostHauler.moveTo(aStorage,{ignoreCreeps: true});
-            }
-        }
-        else
-        {
-            if (myBoostHauler.transfer(L1_boost,LAB_REACTION) == ERR_NOT_IN_RANGE)
-            {
-                myBoostHauler.moveTo(L1_boost,{ignoreCreeps: true});
-            }
+            var result = aSpawn.createCreep(aBody,'Boost Hauler',{role: this.ROLE_NAME});
+            logDERP('C(boost hauler):('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
         }
     }
 
-    processE65N49_UO()
+    setHaulerCreep()
     {
-        var myBoostHauler = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'uo boost hauler' })
-        var aTerminal = Game.rooms['E65N49'].terminal;
-        var aSpawn = Game.spawns['Nexus Outpost'];
-        var L1_boost = Game.getObjectById('586c4b1463d011e1364344ae');
+        this.mCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == this.ROLE_NAME });
+    }
 
-        if (_.isUndefined(aTerminal.store[RESOURCE_UTRIUM_OXIDE]) && L1_boost.mineralAmount == L1_boost.mineralCapacity && !_.isUndefined(myBoostHauler) && _.sum(myBoostHauler.carry) == 0)
-        {
-            logDERP('No UtriumOxyde in terminal ...');
-            if (!_.isUndefined(myBoostHauler))
-            {
-                myBoostHauler.suicide();
-            }
-            return;
-        }
+    setHaulerStorage()
+    {
+        this.mStorage = Game.rooms[this.mRoomName].storage;
+    }
 
-        if (_.isUndefined(myBoostHauler))
-        {
-            // 2200 = A * 75
-            var aCarry = 1;
-            var aMove = 1;
-
-            var aC = new Array(aCarry).fill(CARRY);
-            var aM = new Array(aMove).fill(MOVE);
-            aBody = aC.concat(aM);
-
-            var aCost = aCarry * 50 + aMove * 50;
-
-            var result = aSpawn.createCreep(aBody,'UO Boost Hauler',{role: 'uo boost hauler'});
-            logDERP('C:('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
-            return;
-        }
-        else
-        {
-            logDERP('UO boost hauler active ......');
-        }
-        if (myBoostHauler.spawning) return;
-
-        if (_.sum(myBoostHauler.carry) == 0)
-        {
-            if (myBoostHauler.ticksToLive < 10) return; // don't grab anything befor dying
-
-            var aDelta = L1_boost.mineralCapacity - L1_boost.mineralAmount;
-            if (myBoostHauler.withdraw(aTerminal,RESOURCE_UTRIUM_OXIDE,_.min([aDelta,myBoostHauler.carryCapacity])) == ERR_NOT_IN_RANGE)
-            {
-                myBoostHauler.moveTo(aTerminal);
-            }
-        }
-        else
-        {
-            if (myBoostHauler.transfer(L1_boost,RESOURCE_UTRIUM_OXIDE) == ERR_NOT_IN_RANGE)
-            {
-                myBoostHauler.moveTo(L1_boost);
-            }
-        }
+    moveToIDLEPosition()
+    {
+        var aIdlePos = new RoomPosition(31,28,this.mRoomName);
+        this.mCreep.moveTo(aIdlePos);
     }
 }
 module.exports = ReactionsHaulerOperation;

@@ -5,13 +5,24 @@ class RemoteMiningClaimer
         this.mOperation = pOperation;
     }
 
+    processRetreat(pRoomName)
+    {
+
+    }
+
     // spawn a claimer when the room is below 5k controller level
     // travel: 51 from spawn to controller
     process(pRoomName)
     {
         var myCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'remote claimer '+pRoomName})
 
-        if (this.mOperation.mControllerReserveTime >= 4500)
+        if (!this.mOperation.isSecure)
+        {
+            this.retreat(myCreep);
+            return;
+        }
+
+        if (this.mOperation.mControllerReserveTime >= 4500 && _.isUndefined(myCreep))
         {
             logDERP('Max reservation for room '+pRoomName);
             return;
@@ -41,7 +52,8 @@ class RemoteMiningClaimer
 
         if (!myCreep.pos.isNearTo(this.mOperation.mControllerPos))
         {
-            myCreep.moveTo(this.mOperation.mControllerPos);
+            // myCreep.moveTo(this.mOperation.mControllerPos,{ignoreCreeps: true});
+            myCreep.travelTo({pos:this.mOperation.mControllerPos});
         }
         else
         {
@@ -49,6 +61,15 @@ class RemoteMiningClaimer
             var aController = aRoom.controller;
             myCreep.reserveController(aController);
         }
+    }
+
+    retreat(pCreep)
+    {
+        if (_.isUndefined(pCreep)) return;
+
+        var aPos = new RoomPosition(25,44,'E65N49');
+        //pCreep.moveTo(aPos,{ignoreCreeps: true});
+        pCreep.moveTo({pos:aPos});
     }
 }
 module.exports = RemoteMiningClaimer;

@@ -40,6 +40,10 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
             this.spawnEmergencyCreep(pSpawn);
             return
         }
+        else if (aRoom.controller.level < 6)
+        {
+            this.spawnMultiCreep(pSpawn,aRoom,myCreeps);
+        }
         else
         {
             // TODO: implement a real miner spawn here
@@ -49,20 +53,52 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
         logDERP(' ---------------- UPGRADER SPAWN -----------------');
     }
 
+    spawnMultiCreep(pSpawn,pRoom, pMyCreeps)
+    {
+        if (pSpawn.room.energyAvailable < 300) return;
+        var aUpgraderConfig = Formula.calcUpgrader(pRoom);
+        if (_.isUndefined(aUpgraderConfig)) return;
+
+
+        if (pMyCreeps.length > _.min([2,aUpgraderConfig.aCount]))
+        {
+            return;
+        }
+        var workArr = new Array(aUpgraderConfig.work).fill(WORK);
+        var carryArr = new Array(aUpgraderConfig.carry).fill(CARRY);
+        var moveArr = new Array(aUpgraderConfig.move).fill(MOVE);
+
+
+        var aBody = workArr.concat(carryArr).concat(moveArr);
+
+        var result = pSpawn.createCreep(aBody,undefined,{ role: 'upgrader'});
+        if (typeof result === 'string')
+        {
+            logWARN('UPGRADER '+result+' is spawning .. '+ErrorSting(result));
+            Game.creeps[result].init();
+        }
+        else
+        {
+            logERROR('UPGRADER something fishy with creep creation .. '+ErrorSting(result));
+        }
+    }
+
+
     spawnNormalCreep(pSpawn,pRoom, pMyCreeps)
     {
         if (pSpawn.room.energyAvailable < 300) return;
         var aUpgraderConfig = Formula.calcUpgrader(pRoom);
         if (_.isUndefined(aUpgraderConfig)) return;
 
-        if (pMyCreeps.length > _.min([4,aUpgraderConfig.aCount]))
+
+        if (pMyCreeps.length > _.min([0,aUpgraderConfig.aCount]))
         {
             return;
         }
-
         var workArr = new Array(aUpgraderConfig.work).fill(WORK);
         var carryArr = new Array(aUpgraderConfig.carry).fill(CARRY);
         var moveArr = new Array(aUpgraderConfig.move).fill(MOVE);
+
 
         var aBody = workArr.concat(carryArr).concat(moveArr);
 

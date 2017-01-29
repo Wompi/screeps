@@ -51,7 +51,7 @@ class UpgraderRole extends require('role.creep.AbstractRole')
 
         if (!_.isUndefined(myTask.aMove))
         {
-            var result = pCreep.moveTo(myTask.aMove,{ignoreCreeps: true});
+            var result = pCreep.travelTo({pos:myTask.aMove});
             logDEBUG('UPGRADER '+myTask.aCreep.name+' moves to pos ['+myTask.aMove.x+' '+myTask.aMove.y+'] .. '+ErrorSting(result));
             myTask.aCreep.memory.travelTime = myTask.aCreep.memory.travelTime + 1;
         }
@@ -94,7 +94,18 @@ class UpgraderRole extends require('role.creep.AbstractRole')
         var eA =_.sum(pTask.aCreep.carry) ;
         if (eA < uA)
         {
-            pTask = this.checkBoxWithdrawTarget(pTask,1000);
+
+            // pTask = this.checkLinkWithdrawTarget(pTask);
+            // if (_.isUndefined(pTask.aWithdraw.aTarget))
+            // {
+            //     // TODO: rethink this .. if the box is under the first limit and the link is emptySpots
+            //     // use the box with no limit ...
+            //     // if (_.isUndefined(pTask.aWithdraw.aTarget))
+            //     // {
+            //         pTask = this.checkBoxWithdrawTarget(pTask,0);
+            //     // }
+            // }
+            pTask = this.checkBoxWithdrawTarget(pTask,500);
             if (_.isUndefined(pTask.aWithdraw.aTarget))
             {
                 pTask = this.checkLinkWithdrawTarget(pTask);
@@ -237,31 +248,36 @@ class UpgraderRole extends require('role.creep.AbstractRole')
         {
             // TODO: for this time I only handle upgrades with controller box
             // consider for later tojust update the pos and the upgrader might be filled with links
-            return { aBox: undefined, aPos: undefined};
+            var aPos = undefined;
+            if (pRoom.name == 'E65N49')
+            {
+                aPos = new RoomPosition(14,10,pRoom.name);
+            }
+            return { aBox: undefined, aPos: aPos};
         }
 
         var aLook = aControllerBox.pos.lookFor(LOOK_CREEPS);
 
         var aPossiblePos = aControllerBox.pos;
-        if (aLook.length > 0)
-        {
-            var dX = [ 1, 1, 0,-1,-1,-1];
-            var dY = [ 0, 1, 1, 1, 0,-1];
-
-            var result = [];
-            for (var i=0; i<dX.length; i++)
-            {
-                var nX = aControllerBox.pos.x+dX[i];
-                var nY = aControllerBox.pos.y+dY[i];
-                var derp = new RoomPosition(nX,nY,pRoom.name);
-
-                if (derp.lookFor(LOOK_CREEPS).length == 0)
-                {
-                    aPossiblePos = derp;
-                    break;
-                }
-            };
-        }
+        // if (aLook.length > 0)
+        // {
+        //     var dX = [ 1, 1, 0,-1,-1,-1];
+        //     var dY = [ 0, 1, 1, 1, 0,-1];
+        //
+        //     var result = [];
+        //     for (var i=0; i<dX.length; i++)
+        //     {
+        //         var nX = aControllerBox.pos.x+dX[i];
+        //         var nY = aControllerBox.pos.y+dY[i];
+        //         var derp = new RoomPosition(nX,nY,pRoom.name);
+        //
+        //         if (derp.lookFor(LOOK_CREEPS).length == 0)
+        //         {
+        //             aPossiblePos = derp;
+        //             break;
+        //         }
+        //     };
+        // }
 
 
         var myRoomSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
@@ -270,32 +286,33 @@ class UpgraderRole extends require('role.creep.AbstractRole')
 
 
         var result = { aBox: aControllerBox, aPos: aPossiblePos }
-        _.forEach(myMiningBoxes, (a) =>
-        {
-            // TODO: uncomment this if the road is build in E66
-            if (a.pos.isEqualTo(aControllerBox))
-            {
-                var nearPositions = findAdjacentWalkablePositions(aControllerBox.pos);
-
-                var aNearPos = _.min(nearPositions, (a) =>
-                {
-
-                    var aLook = a.look();
-                    var aLookTypes = _.countBy(aLook,'type');
-                    delete aLookTypes['creep'];
-                    //logDERP(' pos ['+a.x+' '+a.y+'] ');
-                    //logDERP(' pos ['+a.x+' '+a.y+'] ');
-                    //logDERP(JSON.stringify(aLookTypes));
-                    //logDERP('----- BLARK ----- ' +JSON.stringify(a)+' RANGE: '+a.getRangeTo(pController)+' look: '+ (_.keys(aLookTypes).length)   );
-
-                    // TODO: weonly search for spots with no structures on it ... this can be tricky later
-                    // if we have no spot ... then change this
-                    if (_.keys(aLookTypes).length != 1) return MAX_ROOM_RANGE;
-                    return a.getRangeTo(pController);
-                });
-                result.aPos = aNearPos;
-            }
-        });
+        // _.forEach(myMiningBoxes, (a) =>
+        // {
+        //
+        //     // TODO: uncomment this if the road is build in E66
+        //     // if (a.pos.isEqualTo(aControllerBox))
+        //     // {
+        //     //     var nearPositions = findAdjacentWalkablePositions(aControllerBox.pos);
+        //     //
+        //     //     var aNearPos = _.min(nearPositions, (a) =>
+        //     //     {
+        //     //
+        //     //         var aLook = a.look();
+        //     //         var aLookTypes = _.countBy(aLook,'type');
+        //     //         delete aLookTypes['creep'];
+        //     //         //logDERP(' pos ['+a.x+' '+a.y+'] ');
+        //     //         //logDERP(' pos ['+a.x+' '+a.y+'] ');
+        //     //         //logDERP(JSON.stringify(aLookTypes));
+        //     //         //logDERP('----- BLARK ----- ' +JSON.stringify(a)+' RANGE: '+a.getRangeTo(pController)+' look: '+ (_.keys(aLookTypes).length)   );
+        //     //
+        //     //         // TODO: weonly search for spots with no structures on it ... this can be tricky later
+        //     //         // if we have no spot ... then change this
+        //     //         if (_.keys(aLookTypes).length != 1) return MAX_ROOM_RANGE;
+        //     //         return a.getRangeTo(pController);
+        //     //     });
+        //     //     result.aPos = aNearPos;
+        //     // }
+        // });
         return result;
     }
 }

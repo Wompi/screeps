@@ -573,12 +573,27 @@ class CaseConsole
         console.log(dye(CRAYON.birth,'INFO: AvailableEnergy '+Game.rooms[roomName].energyAvailable+'/'+Game.rooms[roomName].energyCapacityAvailable+' in room '+roomName));
     }
 
+    clearMemory()
+    {
+        for (var aID in Memory.rooms)
+        {
+            //var myInvaders = Memory.rooms[ID].invaders
+            //if (_.isUndefined(myInvaders))
+            //{
+                delete Memory.rooms[aID].invaders
+            //}
+        }
+    }
+
     clearAllFlags()
     {
         for ( var flagID in Game.flags)
         {
             var myFlag = Game.flags[flagID];
-            myFlag.remove();
+            if (myFlag.color == COLOR_YELLOW && myFlag.secondaryColor == COLOR_YELLOW)
+            {
+                myFlag.remove();
+            }
         }
     }
 };

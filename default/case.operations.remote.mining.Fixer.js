@@ -7,7 +7,7 @@ class RemoteMiningFixer
 
     processRetreat(pRoomName)
     {
-        
+
     }
 
 
@@ -15,6 +15,12 @@ class RemoteMiningFixer
     process(pRoomName)
     {
         var myCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'remote fixer '+pRoomName})
+
+        if (!this.mOperation.isSecure)
+        {
+            this.retreat(myCreep);
+            return;
+        }
 
         var aSpawn = Game.spawns['Nexuspool'];
         if (_.isUndefined(myCreep))
@@ -39,7 +45,7 @@ class RemoteMiningFixer
             };
             //var result = 0;
             var result = aSpawn.createCreep(aBody,'RF '+pRoomName,aMem);
-            logDERP('C(rmote fixer):('+aSpawn.name+') '+aCost+' aWork = '+aWork+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
+            logDERP('C(remote fixer):('+aSpawn.name+') '+aCost+' aWork = '+aWork+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
             return;
         }
         else
@@ -51,7 +57,8 @@ class RemoteMiningFixer
         // emergency maintenance
         if (myCreep.ticksToLive < 100)
         {
-            myCreep.moveTo(aSpawn);
+//            myCreep.moveTo(aSpawn);
+            myCreep.travelTo(aSpawn);
             return;
         }
         if (myCreep.pos.isNearTo(aSpawn) && myCreep.getLiveRenewTicks() > 0)
@@ -64,7 +71,8 @@ class RemoteMiningFixer
             var aStorage = Game.rooms['E65N49'].storage;
             if (!myCreep.pos.isNearTo(aStorage))
             {
-                myCreep.moveTo(aStorage);
+//                myCreep.moveTo(aStorage);
+                myCreep.travelTo(aStorage);
             }
             else
             {
@@ -87,13 +95,24 @@ class RemoteMiningFixer
                 if (!_.isUndefined(myRepair))
                 {
                     var result = myCreep.repair(myRepair.repairStructure);
-                    logDERP('FIXER repairs structure at ['+myRepair.emergency+']['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+'] - '+myRepair.repairStructure.structureType+' .. '+ErrorSting(result));
+                    logDEBUG('FIXER repairs structure at ['+myRepair.emergency+']['+myRepair.repairStructure.pos.x+' '+myRepair.repairStructure.pos.y+'] - '+myRepair.repairStructure.structureType+' .. '+ErrorSting(result));
                 }
             }
 
-            var result = myCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,this.mOperation.mRoomName),{ ignoreCreeps: true});
-            logDERP('FIXER moves to target position ['+myTarget.x+' '+myTarget.y+']... '+ErrorSting(result));
+            //var result = myCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,this.mOperation.mRoomName),{ ignoreCreeps: true});
+            var aPos = new RoomPosition(myTarget.x,myTarget.y,this.mOperation.mRoomName);
+            var result = myCreep.travelTo({pos:aPos});
+            logDEBUG('FIXER moves to target position ['+myTarget.x+' '+myTarget.y+']... '+ErrorSting(result));
         }
+    }
+
+    retreat(pCreep)
+    {
+        if (_.isUndefined(pCreep)) return;
+
+        var aPos = new RoomPosition(25,44,'E65N49');
+        pCreep.moveTo(aPos);
+        //pCreep.travelTo(aPos);
     }
 
     getFixerGraph()

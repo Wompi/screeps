@@ -38,5 +38,6 @@ var mod =
     FUNCTION_CALLS_STRUCTURE_TERMINAL: false,
     FUNCTION_CALLS_ROOM_POSITION: false,
     FUNCTION_CALLS_STRUCTURE_LAB: false,
+    FUNCTION_CALLS_STRUCTURE_OBSERVER: false,
 }
 module.exports = mod;

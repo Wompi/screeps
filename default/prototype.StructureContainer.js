@@ -4,6 +4,18 @@ var mod =
     {
         Object.defineProperties(StructureContainer.prototype,
         {
+            'energy':
+            {
+                configurable: true,
+                get: function ()
+                {
+                    if (!this._energy)
+                    {
+                        this._energy = this.store[RESOURCE_ENERGY];
+                    }
+                    return this._energy;
+                }
+            },
         });
 
         StructureContainer.prototype.getFillRatio = function()
@@ -153,6 +165,7 @@ var mod =
         StructureContainer.prototype.init = function()
         {
             delete this._isOutBox;
+            delete this._energy;
 
             if (FUNCTION_CALLS_STRUCTURE_CONTAINER)
             {

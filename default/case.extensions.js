@@ -22,6 +22,7 @@ var mod =
         require('prototype.StructureExtractor').extend();
         require('prototype.StructureTerminal').extend();
         require('prototype.RoomPosition').extend();
+        require('prototype.StructureObserver').extend();
     }
 };
 module.exports = mod;

@@ -15,7 +15,19 @@ var mod =
                     }
                     return this._neededEnergyReserve
                 }
-            }
+            },
+            'energy':
+            {
+                configurable: true,
+                get: function ()
+                {
+                    if (!this._energy)
+                    {
+                        this._energy = this.store[RESOURCE_ENERGY];
+                    }
+                    return this._energy;
+                }
+            },
         });
 
 
@@ -58,6 +70,7 @@ var mod =
         StructureStorage.prototype.init = function()
         {
             delete this._neededEnergyReserve;
+            delete this._energy;
 
             if (FUNCTION_CALLS_STRUCTURE_STORAGE)
             {

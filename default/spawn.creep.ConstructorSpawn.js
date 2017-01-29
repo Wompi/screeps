@@ -21,7 +21,8 @@ class ConstructorSpawn extends require('spawn.creep.AbstractSpawn')
         var myRoomCreeps = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);
 
         var myRole = new CREEP_ROLE[this.myName].role(this.myName);
-        var myCreeps = _.filter(myRoomCreeps,(a) => { return a.myRole.myName == myRole.myName});
+        var myCreeps = _.filter(myRoomCreeps,(a) => { return a.memory.role == 'builder'});
+
 
         if (myCreeps.length > 0)
         {
@@ -31,10 +32,13 @@ class ConstructorSpawn extends require('spawn.creep.AbstractSpawn')
 
 
         var myRoomConstructionSites = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.constructionSite);
+        logDERP('BUILDER DERP '+myRoomConstructionSites.length)
         if (myRoomConstructionSites.length == 0) return;
 
         var myFlagNames = (Flag.findName(Flag.FLAG_COLOR.construction.primaryConstruction,aRoom));
         var myAllFlags = myFlagNames.concat(Flag.findName(Flag.FLAG_COLOR.construction,aRoom));
+
+        logDERP('BUILDER DERP')
         if (myAllFlags.length == 0 )
         {
             logERROR('CONSTRUCTOR SPAWN '+aRoom.name+' has construction sites but NO FLAGS .. place some to start!');
@@ -47,51 +51,15 @@ class ConstructorSpawn extends require('spawn.creep.AbstractSpawn')
             return;
         }
 
-        if(pSpawn.room.controller.level < 6)
-        {
-            this.spawnCalculatedCreep(pSpawn);
-        }
-        else
-        {
-            // TODO: implement a real miner spawn here
-            this.spawnNormalCreep(pSpawn);
-        }
+        this.spawnCalculatedCreep(pSpawn);
+
     }
 
     spawnCalculatedCreep(pSpawn)
     {
         if (pSpawn.room.energyAvailable < 300) return;
-        var aBody = undefined;
-        // if (pSpawn.room.energyAvailable >= 550)
-        // {
-        //     aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
-        // }
-        if (pSpawn.room.energyAvailable >= 300)
-        {
-            aBody = [WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
-            //aBody = [WORK,CARRY,CARRY,MOVE,MOVE];
-        }
-        if (_.isUndefined(aBody)) return;
 
-        var result = pSpawn.createCreep(aBody,undefined,{ role: 'builder'});
-        if (typeof result === 'string')
-        {
-            logWARN('New CONSTRUCTOR Creep '+result+' .. '+ErrorSting(result));
-            Game.creeps[result].init();
-        }
-        else
-        {
-            logERROR('Something fishy with CONSTRUCTOR creep creation .. ');
-        }
-    }
-
-    spawnNormalCreep(pSpawn)
-    {
-        var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 1050)
-        {
-            aBody = [WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE];
-        }
+        var aBody = Formula.calcBuilder(pSpawn.room);
         if (_.isUndefined(aBody)) return;
 
         var result = pSpawn.createCreep(aBody,undefined,{ role: 'builder'});

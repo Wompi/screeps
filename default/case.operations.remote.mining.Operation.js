@@ -1,6 +1,11 @@
 
 var RemoteMiningClaimer = require('case.operations.remote.mining.Claimer');
 var RemoteMiningFixer = require('case.operations.remote.mining.Fixer');
+var RemoteMiningHauler_ONE = require('case.operations.remote.mining.Hauler_ONE');
+var RemoteMiningHauler_TWO = require('case.operations.remote.mining.Hauler_TWO');
+var RemoteMiningMiner_ONE = require('case.operations.remote.mining.Miner_ONE');
+var RemoteMiningMiner_TWO = require('case.operations.remote.mining.Miner_TWO');
+var RemoteMiningDefender = require('case.operations.remote.mining.Defender');
 
 class RemoteMiningOperation
 {
@@ -18,17 +23,28 @@ class RemoteMiningOperation
 
         this.aClaimer = new RemoteMiningClaimer(this);
         this.aFixer = new RemoteMiningFixer(this);
+        this.aHauler_ONE = new RemoteMiningHauler_ONE(this);
+        this.aHauler_TWO = new RemoteMiningHauler_TWO(this);
+        this.aMiner_ONE = new RemoteMiningMiner_ONE(this);
+        this.aMiner_TWO = new RemoteMiningMiner_TWO(this);
+        this.aDefender = new RemoteMiningDefender(this);
+
+        this.isSecure = Memory.operations.remote.mining[this.mRoomName].isSecure;
     }
 
     processOperation()
     {
         this.aClaimer.process(this.mRoomName);
         this.aFixer.process(this.mRoomName);
+        this.aMiner_ONE.process(this.mRoomName);
+        this.aMiner_TWO.process(this.mRoomName);
+        this.aHauler_ONE.process(this.mRoomName);
+        this.aHauler_TWO.process(this.mRoomName);
+        this.aDefender.process(this.mRoomName);
     }
 
     processStatistics(pRoomName)
     {
-
         if (_.isUndefined(Memory.operations.remote))
         {
             Memory.operations.remote = {};
@@ -53,9 +69,13 @@ class RemoteMiningOperation
                 },
                 invaders:
                 {
-                    lastInvaders: undefined,
+                    lastInvaders: [],
                     lastInvaderTimeout: 0,
-                    invaderHistory: [],
+                    invaderHistory: {},
+                },
+                source:
+                {
+                    amountSinceInvader: 0,
                 },
                 isSecure: false,
                 lastVisit: 0,
@@ -67,7 +87,8 @@ class RemoteMiningOperation
         if (_.isUndefined(aRoom))
         {
             // not visible
-            logDERP('DERP not exists: '+JSON.stringify(aRoom));
+            logDERP('DERP not exists: '+JSON.stringify(pRoomName));
+            logDERP('REMOTE: '+this.isSecure);
         }
         else
         {
@@ -100,7 +121,7 @@ class RemoteMiningOperation
                 // logDERP('PATH('+aLen+'): '+JSON.stringify(aPath));
             }
 
-
+            var aTicks = _.isUndefined(aController.reservation) ? 0 : aController.reservation.ticksToEnd;
 
             // controller memory
             Memory.operations.remote.mining[pRoomName].controller =
@@ -108,75 +129,45 @@ class RemoteMiningOperation
                 id: aController.id,
                 x: aController.pos.x,
                 y: aController.pos.y,
-                reservationTime: Game.time + aController.reservation.ticksToEnd,
+                reservationTime: Game.time + aTicks,
                 travelDistance: aLen,
             }
 
-
             // invader memory
+            var myInvaders = aRoom.find(FIND_HOSTILE_CREEPS);
 
             var aInvaderHistory = Memory.operations.remote.mining[pRoomName].invaders.invaderHistory;
             if (!_.isEmpty(myInvaders))
             {
                 _.forEach(myInvaders, (aCreep) =>
                 {
-                    var lastCreep = aInvaderHistory[aCreep.id];
-                    if (_.isUndefined(lastCreep))
+                    var aInvader = aInvaderHistory[aCreep.id];
+                    if (_.isUndefined(aInvader))
                     {
                         aInvaderHistory[aCreep.id] = aCreep;
                     }
                 });
-            }
+            };
 
             Memory.operations.remote.mining[pRoomName].invaders =
             {
-                lastInvaders: (_.isEmpty(myInvaders) ? undefined : myInvaders),
-                lastInvaderTimeout: _.isEmpty(myInvaders) ? 0 :  _.max(myInvaders, (aCreep) => { return (aCreep.ticksToLive + Game.time0;});,
+                lastInvaders: (_.isEmpty(myInvaders) ? [] : myInvaders),
+                lastInvaderTimeout: (_.isEmpty(myInvaders) ? 0 :  _.max(myInvaders, (aCreep) => { return (aCreep.ticksToLive + Game.time);})),
                 invaderHistory: aInvaderHistory,
+            };
+
+            if (!_.isEmpty(myInvaders))
+            {
+                Memory.operations.remote.mining[pRoomName].source.amountSinceInvader = 0;
+            }
+            else
+            {
+                logDERP('REMOTE: '+pRoomName+' miningAmount = '+Memory.operations.remote.mining[pRoomName].source.amountSinceInvader);
             }
 
-            // general memory
             Memory.operations.remote.mining[pRoomName].lastVisit = Game.time;
-            Memory.operations.remote.mining[pRoomName.isSecure =  _.isEmpty(myInvaders);
+            Memory.operations.remote.mining[pRoomName].isSecure =  _.isEmpty(myInvaders);
         }
-    }
-
-
-    // if hostiles spotted retreat to the save room until the thread is finished
-    processRetreat()
-    {
-
-    }
-
-    // splitted in sources to see what we need - this is for source 1
-    processMiner_1()
-    {
-
-    }
-
-    // splitted in sources to see what we need - this is for source 2
-    processMiner_2()
-    {
-
-    }
-
-    // splitted in sources to see what we need - this is for miner 1
-    processHauler_1()
-    {
-
-    }
-
-    // splitted in sources to see what we need - this is for miner 2
-    processHauler_2()
-    {
-
-    }
-
-    // if the room has invaders spawn a defender and send him to kill the thread
-    // should have some hauling cappability to collect the remainings
-    processDefender()
-    {
-
     }
 }
 module.exports = RemoteMiningOperation;

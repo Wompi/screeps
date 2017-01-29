@@ -59,7 +59,15 @@ class Formulas
         var aWork = _.floor(_.min([aMax,MY_ENERGY / 275]));
         var aCarry = 2*aWork;
         var aMove = _.ceil((aWork+aCarry)/2);
+
+        var aW = new Array(aWork).fill(WORK);
+        var aC = new Array(aCarry).fill(CARRY);
+        var aM = new Array(aMove).fill(MOVE);
+
+        var aBody = aW.concat(aC).concat(aM);
+
         logDERP('BUILDER:('+pRoom.name+') work = '+aWork+' carry = '+aCarry+' move = '+aMove);
+        return aBody;
     }
 
     // formula:
@@ -166,24 +174,45 @@ class Formulas
 
         var myRoomMiningSources = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
         var myRoomController = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.controller);
+        var aStorage = pRoom.storage;
         if (myRoomController.length == 0) return undefined;
 
         var aController = myRoomController[0];
+        var aControllerLevel = aController.level;
         var isCloseToSpawn = aController.isCloseToSpawn;
 
         var aCarry_possible = 1;
-        var aWork_possible = _.floor(_.min([ (50 - aCarry)/ 1.5,(MY_ENERGY - 75 ) / 125]));
+        var aWork_possible = _.floor(_.min([ (50 - aCarry_possible)/ 1.5,(MY_ENERGY - 75 ) / 125]));
+
+        if (aControllerLevel == 8)
+        {
+            aWork_possible = CONTROLLER_MAX_UPGRADE_PER_TICK;
+        }
+
         var aMove_possible = isCloseToSpawn ? 1 : _.ceil((aWork_possible) / 2);
 
         var aMaintenceCost = pRoom.myMaintenanceCost;
-        var aWork_wanted = _.max([1,_.ceil((15000 * myRoomMiningSources.length - aMaintenceCost)/ 1500)]); // we maintain at least one workpart for the upgraders
-        aWork_wanted = _.floor(_.min([ (50 - aCarry)/ 1.5,aWork_wanted]));
+        var aStorageOverflow = _.isUndefined(aStorage) ? 0 : _.max([0,aStorage.store[RESOURCE_ENERGY] - 50000]);
+        //logDERP('aStorageOverflow = '+aStorageOverflow);
+        var aWork_wanted = _.max([1,_.ceil((15000 * myRoomMiningSources.length + aStorageOverflow - aMaintenceCost)/ 1500)]); // we maintain at least one workpart for the upgraders
 
         var aCarry_wanted = 1;
+
+        aWork_wanted = _.floor(_.min([ (50 - aCarry_wanted)/ 1.5,aWork_wanted]));
+
+        if (aControllerLevel == 8)
+        {
+            aWork_wanted = CONTROLLER_MAX_UPGRADE_PER_TICK;
+        }
+
         var aMove_wanted = isCloseToSpawn ? 1 : _.ceil((aWork_wanted) / 2);
 
         var aCount = _.floor(aWork_wanted/aWork_possible);
 
+        if (aControllerLevel == 8)
+        {
+            aCount = 0;
+        }
         //logDERP('UPGRADER:('+pRoom.name+') work = '+aWork_possible+'/'+aWork_wanted+' carry = '+aCarry_possible+'/'+aCarry_wanted+' move = '+aMove_possible+'/'+aMove_wanted);
         //logDERP('COUNT: '+aCount);
 

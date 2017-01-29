@@ -4,6 +4,18 @@ var mod =
     {
         Object.defineProperties(StructureTerminal.prototype,
         {
+            'energy':
+            {
+                configurable: true,
+                get: function ()
+                {
+                    if (!this._energy)
+                    {
+                        this._energy = this.store[RESOURCE_ENERGY];
+                    }
+                    return this._energy;
+                }
+            },
         });
 
         StructureTerminal.prototype.needResources = function()
@@ -54,6 +66,8 @@ var mod =
 
         StructureTerminal.prototype.init = function()
         {
+            delete this._energy;
+            
             if (FUNCTION_CALLS_STRUCTURE_TERMINAL)
             {
                 logDEBUG('STRUCTURE TERMINAL: init - ['+this.pos.x+' '+this.pos.y+'] ');

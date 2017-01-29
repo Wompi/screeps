@@ -30,7 +30,7 @@ class GameManager
             aSite.init();
             //logERROR('DERP: '+JSON.stringify(aSite));
             var aRoom = aSite.room;
-            if (_.isUndefined(aRoom)) return;
+            if (_.isUndefined(aRoom)) continue;
             aRoom.registerRoomObject(aSite,ROOM_OBJECT_TYPE.constructionSite);
         }
     }

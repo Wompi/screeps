@@ -51,23 +51,23 @@ class RemoteClaimerSpawn extends require('spawn.creep.AbstractSpawn')
         }
         var aFlag = myFlagNames[0];
 
-        var aSpawn = pSpawn;
-        for (var aID in Game.spawns)
-        {
-            var spawn = Game.spawns[aID];
-            if (aFlag.pos.getRangeTo(spawn) < aFlag.pos.getRangeTo(aSpawn))
-            {
-                aSpawn = spawn;
-            }
-        }
+        var aSpawn = Game.spawns['Derppool'];
+        // for (var aID in Game.spawns)
+        // {
+        //     var spawn = Game.spawns[aID];
+        //     if (aFlag.pos.getRangeTo(spawn) < aFlag.pos.getRangeTo(aSpawn))
+        //     {
+        //         aSpawn = spawn;
+        //     }
+        // }
         var aRoom = aSpawn.room;
 
         var aBody = undefined;
-//        if (aRoom.energyCapacityAvailable >= 1050)
-        if (aRoom.energyCapacityAvailable >= 700)
+        if (aRoom.energyCapacityAvailable >= 1050)
+        //if (aRoom.energyCapacityAvailable >= 700)
         {
-            //aBody = [CLAIM,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
-            aBody = [CLAIM,MOVE,MOVE];
+            aBody = [CLAIM,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
+            //aBody = [CLAIM,MOVE,MOVE];
         }
         if (_.isUndefined(aBody)) return;
 

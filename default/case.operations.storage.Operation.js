@@ -11,6 +11,7 @@ class StorageOperation
         this.processE66N49();
         this.processE66N48();
         this.processE65N49();
+        this.processE63N47();
     }
 
     processE65N49()
@@ -81,6 +82,11 @@ class StorageOperation
             {
                 myCreep.withdraw(aStorage,aRoomMineralType);
             }
+            else if (aStorage.store[RESOURCE_ENERGY] > 300000)
+            {
+                var aDelta = aTerminal.storeCapacity - _.sum(aTerminal.store);
+                myCreep.withdraw(aStorage,RESOURCE_ENERGY,_.min([aDelta,aStorage.store[RESOURCE_ENERGY],myCreep.carryCapacity]));
+            }
         }
         else
         {
@@ -93,12 +99,106 @@ class StorageOperation
             {
                 myCreep.transfer(aTerminal,RESOURCE_ENERGY)
             }
+            else if (aType == RESOURCE_ENERGY && aStorage.store[RESOURCE_ENERGY] > 300000)
+            {
+                myCreep.transfer(aTerminal,RESOURCE_ENERGY);
+            }
             else
             {
                 myCreep.transfer(aStorage,aType)
             }
         }
 
+    }
+
+    processE63N47()
+    {
+        var aRoom = Game.rooms['E63N47'];
+        var aPos = new RoomPosition(22, 15, aRoom.name);
+        var myCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == 'storage transfer' && aCreep.room.name == aRoom.name })
+        var aRoomMineralType = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.mineral)[0].mineralType;
+
+
+        var aSpawn = Game.spawns['Creeppool'];
+        if (_.isUndefined(myCreep))
+        {
+            // 2200 = A * 75
+            var aCarry = 2;
+            var aMove = 1;
+            var aC = new Array(aCarry).fill(CARRY);
+            var aM = new Array(aMove).fill(MOVE);
+            var aBody = aC.concat(aM);
+
+            var aCost = aCarry * 50 + aMove * 50;
+
+            var result = aSpawn.createCreep(aBody,'Storage '+aRoom.name,{role: 'storage transfer'});
+            logDERP('C:('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
+            return;
+        }
+        else
+        {
+            logDERP('Storage transfer active ......');
+        }
+        if (myCreep.spawning) return;
+
+        var myResources = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.resource);
+        var aResource = _.filter(myResources, (aDrop) =>
+        {
+            return aDrop.pos.getRangeTo(myCreep) < 2;
+        })
+
+        var aLink = Game.getObjectById('5888200a8ec9f569c29586fd');
+        var aStorage = Game.getObjectById('58866ced9d9ff5915510f869');
+        var aTerminal = undefined;
+
+        var aTransfer = undefined;
+        // var aTransfer = _.findKey(aTerminal.store,(a,b) =>
+        // {
+        //     return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
+        // });
+
+        if (!myCreep.pos.isEqualTo(aPos))
+        {
+            myCreep.moveTo(aPos,{ignoreCreeps: true});
+        }
+
+        if (_.sum(myCreep.carry) == 0)
+        {
+            if (!_.isEmpty(aResource))
+            {
+                var result = myCreep.pickup(aResource[0]);
+            }
+            else if (aLink.energy > 0)
+            {
+                myCreep.withdraw(aLink,RESOURCE_ENERGY);
+            }
+            // else if (!_.isUndefined(aTransfer))
+            // {
+            //     myCreep.withdraw(aTerminal,aTransfer);
+            // }
+            // else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
+            // {
+            //     myCreep.withdraw(aStorage,aRoomMineralType);
+            // }
+        }
+        else
+        {
+            var aType = _.findKey(myCreep.carry, (a) => { return (a > 0); })
+
+            // if (myCreep.carry[aRoomMineralType] > 0)
+            // {
+            //     myCreep.transfer(aTerminal,aRoomMineralType)
+            // }
+            // else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
+            // {
+            //     var aDelta = 25000 - aTerminal.store[RESOURCE_ENERGY];
+            //     myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
+            // }
+            // else
+            // {
+                myCreep.transfer(aStorage,aType)
+            // }
+        }
     }
 
     processE66N48()
@@ -139,12 +239,10 @@ class StorageOperation
 
         var aLink = Game.getObjectById('5866e30b6950d8927fbbe941');
         var aStorage = Game.getObjectById('58670bd25d1b59a921cc9639');
-
-
-        var aTerminal = Game.getObjectById('5869b91951f129f77136d38a');
+        var aTerminal = Game.getObjectById('588534155f7ffb6042432905');
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -162,16 +260,30 @@ class StorageOperation
             {
                 myCreep.withdraw(aLink,RESOURCE_ENERGY);
             }
+            else if (!_.isUndefined(aTransfer))
+            {
+                myCreep.withdraw(aTerminal,aTransfer);
+            }
+            else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
+            {
+                myCreep.withdraw(aStorage,aRoomMineralType);
+            }
         }
         else
         {
-            // if (aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
-            // {
-            //     myCreep.transfer(aTerminal,RESOURCE_ENERGY)
-            // }
-            // else
+            var aType = _.findKey(myCreep.carry, (a) => { return (a > 0); })
+
+            if (myCreep.carry[aRoomMineralType] > 0)
             {
-                var aType = _.findKey(myCreep.carry, (a) => { return (a > 0); })
+                myCreep.transfer(aTerminal,aRoomMineralType)
+            }
+            else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
+            {
+                var aDelta = 25000 - aTerminal.store[RESOURCE_ENERGY];
+                myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
+            }
+            else
+            {
                 myCreep.transfer(aStorage,aType)
             }
         }
@@ -221,7 +333,7 @@ class StorageOperation
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY) || (b == RESOURCE_ENERGY && a > 50000);
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -257,7 +369,8 @@ class StorageOperation
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
             {
-                myCreep.transfer(aTerminal,RESOURCE_ENERGY)
+                var aDelta = 50000 - aTerminal.store[RESOURCE_ENERGY];
+                myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]))
             }
             else
             {
@@ -311,14 +424,14 @@ class StorageOperation
 
         var aRequest = _.findKey(aStorage.store,(a,b) =>
         {
-            var result = (b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE ) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            var result = (b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
             //logDERP('b = '+b+' result = '+result);
             return  result;
         });
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE)
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) || (b == RESOURCE_ENERGY && a > 50000)
         });
 
 
@@ -367,7 +480,8 @@ class StorageOperation
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
             {
-                myCreep.transfer(aTerminal,RESOURCE_ENERGY)
+                var aDelta = 50000 - aTerminal.store[RESOURCE_ENERGY];
+                myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
             }
             else
             {

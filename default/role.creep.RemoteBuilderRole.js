@@ -50,7 +50,7 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
         if (!_.isUndefined(myTask.aMove))
         {
-            var result = pCreep.moveTo(myTask.aMove,{ignoreCreeps: true});
+            var result = pCreep.moveTo(myTask.aMove,{ignoreCreeps: false});
             logDERP('REMOTE BUILDER '+myTask.aCreep.name+' moves to pos ['+myTask.aMove.pos.x+' '+myTask.aMove.pos.y+'] .. '+ErrorSting(result));
         }
 
@@ -90,8 +90,9 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
     assignMoveTarget(pTask)
     {
+        var aStorage = pTask.aCreep.room.storage;
 
-        var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name);
+        var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name || _.isUndefined(aStorage));
 
         if (_.sum(pTask.aCreep.carry) == 0)
         {
@@ -109,11 +110,11 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
                 // logDERP('DERP: '+JSON.stringify(aBox));
                 // if (_.isNull(aBox))
                 // {
-                    var aHome = pTask.aCreep.memory.home;
-                    var aDerp = Game.getObjectById(aHome);
-                    if (!_.isNull(aDerp))
+                    var aHome = Game.getObjectById('586a21c2e0f15c00496a3ac2');
+                    //var aDerp = Game.getObjectById(aHome);
+                    if (!_.isNull(aHome))
                     {
-                        pTask.aMove = aDerp;
+                        pTask.aMove = aHome;
                     }
                     else
                     {
@@ -127,7 +128,6 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
             }
             else
             {
-                var aStorage = pTask.aCreep.room.storage;
                 if (!pTask.aCreep.pos.isNearTo(aStorage))
                 {
                     pTask.aMove = aStorage;
@@ -146,8 +146,9 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
     assignWithdrawTarget(pTask)
     {
+        var aStorage = pTask.aCreep.room.storage;
 
-        var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name);
+        var isRemote = (pTask.aFlag.pos.roomName == pTask.aCreep.room.name || _.isUndefined(aStorage));
 
         if (isRemote)
         {
@@ -176,7 +177,6 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 //             }
         }
 
-        var aStorage = pTask.aCreep.room.storage;
         if (pTask.aCreep.pos.isNearTo(aStorage))
         {
             var myDelta = pTask.aCreep.carryCapacity - _.sum(pTask.aCreep.carry);

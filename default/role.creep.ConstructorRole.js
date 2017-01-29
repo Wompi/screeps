@@ -49,7 +49,7 @@ class ConstructorRole extends require('role.creep.AbstractRole')
             {
                 ignore = false;
             }
-            
+
             if (pCreep.ticksToLive < 100 )
             {
                 var result = pCreep.moveTo(aSpawn.pos,{ignoreCreeps: ignore});
@@ -111,12 +111,15 @@ class ConstructorRole extends require('role.creep.AbstractRole')
         var myRoomContainers = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
         var myRoomLinks = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.link);
         var myRoomExtensions = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.extension);
+        var myRoomTerminal = pRoom.getRoomObjects(ROOM_OBJECT_TYPE.terminal);
 
         var myContainers = _.filter(myRoomContainers, (a) => { return (a.store[RESOURCE_ENERGY] > 0 ) });
-        var myLinks = _.filter(myRoomLinks, (a) => { return (a.energy > 0) });
+        var myLinks = _.filter(myRoomLinks, (a) => { return (a.energy > 300) });
         var myExtensions = _.filter(myRoomExtensions, (a) => { return (a.energy > 0) });
+        var myTerminal = _.filter(myRoomTerminal, (a) => { return (a.store[RESOURCE_ENERGY] > 500) });
 
-        myContainers  =myContainers.concat(myLinks);
+        myContainers = myContainers.concat(myLinks);
+        myContainers = myContainers.concat(myTerminal);
 
 
         var aStorage = pRoom.storage;

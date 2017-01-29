@@ -46,7 +46,7 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
             return;
         }
 
-        if (aRoom.controller.level < 6)
+        if (aRoom.controller.level < 3)
         {
             this.spawnCalculatedCreep(pSpawn,aRoom);
         }
@@ -71,7 +71,7 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
         // }
         else if (pSpawn.room.energyAvailable >= 300)
         {
-            aBody = [CARRY,CARRY,CARRY,CARRY,MOVE,MOVE];
+            aBody = [CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
         }
 
         if (!_.isUndefined(aBody))
@@ -92,7 +92,11 @@ class SupplierSpawn extends require('spawn.creep.AbstractSpawn')
     spawnNormalCreep(pSpawn)
     {
         var aBody = undefined;
-        if (pSpawn.room.energyAvailable >= 750)
+        if (pSpawn.room.energyAvailable < 300)
+        {
+            aBody = [CARRY,CARRY,MOVE];
+        }
+        else if (pSpawn.room.energyAvailable >= 750)
         {
             //aBody = [CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE];
             var aCarry = new Array(10).fill(CARRY);

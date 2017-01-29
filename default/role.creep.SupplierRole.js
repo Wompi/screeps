@@ -55,7 +55,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
             if (pCreep.ticksToLive < 100 )
             {
-                var result = pCreep.moveTo(aSpawn,{ignoreCreeps: ignore});
+                // var result = pCreep.moveTo(aSpawn,{ignoreCreeps: ignore});
+                var result = pCreep.travelTo(aSpawn);
                 logDEBUG('SUPPLIER '+pCreep.name+' back to spawn ['+aSpawn.pos.x+' '+aSpawn.pos.y+'] for emergency repair ... '+ErrorSting(result));
                 return;
             }
@@ -70,7 +71,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 var aCapacity = pCreep.carryCapacity;
                 var aDelta = _.sum(a.store);
                 var isValid = aDelta >= aCapacity;
-                logDERP('OUT BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
+                //logDERP('OUT BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
 
                 if (isValid && _.isUndefined(aNextOUT)) aNextOUT = a;
                 else if (isValid)
@@ -116,7 +117,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
                 var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
                 if (!pCreep.pos.isEqualTo(aPos))
                 {
-                    var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
+                    // var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
+                    var result = pCreep.travelTo({pos:aPos});
                     logDEBUG('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
                 }
 
@@ -125,7 +127,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
             if (!pCreep.pos.isNearTo(aNextOUT))
             {
-                var result = pCreep.moveTo(aNextOUT,{ignoreCreeps: ignore,range:1});
+                // var result = pCreep.moveTo(aNextOUT,{ignoreCreeps: ignore,range:1});
+                var result = pCreep.travelTo(aNextOUT);
                 logDEBUG('SUPPLIER '+pCreep.name+' moves to next grab box ['+aNextOUT.pos.x+' '+aNextOUT.pos.y+'] ... '+ErrorSting(result));
             }
 
@@ -147,7 +150,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
         {
             if (!pCreep.pos.isNearTo(aTower))
             {
-                var result = pCreep.moveTo(aTower,{ignoreCreeps: ignore});
+                // var result = pCreep.moveTo(aTower,{ignoreCreeps: ignore});
+                var result = pCreep.travelTo(aTower);
                 logDEBUG('SUPPLIER moves to resupply tower ['+aTower.pos.x+' '+aTower.pos.y+'] .. '+ErrorSting(result));
             }
             else
@@ -163,7 +167,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
             {
                 if (!pCreep.pos.isNearTo(aStorage))
                 {
-                    var result = pCreep.moveTo(aStorage,{ignoreCreeps: ignore,range:1});
+                    //var result = pCreep.moveTo(aStorage,{ignoreCreeps: ignore,range:1});
+                    var result = pCreep.travelTo(aStorage);
                     logDEBUG('SUPPLIER '+pCreep.name+' moves to storage  .. '+ErrorSting(result));
                 }
 
@@ -178,7 +183,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
                     var aCapacity = pCreep.carry.energy;
                     var aDelta = a.storeCapacity - _.sum(a.store);
                     var isValid = aDelta >= aCapacity;
-                    logDERP('IN BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
+                    //logDERP('IN BOX '+a.structureType+' valid: '+isValid+' c: '+aCapacity+' b: '+aDelta+' ['+a.pos.x+' '+a.pos.y+'] R: '+(_.sum(a.store) * 100 / a.storeCapacity).toFixed(2));
 
                     if (isValid && _.isUndefined(aNextIN))
                     {
@@ -209,11 +214,12 @@ class SupplierRole extends require('role.creep.AbstractRole')
                         return;
                     }
 
-                    logDERP(JSON.stringify(aIDLE));
+                    //logDERP(JSON.stringify(aIDLE));
                     var aPos = new RoomPosition(aIDLE[0].x,aIDLE[0].y,aRoom.name);
                     if (!pCreep.pos.isEqualTo(aPos))
                     {
-                        var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
+                        // var result = pCreep.moveTo(aPos,{ignoreCreeps: ignore});
+                        var result = pCreep.travelTo({pos:aPos});
                         logDERP('SUPPLIER moves to IDLE ['+aIDLE[0].x+' '+aIDLE[0].y+'] .. '+ErrorSting(result));
                     }
                     return;
@@ -221,7 +227,8 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
                 if (!pCreep.pos.isNearTo(aNextIN))
                 {
-                    var result = pCreep.moveTo(aNextIN,{ignoreCreeps: ignore,range:1});
+                    //var result = pCreep.moveTo(aNextIN,{ignoreCreeps: ignore,range:1});
+                    var result = pCreep.travelTo(aNextIN);
                     logDEBUG('SUPPLIER '+pCreep.name+' moves to next drop box ['+aNextIN.pos.x+' '+aNextIN.pos.y+'] ... '+ErrorSting(result));
                 }
 
@@ -259,7 +266,7 @@ class SupplierRole extends require('role.creep.AbstractRole')
 
         var myExtensionbays = _.filter(myRoomExtensionBays, (aBox) =>
         {
-            return aBox.store[RESOURCE_ENERGY] < 1000;
+            return aBox.store[RESOURCE_ENERGY] < 500;
         });
 
         var myIN = undefined;
