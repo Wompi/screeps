@@ -75,7 +75,8 @@ class FixerRole extends require('role.creep.AbstractRole')
 
         if (pCreep.carry.energy == 0 && !pCreep.pos.isNearTo(aCloseContainer.pos))
         {
-            var result = pCreep.moveTo(aCloseContainer,{ ignoreCreeps: ignore,range: 1});
+            //var result = pCreep.moveTo(aCloseContainer,{ ignoreCreeps: ignore,range: 1});
+            var result = pCreep.travelTo(aCloseContainer);
             logDEBUG('FIXER: moves needs restock and moves to closest box ['+aCloseContainer.pos.x+' '+aCloseContainer.pos.y+'] .. '+ErrorSting(result));
         }
         else
@@ -107,7 +108,8 @@ class FixerRole extends require('role.creep.AbstractRole')
             if (pCreep.ticksToLive < 200)
             {
 
-                var result = pCreep.moveTo(aSpawn,{ ignoreCreeps: ignore, range: 1});
+//                var result = pCreep.moveTo(aSpawn,{ ignoreCreeps: ignore, range: 1});
+                var result = pCreep.travelTo(aSpawn);
                 logDEBUG('FIXER needs repair and moves to spawn ... '+ErrorSting(result));
             }
             else if (!_.isUndefined(myRepair) && myRepair.emergency)
@@ -136,14 +138,16 @@ class FixerRole extends require('role.creep.AbstractRole')
                     //logDERP(JSON.stringify(myEmptySpots));
                     if (myEmptySpots.length > 0)
                     {
-                        var result = pCreep.moveTo(myEmptySpots[0]);
+                        //var result = pCreep.moveTo(myEmptySpots[0]);
+                        var result = pCreep.travelTo({pos:myEmptySpots[0]});
                         logDEBUG('FIXER steps aside for emergency repair! .. '+ErrorSting(result));
                     }
                 }
             }
             else
             {
-                var result = pCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,pCreep.room.name),{ ignoreCreeps: ignore});
+                // var result = pCreep.moveTo(new RoomPosition(myTarget.x,myTarget.y,pCreep.room.name),{ ignoreCreeps: ignore});
+                var result = pCreep.travelTo({pos:new RoomPosition(myTarget.x,myTarget.y,pCreep.room.name)});
                 logDEBUG('FIXER moves to target position ['+myTarget.x+' '+myTarget.y+']... '+ErrorSting(result));
             }
         }

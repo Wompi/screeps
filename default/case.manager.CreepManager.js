@@ -5,17 +5,17 @@ class CreepManager
         this.mCreeps = {};
     }
 
-    getCreepsForRole(pRole)
-    {
-        if (_.isUndefined(pRole)) return;
-        var result = this.mCreeps[pRole];
-        return ( result == undefined ? [] : result );
-    }
+    // getCreepsForRole(pRole)
+    // {
+    //     if (_.isUndefined(pRole)) return;
+    //     var result = this.mCreeps[pRole];
+    //     return ( result == undefined ? [] : result );
+    // }
 
     registerCreep(pCreep)
     {
         if (_.isUndefined(pCreep)) return;
-        var aRole = pCreep.myRole;
+        var aRole = pCreep.memory.role;
         if (_.isUndefined(aRole)) return;
 
         var value = this.mCreeps[aRole.toString()];

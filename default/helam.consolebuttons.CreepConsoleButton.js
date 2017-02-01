@@ -163,7 +163,7 @@ global.svgCreep = function(creep) {
  */
 // Creep.prototype.override = function() {
 //     let directions = [8,1,2,3,4,5,6,7];
-//     let labels = ['â','â','â','â','â','â','â','â'];
+//     let labels = ['Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ'];
 //     let buttons = directions.map((dir, idx)=>{
 //         let id = getId();
 //         let manualCommand = `Game.creeps.${this.name}.move(${dir});`;

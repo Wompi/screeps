@@ -1,5 +1,6 @@
 var OperationsFixer = require('case.operations.Fixer');
-var CreepManager = require('case.controller.CreepManager');
+var CreepManager = require('case.manager.CreepManager');
+var StatisticsManager = require('case.manager.statistics.Manager');
 
 class GameManager
 {
@@ -7,6 +8,7 @@ class GameManager
     {
         this.mFixerOperation = new OperationsFixer();
         this.mCreepManager = new CreepManager();
+        this.mStatisticsManager = new StatisticsManager();
     }
 
     init()
@@ -56,6 +58,13 @@ class GameManager
         {
             var aCreep = Game.creeps[aID];
             aCreep.init();
+
+
+            //if (aCreep.myRole == 'fixer')
+            {
+                this.mCreepManager.registerCreep(aCreep);
+            }
+
             //logERROR('DERP: '+JSON.stringify(aSite));
             var aName = aCreep.room.name;
             var aRoleType = aCreep.memory.role;
@@ -71,6 +80,8 @@ class GameManager
                 //aRole.print();
                 aCreep.registerRole(aRole);
             }
+
+
             if (
                         aCreep.myRole == 'remote builder'
                     ||  aCreep.myRole == 'remote claimer'
@@ -84,10 +95,7 @@ class GameManager
                 continue;
             }
 
-            if (aCreep.myRole == 'fixer')
-            {
-                this.mCreepManager.registerCreep(aCreep);
-            }
+
 
             //else
             {
@@ -123,6 +131,15 @@ class GameManager
                 {
                     pRoom.registerRoomObject(a,ROOM_OBJECT_TYPE.wall);
                 }
+                else if (a.structureType == STRUCTURE_CONTROLLER)
+                {
+                    a.init();
+                    if (pRoom.my)
+                    {
+                        this.mStatisticsManager.registerStatisticsObject(a,ROOM_OBJECT_TYPE.controller);
+                    }
+                    pRoom.registerRoomObject(a,a.structureType);
+                }
                 else
                 {
                     a.init();
@@ -130,14 +147,18 @@ class GameManager
                 }
             }
         });
-        pRoom.find(FIND_SOURCES,
+
+        if (pRoom.my)
         {
-            filter: (a) =>
+            pRoom.find(FIND_SOURCES,
             {
-                //a.init();
-                pRoom.registerRoomObject(a,ROOM_OBJECT_TYPE.source);
-            }
-        });
+                filter: (a) =>
+                {
+                    this.mStatisticsManager.registerStatisticsObject(a,ROOM_OBJECT_TYPE.source);
+                    pRoom.registerRoomObject(a,ROOM_OBJECT_TYPE.source);
+                }
+            });
+        }
         pRoom.find(FIND_DROPPED_RESOURCES,
         {
             filter: (a) =>

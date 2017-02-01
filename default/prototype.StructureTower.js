@@ -23,13 +23,17 @@ var mod =
             if (this.room.hasInvaders)
             {
                 var invaderCreeps = this.room.myInvaders;
-                var result = this.attack(invaderCreeps[0]);
+                var aInvader = _.min(invaderCreeps, (aCreep) =>
+                {
+                    return this.pos.getRangeTo(aCreep);
+                })
+                var result = this.attack(aInvader);
 
                 if (_.isUndefined(this.room.memory.invaders))
                 {
                     this.room.memory.invaders = {};
                 }
-                this.room.memory.invaders[Game.time] = JSON.stringify(invaderCreeps[0]);
+                this.room.memory.invaders[Game.time] = JSON.stringify(aInvader);
                 logWARN('ATTACK: '+ErrorSting(result));
             }
         };

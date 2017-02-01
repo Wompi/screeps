@@ -182,9 +182,9 @@ class MinerRole extends require('role.creep.AbstractRole')
                 //logDEBUG('MINER '+pTask.aCreep.name+' box at ['+aBox.x+' '+aBox.y+'] is full - stopped harvesting!');
             }
         }
-        else if (!_.isUndefined(pTask.aRoom.storage) && pTask.aCreep.pos.isNearTo(pTask.aRoom.storage))
+        else if (!_.isUndefined(pTask.aRoom.storage) && pTask.aCreep.pos.isNearTo(pTask.aRoom.storage) && pTask.aCreep.pos.isNearTo(pTask.aSource))
         {
-            // Storage is cloase an can be withdraw target
+            // Storage is cloase and can be withdraw target
             var aStorage = pTask.aRoom.storage;
             //logDERP('---- withdraw storage ----- '+JSON.stringify(aStorage.store));
             if (aStorage.store[RESOURCE_ENERGY] > 0)

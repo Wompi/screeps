@@ -40,7 +40,7 @@ class UpgraderSpawn extends require('spawn.creep.AbstractSpawn')
             this.spawnEmergencyCreep(pSpawn);
             return
         }
-        else if (aRoom.controller.level < 6)
+        else if (aRoom.controller.level < 7)
         {
             this.spawnMultiCreep(pSpawn,aRoom,myCreeps);
         }

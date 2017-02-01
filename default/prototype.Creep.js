@@ -107,7 +107,7 @@ var mod =
          */
         Creep.prototype.override = function() {
             let directions = [8,1,2,3,4,5,6,7];
-            let labels = ['â','â','â','â','â','â','â','â'];
+            let labels = ['Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ','Ã¢ÂÂ'];
             let buttons = directions.map((dir, idx)=>{
                 let id = this.id;
                 let manualCommand = `Game.creeps.${this.name}.move(${dir});`;
@@ -169,7 +169,12 @@ var mod =
                 logERROR('CREEP '+this.name+' has no registered role  - fix this for ['+this.memory.role+']!');
                 return;
             }
-            if (this.myRole.isRoleActive()) this.myRole.processRole(this);
+            if (this.myRole.isRoleActive())
+            {
+                Profiler.start(this.myRole.myName);
+                this.myRole.processRole(this);
+                Profiler.end(this.myRole.myName);
+            }
             else logWARN('CREEP: role - '+this.myRole+' is not active!');
         };
 

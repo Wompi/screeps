@@ -6,20 +6,20 @@ var mod =
 
 
         var TestCenter = require('case.TestCenter');
-        var StatisticsManager = require('case.StatisticsManager');
         var CaseConsole = require('case.CaseConsole');
         var Utillities = require('case.Utillities');
         var Formulas = require('case.Formulas');
         var Market = require('case.Market');
+        var ProfilerManager = require('case.manager.Profiler');
         _.assign(global,params);
         _.assign(global,
         {
             Test: new TestCenter(),
-            Stats: new StatisticsManager(),
             Console: new CaseConsole(),
             Util: new Utillities(),
             Market: new Market(),
             Formula: new Formulas(),
+            Profiler: new ProfilerManager(),
             ErrorSting: function(code)
             {
                 var codes =

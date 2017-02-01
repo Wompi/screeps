@@ -1,22 +1,22 @@
 class EnergyTransferOperation
 {
-    constructor()
+    constructor(pRoleName)
     {
-
+        this.mRoleName = pRoleName;
     }
 
     processOperation()
     {
-        var ROLE_NAME = 'energy transfer';
-        var aCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == ROLE_NAME })
+        var aCreep = _.find(Game.creeps,(aCreep) => { return aCreep.memory.role == this.mRoleName })
 
-        var aSpawn = Game.spawns['Nexus Outpost'];
+        var aSpawn = Game.spawns['Nexus West'];
 
         if (_.isUndefined(aCreep))
         {
             // 2200 = A * 75
-            var aCarry = 2
-            var aMove = 1;
+            var MY_ENERGY = aSpawn.room.energyCapacityAvailable;
+            var aCarry = _.floor(_.min([50 / 1.5  ,MY_ENERGY / 75]));
+            var aMove = _.ceil((aCarry) / 2);
 
             var aC = new Array(aCarry).fill(CARRY);
             var aM = new Array(aMove).fill(MOVE);
@@ -26,19 +26,28 @@ class EnergyTransferOperation
 
             var aMem =
             {
-                role: ROLE_NAME,
+                role: this.mRoleName,
                 target: this.getGraph()[0],
             };
 
-            var result = aSpawn.createCreep(aBody,'Energy Transfer',aMem);
-            logDERP('C(fixer):('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
+            var result = aSpawn.createCreep(aBody,this.mRoleName,aMem);
+            logDERP('C('+this.mRoleName+'):('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
             return;
         }
         else
         {
-            logDERP('Energy Transfer (multi room) active ......');
+            logDERP(this.mRoleName+' (multi room) active ......');
         }
         if (aCreep.spawning) return;
+
+        var aRepairSpawn = Game.spawns['Nexuspool'];
+        if (!aRepairSpawn.spawning)
+        {
+            if (aCreep.pos.isNearTo(aRepairSpawn) && aCreep.getLiveRenewTicks() > 0)
+            {
+                return;
+            }
+        }
 
         var aStart_Storage = Game.rooms['E65N49'].storage;
         var aEnd_Storage = Game.rooms['E63N47'].storage;
@@ -56,6 +65,9 @@ class EnergyTransferOperation
         var result = aCreep.travelTo({pos:aPos});
         logDERP('ENERGY TRANSFER moves to target position ['+myTarget.x+' '+myTarget.y+' '+myTarget.roomName+']... '+ErrorSting(result));
 
+
+
+
         if (aCreep.pos.isNearTo(aStart_Storage))
         {
             if (_.sum(aCreep.carry) == 0)
@@ -65,9 +77,9 @@ class EnergyTransferOperation
             aCreep.withdraw(aStart_Storage,RESOURCE_ENERGY);
         }
 
-        if (!aCreep.pos.isNearTo(aEnd_Storage))
+        if (aCreep.pos.isNearTo(aEnd_Storage))
         {
-            if (_.sum(aCreep.carry) < aCreep.carryCapacity)
+            if (_.sum(aCreep.carry) == aCreep.carryCapacity)
             {
                 aCreep.cancelOrder('move');
             }

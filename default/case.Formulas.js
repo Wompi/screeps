@@ -109,7 +109,7 @@ class Formulas
         // ceil for wanted because we need one more to make sure we get all resources
         // - otherwise there will be a rest at the end of the lifetime of the creep
         // floor for possible - well we can not use more than we have
-        var aA_wanted = _.ceil((aMineralAmount / aT ) * EXTRACTOR_COOLDOWN / HARVEST_MINERAL_POWER);
+        var aA_wanted = _.ceil((aMineralAmount / aT ) * (EXTRACTOR_COOLDOWN+1) / HARVEST_MINERAL_POWER);
         // we only can build creeps with 50 body parts so we have to restrict the result to )50 / 1.5) (50 = A + A/2)
         var aA_possible = _.floor(_.min([ 50 / 1.5, MY_ENERGY / (BODYPART_COST[WORK] + BODYPART_COST[MOVE]/2)]));
 

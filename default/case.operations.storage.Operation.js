@@ -54,9 +54,19 @@ class StorageOperation
         var aTerminal = Game.getObjectById('5867099d48f8acf528f397ae');
         var aStorage = Game.getObjectById('584576e702fc59d80d3a56ff');
 
+        var REACTION_DEFAULT_AMOUNT = 3000;
+
+        var aRequest = _.findKey(aStorage.store,(a,b) =>
+        {
+            var result = (b == RESOURCE_UTRIUM_OXIDE ) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            //logDERP('b = '+b+' result = '+result);
+            return  result;
+        });
+
+
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)
+            return !(b == aRoomMineralType || b == RESOURCE_UTRIUM_OXIDE || b == RESOURCE_ENERGY )
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -78,6 +88,10 @@ class StorageOperation
             {
                 myCreep.withdraw(aTerminal,aTransfer);
             }
+            else if (!_.isUndefined(aRequest))
+            {
+                myCreep.withdraw(aStorage,aRequest);
+            }
             else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
             {
                 myCreep.withdraw(aStorage,aRoomMineralType);
@@ -94,6 +108,10 @@ class StorageOperation
             if (myCreep.carry[aRoomMineralType] > 0)
             {
                 myCreep.transfer(aTerminal,aRoomMineralType)
+            }
+            else if (myCreep.carry[aRequest] > 0)
+            {
+                myCreep.transfer(aTerminal,aType);
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
             {
@@ -149,13 +167,12 @@ class StorageOperation
 
         var aLink = Game.getObjectById('5888200a8ec9f569c29586fd');
         var aStorage = Game.getObjectById('58866ced9d9ff5915510f869');
-        var aTerminal = undefined;
+        var aTerminal = Game.getObjectById('588dea7df34b046590825725');
 
-        var aTransfer = undefined;
-        // var aTransfer = _.findKey(aTerminal.store,(a,b) =>
-        // {
-        //     return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
-        // });
+        var aTransfer = _.findKey(aTerminal.store,(a,b) =>
+        {
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
+        });
 
         if (!myCreep.pos.isEqualTo(aPos))
         {
@@ -172,32 +189,32 @@ class StorageOperation
             {
                 myCreep.withdraw(aLink,RESOURCE_ENERGY);
             }
-            // else if (!_.isUndefined(aTransfer))
-            // {
-            //     myCreep.withdraw(aTerminal,aTransfer);
-            // }
-            // else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
-            // {
-            //     myCreep.withdraw(aStorage,aRoomMineralType);
-            // }
+            else if (!_.isUndefined(aTransfer))
+            {
+                myCreep.withdraw(aTerminal,aTransfer);
+            }
+            else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
+            {
+                myCreep.withdraw(aStorage,aRoomMineralType);
+            }
         }
         else
         {
             var aType = _.findKey(myCreep.carry, (a) => { return (a > 0); })
 
-            // if (myCreep.carry[aRoomMineralType] > 0)
-            // {
-            //     myCreep.transfer(aTerminal,aRoomMineralType)
-            // }
-            // else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
-            // {
-            //     var aDelta = 25000 - aTerminal.store[RESOURCE_ENERGY];
-            //     myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
-            // }
-            // else
-            // {
+            if (myCreep.carry[aRoomMineralType] > 0)
+            {
+                myCreep.transfer(aTerminal,aRoomMineralType)
+            }
+            else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
+            {
+                var aDelta = 25000 - aTerminal.store[RESOURCE_ENERGY];
+                myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
+            }
+            else
+            {
                 myCreep.transfer(aStorage,aType)
-            // }
+            }
         }
     }
 
@@ -240,9 +257,20 @@ class StorageOperation
         var aLink = Game.getObjectById('5866e30b6950d8927fbbe941');
         var aStorage = Game.getObjectById('58670bd25d1b59a921cc9639');
         var aTerminal = Game.getObjectById('588534155f7ffb6042432905');
+
+        var REACTION_DEFAULT_AMOUNT = 30000;
+
+        var aRequest = _.findKey(aStorage.store,(a,b) =>
+        {
+            var result = (b == RESOURCE_HYDROXIDE) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            //logDERP('b = '+b+' result = '+result);
+            return  result;
+        });
+
+
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
+            return !(b == aRoomMineralType || b == RESOURCE_HYDROXIDE || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -264,6 +292,10 @@ class StorageOperation
             {
                 myCreep.withdraw(aTerminal,aTransfer);
             }
+            else if (!_.isUndefined(aRequest))
+            {
+                myCreep.withdraw(aStorage,aRequest);
+            }
             else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
             {
                 myCreep.withdraw(aStorage,aRoomMineralType);
@@ -276,6 +308,10 @@ class StorageOperation
             if (myCreep.carry[aRoomMineralType] > 0)
             {
                 myCreep.transfer(aTerminal,aRoomMineralType)
+            }
+            else if (myCreep.carry[aRequest] > 0)
+            {
+                myCreep.transfer(aTerminal,aRequest);
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
             {
@@ -331,9 +367,19 @@ class StorageOperation
         var aTerminal = Game.getObjectById('587237428b3580d1135e28b5');
         var aStorage = Game.getObjectById('586a21c2e0f15c00496a3ac2');
 
+        var REACTION_DEFAULT_AMOUNT = 3000;
+
+        var aRequest = _.findKey(aStorage.store,(a,b) =>
+        {
+            var result = (b == RESOURCE_KEANIUM_HYDRIDE ) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            //logDERP('b = '+b+' result = '+result);
+            return  result;
+        });
+
+
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY) || (b == RESOURCE_ENERGY && a > 50000);
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_KEANIUM_HYDRIDE) || (b == RESOURCE_ENERGY && a > 50000);
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -355,6 +401,10 @@ class StorageOperation
             {
                 myCreep.withdraw(aTerminal,aTransfer);
             }
+            else if (!_.isUndefined(aRequest))
+            {
+                myCreep.withdraw(aStorage,aRequest);
+            }
             else if (aStorage.store[aRoomMineralType] > 0 && (_.isUndefined(aTerminal.store[aRoomMineralType]) || aTerminal.store[aRoomMineralType] < 50000))
             {
                 myCreep.withdraw(aStorage,aRoomMineralType);
@@ -366,6 +416,10 @@ class StorageOperation
             if (myCreep.carry[aRoomMineralType] > 0)
             {
                 myCreep.transfer(aTerminal,aRoomMineralType)
+            }
+            else if (myCreep.carry[aRequest] > 0)
+            {
+                myCreep.transfer(aTerminal,aRequest);
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
             {
@@ -424,14 +478,14 @@ class StorageOperation
 
         var aRequest = _.findKey(aStorage.store,(a,b) =>
         {
-            var result = (b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            var result = (b == RESOURCE_UTRIUM_ACID || b == RESOURCE_UTRIUM_ALKALIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
             //logDERP('b = '+b+' result = '+result);
             return  result;
         });
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_UTRIUM_HYDRIDE || b == RESOURCE_UTRIUM_OXIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) || (b == RESOURCE_ENERGY && a > 50000)
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_UTRIUM_ACID || b == RESOURCE_UTRIUM_ALKALIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) || (b == RESOURCE_ENERGY && a > 50000)
         });
 
 
@@ -476,7 +530,7 @@ class StorageOperation
             }
             else if (myCreep.carry[aRequest] > 0)
             {
-                myCreep.transfer(aTerminal,aRequest);
+                myCreep.transfer(aTerminal,aType);
             }
             else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 50000)
             {

@@ -17,7 +17,7 @@ class ReactionsHaulerMemory
             Memory.operations.reactions.hauler = {};
         }
 
-        //delete Memory.operations.reactions.hauler[pRoomName];
+        //delete Memory.operations.reactions.hauler[this.mRoomName]
 
         var myStats = Memory.operations.reactions.hauler[this.mRoomName];
         if (_.isUndefined(myStats))
@@ -29,7 +29,7 @@ class ReactionsHaulerMemory
                     labID: null,
                     labAmount: 0,
                 },
-                [RESOURCE_UTRIUM_OXIDE]:
+                [RESOURCE_UTRIUM_ALKALIDE]:
                 {
                     labID: null,
                     labAmount: 0,
@@ -39,7 +39,7 @@ class ReactionsHaulerMemory
             Memory.operations.reactions.hauler[this.mRoomName] = aStats;
         }
 
-        this.setLabID(RESOURCE_UTRIUM_OXIDE,'586c4b1463d011e1364344ae')
+        this.setLabID(RESOURCE_UTRIUM_ALKALIDE,'5881a130037ccb8e3cc1a548')
         this.setLabID(RESOURCE_UTRIUM_HYDRIDE,'5877ecd15dc3eff517f28f15')
 
         // consider to delay this request because the amount is likely not to change over a very large

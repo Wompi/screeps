@@ -4,7 +4,7 @@ class RemoteMiningMiner
     {
         this.mOperation = pOperation;
         this.mSource = Game.getObjectById('57ef9ea886f108ae6e60fae0');
-        this.mLab = Game.getObjectById('586c4b1463d011e1364344ae');
+        this.mLab = Game.getObjectById('5881a130037ccb8e3cc1a548');
 
     }
 
@@ -25,7 +25,7 @@ class RemoteMiningMiner
         if (_.isUndefined(myCreep))
         {
             // 2200 = A * 75
-            var aWork = 2
+            var aWork = 1
             var aMove = 1;
 
             var aW = new Array(aWork).fill(WORK);
