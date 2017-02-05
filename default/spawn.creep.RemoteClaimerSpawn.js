@@ -43,6 +43,8 @@ class RemoteClaimerSpawn extends require('spawn.creep.AbstractSpawn')
 
     spawnNormalCreep(pSpawn)
     {
+
+        return;
         var myFlagNames = _.filter(Game.flags,Flag.FLAG_COLOR.pioneer.claim.filter);
         if (myFlagNames.length == 0 )
         {

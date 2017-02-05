@@ -45,14 +45,18 @@ class FixerRole extends require('role.creep.AbstractRole')
         }
 
 
-        var aRescource = myRoomResources[0];
+        var aResource = myRoomResources[0];
         var aSpawn = myRoomSpawns[0];
-        var aCloseContainer = _.min(myContainers, (a) =>
+        var aCloseContainer = undefined;
+        if (myContainers.length > 0)
         {
-            //logERROR('DERP ---- '+a);
-            var result = a.pos.getRangeTo(pCreep);
-            return result;
-        });
+            aCloseContainer = _.min(myContainers, (a) =>
+            {
+                //logERROR('DERP ---- '+a);
+                var result = a.pos.getRangeTo(pCreep);
+                return result;
+            });
+        }
 
         var ignore = true;
         if (!_.isUndefined(aSpawn))
@@ -73,15 +77,30 @@ class FixerRole extends require('role.creep.AbstractRole')
             }
         }
 
-        if (pCreep.carry.energy == 0 && !pCreep.pos.isNearTo(aCloseContainer.pos))
+        if (pCreep.carry.energy == 0 && (_.isUndefined(aCloseContainer) || !pCreep.pos.isNearTo(aCloseContainer.pos)))
         {
-            //var result = pCreep.moveTo(aCloseContainer,{ ignoreCreeps: ignore,range: 1});
-            var result = pCreep.travelTo(aCloseContainer);
-            logDEBUG('FIXER: moves needs restock and moves to closest box ['+aCloseContainer.pos.x+' '+aCloseContainer.pos.y+'] .. '+ErrorSting(result));
+            if (_.isUndefined(aCloseContainer))
+            {
+                logDERP(JSON.stringify(aResource))
+                if (!_.isUndefined(aResource))
+                {
+                    if (pCreep.pos.isNearTo(aResource))
+                    {
+                        pCreep.pickup(aResource);
+                    }
+                    var result = pCreep.travelTo(aResource);
+                }
+
+            }
+            else
+            {
+                var result = pCreep.travelTo(aCloseContainer);
+                logDEBUG('FIXER: moves needs restock and moves to closest box ['+aCloseContainer.pos.x+' '+aCloseContainer.pos.y+'] .. '+ErrorSting(result));
+            }
         }
         else
         {
-            if (pCreep.carry.energy < pCreep.carryCapacity && pCreep.pos.isNearTo(aCloseContainer.pos))
+            if (pCreep.carry.energy < pCreep.carryCapacity && !_.isUndefined(aCloseContainer) && pCreep.pos.isNearTo(aCloseContainer.pos))
             {
                 var result = pCreep.withdraw(aCloseContainer,RESOURCE_ENERGY);
                 logDEBUG('FIXER: grabs resources from closest box ['+aCloseContainer.pos.x+' '+aCloseContainer.pos.y+']'+ErrorSting(result));

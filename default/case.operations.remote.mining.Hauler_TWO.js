@@ -47,7 +47,7 @@ class RemoteMiningHauler
         if (myCreep.spawning) return;
 
         // maintenance
-        if (myCreep.ticksToLive < 100)
+        if (myCreep.ticksToLive < 300)
         {
             // myCreep.moveTo(aSpawn);
             myCreep.travelTo(aSpawn);
@@ -58,19 +58,15 @@ class RemoteMiningHauler
             return;
         }
 
+        var aRoomSpawn = Game.spawns['Wombat'];
+        if (myCreep.carry[RESOURCE_ENERGY] > 0 && myCreep.pos.isNearTo(aRoomSpawn) && aRoomSpawn.isEnergyNeeded)
+        {
+            myCreep.transfer(aRoomSpawn,RESOURCE_ENERGY);
+        }
 
 
         var ROLE_NAME = 'remote miner 2 '+pRoomName;
-        var aMinerPos = new RoomPosition(8,12,pRoomName);
-        var aMinerCreep = _.find(Game.creeps,(aCreep) =>
-        {
-            return (aCreep.memory.role == ROLE_NAME) && aCreep.pos.isEqualTo(aMinerPos);
-        })
-        var aPos = new RoomPosition(9,11,pRoomName);
-        if (_.isUndefined(aMinerCreep))
-        {
-            aPos =  new RoomPosition(9,12,pRoomName);
-        }
+        var aPos = new RoomPosition(9,12,pRoomName);
 
         // hauling
         if (myCreep.carry[RESOURCE_ENERGY] == 0)
@@ -89,15 +85,44 @@ class RemoteMiningHauler
                     return aDrop.pos.getRangeTo(myCreep) < 2;
                 });
 
-                if (!_.isEmpty(aResource))
+                if (!_.isEmpty(aResource) && aResource[0].amount > 500)
                 {
                     var result = myCreep.pickup(aResource[0]);
+                }
+                else
+                {
+                    var myContainers = aRoom.find(FIND_STRUCTURES,
+                    {
+                        filter: (a) =>
+                        {
+                            //a.init();
+                            return     a.structureType == STRUCTURE_CONTAINER
+                                    && a.store[RESOURCE_ENERGY] >= 1000
+                                    && myCreep.pos.isNearTo(a) ;
+                        }
+                    });
+                    var aContainer = myContainers.length > 0 ? myContainers[0] : undefined;
+
+                    if (!_.isEmpty(aContainer))
+                    {
+                        var result = myCreep.withdraw(aContainer,RESOURCE_ENERGY);
+                    }
                 }
             }
         }
         else
         {
             var aStorage = Game.rooms['E65N49'].storage;
+            var aController = myCreep.room.controller;
+            if (!_.isUndefined(aController) && aController.my)
+            {
+                if (aController.hasUpgraderBox)
+                {
+                    aStorage = aController.myUpgraderBoxes[0];
+
+                }
+            }
+
             if (!myCreep.pos.isNearTo(aStorage) && (_.sum(myCreep.carry) == myCreep.carryCapacity || aStorage.pos.roomName == myCreep.pos.roomName))
             {
                 // myCreep.moveTo(aStorage,{ignoreCreeps: true});

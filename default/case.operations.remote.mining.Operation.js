@@ -34,8 +34,8 @@ class RemoteMiningOperation
 
     processOperation()
     {
-        this.aClaimer.process(this.mRoomName);
-        this.aFixer.process(this.mRoomName);
+        //this.aClaimer.process(this.mRoomName);
+        //this.aFixer.process(this.mRoomName);
         this.aMiner_ONE.process(this.mRoomName);
         this.aMiner_TWO.process(this.mRoomName);
         this.aHauler_ONE.process(this.mRoomName);

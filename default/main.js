@@ -8,9 +8,15 @@ var TimeLine = require('case.main.TimeLine');
 
 var StorageOperation = require('case.operations.storage.Operation');
 var ReactionsHaulerOperation = require('case.operations.reactions.hauler.Operation');
+
 var RemoteMinerOperation = require('case.operations.remote.mining.Operation');
+var RemoteUpgraderOperation = require('case.operations.remote.upgrader.Operation');
+
 var ReactionsProduceOperation = require('case.operations.reactions.produce.Operation');
 var MiningOperation = require('case.operations.mining.Operation');
+
+
+
 
 var FixerOperation = require('case.operations.fixer.Operation');
 var EnergyTransferOperation = require('case.operations.energytransfer.Operation');
@@ -22,6 +28,9 @@ var Traveler = require('Traveler');
 
 module.exports.loop = function ()
 {
+
+    return;
+
     var startCPU = Game.cpu.getUsed();
     var a0 = Game.cpu.getUsed();
     require('case.globals').init(require('case.parameters'));
@@ -44,6 +53,7 @@ module.exports.loop = function ()
     aGameManager.init();
     var b1 = Game.cpu.getUsed();
 
+
     var a2 = Game.cpu.getUsed();
     var aLoop = (aRoom) =>
     {
@@ -55,6 +65,16 @@ module.exports.loop = function ()
     };
     _.forEach(Game.rooms,aLoop);
     var b2 = Game.cpu.getUsed();
+
+
+
+    var a = Game.cpu.getUsed();
+    var aStorageOperation = new StorageOperation();
+    aStorageOperation.processOperation();
+    var b = Game.cpu.getUsed();
+    logWARN('PROFILE STORAGE OPERATION: '+(b-a));
+
+    return;
 
     console.log('------------------------ REMOTE MANAGER ----------------------------------------------');
     var aRemoteManagerManager = new RemoteManager();
@@ -142,17 +162,20 @@ module.exports.loop = function ()
     //runBrawler();
     //runScout();
 
-    var a = Game.cpu.getUsed();
-    var aStorageOperation = new StorageOperation();
-    aStorageOperation.processOperation();
-    var b = Game.cpu.getUsed();
-    logWARN('PROFILE STORAGE OPERATION: '+(b-a));
 
     var a = Game.cpu.getUsed();
     var aRMO_E65N48 = new RemoteMinerOperation(); // a remote mining operation
     aRMO_E65N48.processOperation();
     var b = Game.cpu.getUsed();
     logWARN('PROFILE REMOTE MINING OPERATION: '+(b-a));
+
+    var a = Game.cpu.getUsed();
+    var aRUO_E65N48 = new RemoteUpgraderOperation(); // a remote mining operation
+    aRUO_E65N48.processOperation();
+    var b = Game.cpu.getUsed();
+    logWARN('PROFILE REMOTE UPGRADER OPERATION: '+(b-a));
+
+
 
     var a = Game.cpu.getUsed();
     var aRHO_E65N49 = new ReactionsHaulerOperation();
@@ -260,12 +283,20 @@ module.exports.loop = function ()
     logWARN('PROFILE FIXER OPERATION: '+(b-a));
 
 
-    aGameManager.mCreepManager.printReport()
-
+    aGameManager.mCreepManager.printReport();
     aGameManager.mStatisticsManager.processManager();
     aGameManager.mStatisticsManager.printReport();
 
     Profiler.printReport();
+
+    var a = Game.cpu.getUsed();
+    var aMiningOperation = new MiningOperation();
+    aMiningOperation.processOperation();
+    var b = Game.cpu.getUsed();
+    logWARN('PROFILE MINING OPERATION: '+(b-a));
+
+
+
 
     // var aEnergyTransferOperation = new EnergyTransferOperation('energy transfer 1');
     // aEnergyTransferOperation.processOperation();
@@ -379,58 +410,6 @@ pointSourceRelations = function()
 }
 
 
-spawnSourceRelations = function()
-{
-    /// wow very nice delayed spawn -> source dist caclulation
-    var spawnTest = MemoryManager.ensure(Memory,'spawnTest');
-    _.forEach(Game.spawns, (aSpawn) =>
-    {
-        var aSpawnMemory = MemoryManager.ensure(spawnTest, aSpawn.name);
-        _.forEach(Game.rooms, (aRoom) =>
-        {
-            _.forEach(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source), (aSource) =>
-            {
-                MemoryManager.ensure(aSpawnMemory,aSource.id, () => 0);
-            })
-        })
-    })
-
-    var mySpawns = [];
-    var mySources = [];
-    _.forEach(Game.rooms, (aRoom) =>
-    {
-        if (aRoom.my)
-        {
-            mySources = mySources.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source));
-            mySpawns = mySpawns.concat(aRoom.getRoomObjects(ROOM_OBJECT_TYPE.spawn));
-        }
-    })
-    for (var i=0; i<mySpawns.length;i++)
-    {
-            var aSpawn = mySpawns[i];
-            for (var j=0; j<mySources.length;j++)
-            {
-                var aSource = mySources[j];
-                var aMod = (Game.time + (i*mySources.length + j)) % (mySpawns.length*mySources.length);
-                if ( aMod == 0)
-                {
-                    var aSpawnPos = aSpawn.getSpawnPos();
-                    var aPath = Util.getPath(aSource.pos,(_.isUndefined(aSpawnPos) ? aSpawn.pos : aSpawnPos));
-                    logDERP('Spawn: ['+i+' '+j+']['+aSpawn.name+'] '+'['+aSource.pos.x+' '+aSource.pos.y+'] - '+aPath.path.length+' incomplete='+aPath.incomplete);
-                    Memory.spawnTest[aSpawn.name][aSource.id] = aPath.path.length;
-                }
-            }
-    }
-
-    _.forEach(Memory.spawnTest, (aSpawn,key) =>
-    {
-        var aSum  = _.sum(aSpawn);
-        logDERP('SPAWN: '+JSON.stringify(key)+' sum = '+aSum);
-    })
-
-}
-
-
 sumHashTables = function(pSum,pStore)
 {
     return _.reduce(pStore, (res,a,b) =>
@@ -470,6 +449,28 @@ derpUpgrader = function()
             }
         }
     })
+
+    var myUpgrader = _.filter(Game.creeps, (a) =>
+    {
+        return a.memory.role == 'upgrader' && !a.spawning && a.pos.roomName == 'E65N48';
+    })
+
+    _.forEach(myUpgrader, (aCreep) =>
+    {
+        if (aCreep.pos.isEqualTo(39,40))
+        {
+            if (Game.time % 2 == 0)
+            {
+                aCreep.moveTo(new RoomPosition(40,40,'E65N48'))
+            }
+            else
+            {
+                aCreep.moveTo(new RoomPosition(39,41,'E65N48'))
+            }
+        }
+    })
+
+
 }
 
 

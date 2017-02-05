@@ -36,8 +36,8 @@ class ReactionsProduceOperation
         var aStorage = Game.rooms[aRoomName].storage;
         var aSpawn = Game.spawns['Derp Outpost'];
 
-        var LAB_RESOURCE_ONE = RESOURCE_HYDROGEN;
-        var LAB_RESOURCE_TWO = RESOURCE_KEANIUM;
+        var LAB_RESOURCE_ONE = RESOURCE_HYDROXIDE;
+        var LAB_RESOURCE_TWO = RESOURCE_KEANIUM_HYDRIDE;
         var LAB_REACTION = REACTIONS[LAB_RESOURCE_ONE][LAB_RESOURCE_TWO];
 
         if (_.isUndefined(aCreep))
@@ -128,14 +128,106 @@ class ReactionsProduceOperation
         logDERP('STORE: '+LAB_RESOURCE_ONE+' - '+amount_R1+' '+LAB_RESOURCE_TWO+' - '+amount_R2);
 
 
-        if (L1.mineralAmount > 0 &&  L2.mineralAmount > 0)
+        if (!_.isNull(L2.mineralType) && L2.mineralType != LAB_RESOURCE_TWO)
+        {
+            logDERP('WRONG MINERAL L2 '+L2.mineralType+' -> '+LAB_RESOURCE_TWO);
+            if (_.sum(aCreep.carry) == 0)
+            {
+                if (!aCreep.pos.isNearTo(L2))
+                {
+                    aCreep.travelTo(L2);
+                }
+                var result = aCreep.withdraw(L2,L2.mineralType)
+                logDERP('DERP WITHDRAW L2: '+ErrorSting(result));
+                return;
+            }
+            // else
+            // {
+            //     if (!aCreep.pos.isNearTo(aStorage))
+            //     {
+            //         aCreep.travelTo(aStorage);
+            //     }
+            //     var aType = _.findKey(aCreep.carry, (a) => { return (a > 0); })
+            //     var result = aCreep.transfer(aStorage,aType)
+            //     logDERP('DERP TRANSFER L2: '+ErrorSting(result));
+            // }
+            // return;
+        }
+
+        if (!_.isNull(L1.mineralType) && L1.mineralType != LAB_RESOURCE_ONE)
+        {
+            logDERP('WRONG MINERAL L1 '+L1.mineralType+' -> '+LAB_RESOURCE_ONE);
+            if (_.sum(aCreep.carry) == 0)
+            {
+                if (!aCreep.pos.isNearTo(L1))
+                {
+                    aCreep.travelTo(L1);
+                }
+                var result = aCreep.withdraw(L1,L1.mineralType)
+                logDERP('DERP WITHDRAW L1: '+ErrorSting(result));
+                return;
+            }
+            // else
+            // {
+            //     if (!aCreep.pos.isNearTo(aStorage))
+            //     {
+            //         aCreep.travelTo(aStorage);
+            //     }
+            //     var aType = _.findKey(aCreep.carry, (a) => { return (a > 0); })
+            //     var result = aCreep.transfer(aStorage,aType)
+            //     logDERP('DERP TRANSFER L1: '+ErrorSting(result));
+            // }
+            // return;
+        }
+
+        if (!_.isNull(L3.mineralType) && L3.mineralType != LAB_REACTION)
+        {
+            logDERP('WRONG MINERAL L2 '+L3.mineralType+' -> '+LAB_REACTION);
+            if (_.sum(aCreep.carry) == 0)
+            {
+                if (!aCreep.pos.isNearTo(L3))
+                {
+                    aCreep.travelTo(L3);
+                }
+                var result = aCreep.withdraw(L3,L3.mineralType)
+                logDERP('DERP WITHDRAW L2: '+ErrorSting(result));
+                return;
+            }
+            // else
+            // {
+            //     if (!aCreep.pos.isNearTo(aStorage))
+            //     {
+            //         aCreep.travelTo(aStorage);
+            //     }
+            //     var aType = _.findKey(aCreep.carry, (a) => { return (a > 0); })
+            //     var result = aCreep.transfer(aStorage,aType)
+            //     logDERP('DERP TRANSFER L2: '+ErrorSting(result));
+            // }
+            //return;
+        }
+
+
+        var aType = _.findKey(aCreep.carry, (a) => a > 0);
+        logDERP('DERP: '+aType+' ')
+        if (!_.isUndefined(aType) && aType != LAB_RESOURCE_ONE && aType != LAB_RESOURCE_TWO && aType != LAB_REACTION)
+        {
+            if (!aCreep.pos.isNearTo(aStorage))
+            {
+                aCreep.travelTo(aStorage);
+            }
+            var result = aCreep.transfer(aStorage,aType)
+            logDERP('DERP TRANSFER L1: '+ErrorSting(result));
+            return;
+        }
+
+
+        if (L1.mineralAmount > 0 &&  L2.mineralAmount > 0 && L3.mineralAmount < L3.mineralCapacity  )
         {
             var result = L3.runReaction(L1,L2);
             logDERP(aRoomName+' LAB REACTION 01: '+ErrorSting(result));
         }
 
-
-        if (L3.mineralAmount > 0 &&  L4.mineralAmount > 0)
+        if (L5.mineralAmount > 0 &&  L4.mineralAmount > 0  && L6.mineralAmount < L6.mineralCapacity )
         {
             var result = L6.runReaction(L4,L5);
             logDERP(aRoomName+' LAB REACTION 02: '+ErrorSting(result));
@@ -248,6 +340,10 @@ class ReactionsProduceOperation
 
         if (_.isUndefined(aCreep))
         {
+            if (_.isUndefined(aSpawn))
+            {
+                return;
+            }
             // 2200 = A * 75
             var aCarry = 1;
             var aMove = 1;
@@ -451,11 +547,19 @@ class ReactionsProduceOperation
         var aStorage = Game.rooms[aRoomName].storage;
         var aSpawn = Game.spawns['Casepool'];
 
-        var LAB_RESOURCE_ONE = RESOURCE_HYDROXIDE;
-        var LAB_RESOURCE_TWO = RESOURCE_UTRIUM_HYDRIDE;
+        // var LAB_RESOURCE_ONE = RESOURCE_HYDROXIDE;
+        // var LAB_RESOURCE_TWO = RESOURCE_ZYNTHIUM_HYDRIDE;
+
+        var LAB_RESOURCE_ONE = RESOURCE_OXYGEN;
+        var LAB_RESOURCE_TWO = RESOURCE_UTRIUM;
+
 
         if (_.isUndefined(aCreep))
         {
+            if (_.isUndefined(aSpawn))
+            {
+                return;
+            }
             // 2200 = A * 75
             var aCarry = 1;
             var aMove = 1;
@@ -472,7 +576,7 @@ class ReactionsProduceOperation
         }
         else
         {
-            logDERP('Lab hauler 1 active ......');
+           logDERP('Lab hauler 1 active ......');
         }
         if (aCreep.spawning) return;
 

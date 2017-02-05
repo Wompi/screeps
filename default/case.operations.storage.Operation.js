@@ -8,9 +8,9 @@ class StorageOperation
     processOperation()
     {
         this.processE64N49();
-        this.processE66N49();
-        this.processE66N48();
-        this.processE65N49();
+        //this.processE66N49();
+        //this.processE66N48();
+        //this.processE65N49();
         this.processE63N47();
     }
 
@@ -171,7 +171,7 @@ class StorageOperation
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)  || (b == RESOURCE_ENERGY && a > 25000)
+            return !(b == aRoomMineralType || b == RESOURCE_ENERGY)
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -206,9 +206,9 @@ class StorageOperation
             {
                 myCreep.transfer(aTerminal,aRoomMineralType)
             }
-            else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 25000)
+            else if (aType == RESOURCE_ENERGY && aTerminal.store[RESOURCE_ENERGY] < aStorage.store[RESOURCE_ENERGY] && aTerminal.store[RESOURCE_ENERGY] < 100000)
             {
-                var aDelta = 25000 - aTerminal.store[RESOURCE_ENERGY];
+                var aDelta = 100000 - aTerminal.store[RESOURCE_ENERGY];
                 myCreep.transfer(aTerminal,RESOURCE_ENERGY,_.min([myCreep.carry[RESOURCE_ENERGY],aDelta,aTerminal.store[RESOURCE_ENERGY]]));
             }
             else
@@ -229,6 +229,10 @@ class StorageOperation
         var aSpawn = Game.spawns['Brainpool'];
         if (_.isUndefined(myCreep))
         {
+            if (_.isUndefined(aSpawn))
+            {
+                return;
+            }
             // 2200 = A * 75
             var aCarry = 2;
             var aMove = 1;
@@ -237,6 +241,7 @@ class StorageOperation
             var aBody = aC.concat(aM);
 
             var aCost = aCarry * 50 + aMove * 50;
+
 
             var result = aSpawn.createCreep(aBody,'Storage '+aRoom.name,{role: 'storage transfer'});
             logDERP('C:('+aSpawn.name+') '+aCost+' aCarry = '+aCarry+' aMove = '+aMove+' result = '+ErrorSting(result));
@@ -337,8 +342,8 @@ class StorageOperation
         if (_.isUndefined(myCreep))
         {
             // 2200 = A * 75
-            var aCarry = 2;
-            var aMove = 1;
+            var aCarry = 20;
+            var aMove = 10;
             var aC = new Array(aCarry).fill(CARRY);
             var aM = new Array(aMove).fill(MOVE);
             var aBody = aC.concat(aM);
@@ -371,7 +376,11 @@ class StorageOperation
 
         var aRequest = _.findKey(aStorage.store,(a,b) =>
         {
-            var result = (b == RESOURCE_KEANIUM_HYDRIDE ) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
+            var result = (
+                               b == RESOURCE_KEANIUM_ACID
+                            || b == RESOURCE_KEANIUM_OXIDE
+                         )
+                         && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
             //logDERP('b = '+b+' result = '+result);
             return  result;
         });
@@ -379,7 +388,13 @@ class StorageOperation
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_KEANIUM_HYDRIDE) || (b == RESOURCE_ENERGY && a > 50000);
+            return !(
+                           b == aRoomMineralType
+                        || b == RESOURCE_ENERGY
+                        || b == RESOURCE_KEANIUM_ACID
+                        || b == RESOURCE_KEANIUM_OXIDE
+                    )
+                    || (b == RESOURCE_ENERGY && a > 50000);
         });
 
         if (!myCreep.pos.isEqualTo(aPos))
@@ -445,6 +460,11 @@ class StorageOperation
         var aSpawn = Game.spawns['Case Outpost'];
         if (_.isUndefined(myCreep))
         {
+
+            if (_.isUndefined(aSpawn))
+            {
+                return;
+            }
             // 2200 = A * 75
             var aCarry = 2;
             var aMove = 1;
@@ -478,14 +498,27 @@ class StorageOperation
 
         var aRequest = _.findKey(aStorage.store,(a,b) =>
         {
-            var result = (b == RESOURCE_UTRIUM_ACID || b == RESOURCE_UTRIUM_ALKALIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
-            //logDERP('b = '+b+' result = '+result);
+            var result = (
+                               b == RESOURCE_UTRIUM_ACID
+                            || b == RESOURCE_UTRIUM_ALKALIDE
+                            || b == RESOURCE_ZYNTHIUM_ACID
+                            || b == RESOURCE_ZYNTHIUM_ALKALIDE
+                         )
+                         && (_.isUndefined(aTerminal.store[b]) || aTerminal.store[b] < REACTION_DEFAULT_AMOUNT);
             return  result;
         });
 
         var aTransfer = _.findKey(aTerminal.store,(a,b) =>
         {
-            return !(b == aRoomMineralType || b == RESOURCE_ENERGY || b == RESOURCE_UTRIUM_ACID || b == RESOURCE_UTRIUM_ALKALIDE || b == RESOURCE_ZYNTHIUM_HYDRIDE || b == RESOURCE_ZYNTHIUM_OXIDE) || (b == RESOURCE_ENERGY && a > 50000)
+            return !(
+                           b == aRoomMineralType
+                        || b == RESOURCE_ENERGY
+                        || b == RESOURCE_UTRIUM_ACID
+                        || b == RESOURCE_UTRIUM_ALKALIDE
+                        || b == RESOURCE_ZYNTHIUM_ACID
+                        || b == RESOURCE_ZYNTHIUM_ALKALIDE
+                    )
+                    || (b == RESOURCE_ENERGY && a > 50000)
         });
 
 

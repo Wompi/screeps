@@ -64,6 +64,9 @@ class Market
             RESOURCE_ZYNTHIUM,
             RESOURCE_UTRIUM,
             RESOURCE_OXYGEN,
+            RESOURCE_HYDROGEN,
+            RESOURCE_KEANIUM,
+            'UH',
         ]
 
         if (_.isUndefined(pIndex) || pIndex > (myResourceTypes.length-1))

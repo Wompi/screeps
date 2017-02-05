@@ -39,8 +39,8 @@ class RemoteMiningClaimer
             var aBody = aC.concat(aM);
 
             var aCost = aClaim * 600 + aMove * 50;
-
-            var result = aSpawn.createCreep(aBody,'Claim '+pRoomName,{role: 'remote claimer '+pRoomName});
+            var result = undefined;
+            //var result = aSpawn.createCreep(aBody,'Claim '+pRoomName,{role: 'remote claimer '+pRoomName});
             logDERP('C:('+aSpawn.name+') '+aCost+' aClaim = '+aClaim+' aMove = '+aMove+' result = '+ErrorSting(result));
             return;
         }

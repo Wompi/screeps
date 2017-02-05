@@ -48,6 +48,27 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
         myTask = this.assignBuildTarget(myTask);
         myTask = this.assignUpgradeTarget(myTask);
 
+        var myResources = myTask.aRoom.find(FIND_DROPPED_RESOURCES,
+        {
+            filter: (a) =>
+            {
+                //a.init();
+                return pCreep.pos.isNearTo(a) && a.resourceType == RESOURCE_ENERGY;
+            }
+        });
+        var aResource = undefined;
+        if (myResources.length > 0)
+        {
+            aResource = myResources[0];
+            //logDERP('RESOURCE DERP: '+JSON.stringify(aResource))
+        }
+        if (!_.isUndefined(aResource))
+        {
+            pCreep.pickup(aResource);
+            logDERP('REMOTE BUILDER: pickup - near energy ');
+        }
+
+
         if (!_.isUndefined(myTask.aMove))
         {
             var result = pCreep.moveTo(myTask.aMove,{ignoreCreeps: false});
@@ -99,18 +120,20 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
             // move back to start room
             if (isRemote)
             {
-                // var aRoom = pTask.aCreep.room;
-                // var myRoomBoxs = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
-                // var myBoxs = _.filter(myRoomBoxs, (a) => { return a.store[RESOURCE_ENERGY] > 1499 ;});
-                //
-                // var aBox = _.min(myBoxs, (a) =>
-                // {
-                //     return pTask.aCreep.pos.getRangeTo(a);
-                // });
-                // logDERP('DERP: '+JSON.stringify(aBox));
-                // if (_.isNull(aBox))
-                // {
-                    var aHome = Game.getObjectById('586a21c2e0f15c00496a3ac2');
+                var myContainers = pTask.aCreep.room.find(FIND_STRUCTURES,
+                {
+                    filter: (a) =>
+                    {
+                        //a.init();
+                        return     a.structureType == STRUCTURE_CONTAINER
+                                && a.store[RESOURCE_ENERGY] >= 1000
+                                && pTask.aCreep.pos.inRangeTo(a,5) ;
+                    }
+                });
+                var aContainer = myContainers.length > 0 ? myContainers[0] : undefined;
+                if (_.isUndefined(aContainer))
+                {
+                    var aHome = Game.getObjectById('58670bd25d1b59a921cc9639');
                     //var aDerp = Game.getObjectById(aHome);
                     if (!_.isNull(aHome))
                     {
@@ -120,11 +143,11 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
                     {
                         logERROR('REMOTE BUILDER HAS NO HOME saved .... fix this!');
                     }
-                // }
-                // else
-                // {
-                //     pTask.aMove = aBox;
-                // }
+                }
+                else
+                {
+                    pTask.aMove = aContainer;
+                }
             }
             else
             {
@@ -152,29 +175,28 @@ class RemoteBuilderRole extends require('role.creep.AbstractRole')
 
         if (isRemote)
         {
-            // var aRoom = pTask.aCreep.room;
-            // var myRoomBoxs = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.container);
-            // var myBoxs = _.filter(myRoomBoxs, (a) => { return a.store[RESOURCE_ENERGY] > 1499 ;});
-            //
-            // var aBox = _.min(myBoxs, (a) =>
-            // {
-            //     return pTask.aCreep.pos.getRangeTo(a);
-            // });
-            // logDERP(JSON.stringify(aBox))
-            // if (_.isNull(aBox))
-            // {
-                //logDERP('NULL PASS')
+            var myContainers = pTask.aCreep.room.find(FIND_STRUCTURES,
+            {
+                filter: (a) =>
+                {
+                    //a.init();
+                    return     a.structureType == STRUCTURE_CONTAINER
+                            && a.store[RESOURCE_ENERGY] >= 1000
+                            && pTask.aCreep.pos.inRangeTo(a,5) ;
+                }
+            });
+            var aContainer = myContainers.length > 0 ? myContainers[0] : undefined;
+            if (_.isUndefined(aContainer))
+            {
                 return pTask;
-//             }
-//             else
-//             {
-//                 logDERP('NULL CHECK ' +JSON.stringify(aBox))
-//                 var myDelta = pTask.aCreep.carryCapacity - _.sum(pTask.aCreep.carry);
-//                 pTask.aWithdraw.aTarget = aBox;
-// //                pTask.aWithdraw.aAmount = _.min([myDelta,aBox.store[RESOURCE_ENERGY]]);
-//                 pTask.aWithdraw.aAmount = myDelta;
-//                 return pTask;
-//             }
+            }
+            else
+            {
+                var myDelta = pTask.aCreep.carryCapacity - _.sum(pTask.aCreep.carry);
+                pTask.aWithdraw.aTarget = aContainer;
+                pTask.aWithdraw.aAmount = _.min([myDelta,aContainer.store[RESOURCE_ENERGY]]);
+                return pTask;
+            }
         }
 
         if (pTask.aCreep.pos.isNearTo(aStorage))

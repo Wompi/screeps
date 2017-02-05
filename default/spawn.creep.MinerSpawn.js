@@ -14,10 +14,18 @@ class FixerSpawn extends require('spawn.creep.AbstractSpawn')
 
     processSpawn(pSpawn)
     {
-
         logDEBUG('MINER SPAWN PROCESSED.....');
+
         if (!this.isSpawnValid(pSpawn)) return;
         var aRoom = pSpawn.room;
+
+        if (aRoom.name == 'E65N48')
+        {
+            // this room is excluuded for now
+            return;
+        }
+
+
 
         var myRoomSources = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.source);
         var myRoomCreeps = aRoom.getRoomObjects(ROOM_OBJECT_TYPE.creep);

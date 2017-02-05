@@ -16,19 +16,19 @@ class RoomManager
         if (!this.myRoom.my) return;
 
         //var a = Game.cpu.getUsed();
-        this.processSpawns();
+        //this.processSpawns();
         // var b = Game.cpu.getUsed();
         // logWARN('PROFILE: room - processSpawns() = '+(b-a));
         // var a = Game.cpu.getUsed();
-        this.processCreeps();
+        //this.processCreeps();
         // var b = Game.cpu.getUsed();
         // logWARN('PROFILE: room - processCreeps() = '+(b-a));
         // var a = Game.cpu.getUsed();
-        this.processTowers();
+        //this.processTowers();
         // var b = Game.cpu.getUsed();
         // logWARN('PROFILE: room - processTowers() = '+(b-a));
         // var a = Game.cpu.getUsed();
-        this.processLinks();
+        //this.processLinks();
         // var b = Game.cpu.getUsed();
         // logWARN('PROFILE: room - processLinks() = '+(b-a));
 
@@ -78,15 +78,20 @@ class RoomManager
            new CREEP_ROLE['builder'].spawn('builder'),
            new CREEP_ROLE['broker'].spawn('broker'),
        ];
-       var aSpawn = mySpawns[0];
+       var aSpawn = _.find(mySpawns, (aSpawn) =>
+       {
+           return !aSpawn.spawning;
+       });
 
        _.forEach(myRoomSpawns, (a) => { a.processSpawn(aSpawn); });
-
 
        var myCreeps = this.myRoom.find(FIND_MY_CREEPS);
        var spawnLoop = aSpawn =>
        {
-           aSpawn.repairCreep(myCreeps);
+           if (!aSpawn.spawning)
+           {
+               aSpawn.repairCreep(myCreeps);
+           }
        };
        _.forEach(mySpawns,spawnLoop);
    }

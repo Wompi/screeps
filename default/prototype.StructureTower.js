@@ -33,7 +33,7 @@ var mod =
                 {
                     this.room.memory.invaders = {};
                 }
-                this.room.memory.invaders[Game.time] = JSON.stringify(aInvader);
+                //this.room.memory.invaders[Game.time] = JSON.stringify(aInvader);
                 logWARN('ATTACK: '+ErrorSting(result));
             }
         };
