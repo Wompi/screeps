@@ -66,7 +66,16 @@ var mod =
     	var result = [];
 
     	for(objectToInspect = o; objectToInspect !== null; objectToInspect = Object.getPrototypeOf(objectToInspect)){
-          result = result.concat(Object.getOwnPropertyNames(objectToInspect));
+
+            var aName = Object.getOwnPropertyNames(objectToInspect);
+            result.push('-----------------------');
+
+            if (aName[0] == 'constructor')
+            {
+                Log(undefined,'Constructor: '+objectToInspect.constructor);
+            }
+
+          result = result.concat(aName);
     	}
 
     	return result;
@@ -109,7 +118,10 @@ var mod =
             }
         });
         return myPath;
-    }
-
-}
+    },
+    getCreepsForRole: (pRole) =>
+    {
+        return _.filter(Game.creeps, (aCreep) => aCreep.hasRole(pRole));    
+    },
+};
 module.exports = mod;

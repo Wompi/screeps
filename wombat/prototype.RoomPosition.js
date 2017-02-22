@@ -35,6 +35,22 @@ RoomPosition.prototype.adjacentPositions = function(pRange)
     return aArea;
 }
 
+/**
+ * Overload: this is the same as in the server - but without all the checks
+ *  - not sure if this is faster but it looks cleaner to me
+ *  - TODO: check this again something is wrong with it 
+ *
+ */
+// RoomPosition.prototype.getRangeTo = function(pPos)
+// {
+//     if (!_.isUndefined(pPos.pos))
+//     {
+//         pPos = pPos.pos;
+//     }
+//     return Math.max([Math.abs(this.x - pPos.x), Math.abs(this.y - pPos.y)]);
+// }
+
+
 RoomPosition.prototype.inBoundPositions = function(pRange)
 {
     var result = { max: -Infinity, area: undefined }

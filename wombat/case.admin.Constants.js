@@ -10,6 +10,12 @@ var mod =
     STORAGE_MAINTENANCE_RESERVE_LIMIT: 20000, // how many energy I want to be in the storage before it can be used for other stuff
     HAULER_PICKUP_RANGE: 7, // this is the range at whitch the hauler can pickup scattered resources
 
+    // hese are my screep roles
+    CREEP_ROLE:
+    {
+        scout: 'scout',
+        miner: 'miner',
+    },
 
     LOG_LEVEL: [ 'debug', 'info' , 'warn' , 'error'],
     DEBUG: false,
@@ -26,6 +32,28 @@ var mod =
         green: '#00FF00',
         blue: '#0000FF',
         yellow: '#FFFF00',
+    },
+
+    BOOST_TASK_HARVEST: 'harvest',
+    BOOST_TASK_BUILD: 'build',
+    BOOST_TASK_REPAIR: 'repair',
+    BOOST_TASK_DISMANTLE: 'dismantle',
+    BOOST_TASK_UPGRADE_CONTROLLER: 'upgradeController',
+    BOOST_TASK_ATTACK: 'attack',
+    BOOST_TASK_RANGED_ATTACK: 'rangedAttack',
+    BOOST_TASK_RANGED_MASSATTACK: 'rangedMassAttack',
+    BOOST_TASK_HEAL: 'heal',
+    BOOST_TASK_RANGED_HEAL: 'rangedHeal',
+    BOOST_TASK_CAPACITY: 'capacity',
+    BOOST_TASK_FATIGUE: 'fatigue',
+    BOOST_TASK_DAMAGE: 'damage',
+
+    TASKS:
+    {
+        [WORK]:
+        {
+
+        }
     },
 
 
@@ -64,6 +92,10 @@ var mod =
         }
     },
 
+    RCL_ENERGY: (rcl) =>
+    {
+        return CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][rcl] * EXTENSION_ENERGY_CAPACITY[rcl] + CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][rcl] * SPAWN_ENERGY_CAPACITY
+    }
 
 }
 module.exports = mod;

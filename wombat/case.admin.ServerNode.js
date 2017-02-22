@@ -1,54 +1,15 @@
 class ServerNode
 {
-    constructor(pModule)
+    constructor(pModule,pCallback = undefined)
     {
-        var aDerp =
-        {
-            game:
-            {
-                server:
-                {
-                    nodeCounter: 0,
-                    changeTick: 0,
-                    timeStamp: 0,
-                    nodes: {},
-                },
-            },
-        };
-
-        _.each(_.keys(aDerp), (aRoot) =>
-        {
-            var aDerp = [aRoot];
-            _.each(_.keys(aDerp[aRoot]), (aChild) =>
-            {
-                console.log('.....');
-                aDerp.push(aChild);
-                _.each(_.keys(aDerp[aRoot][aChild]), (aBaby) =>
-                {
-                    aDerp.push(aBaby);
-                });
-            });
-            console.log('ROOT: '+JS(aDerp));
-        });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        Log(undefined,'NODE: NEW NODE');
+        this.mCallback = pCallback;
 
         this.aMem = {
             root: Memory,
             path: ['game', 'server'],
+            // value: [ 'nodeCounter' , 'changeTick', 'timeStamp', 'nodes' ],
+            // defaults: [ 0, Game.time, pModule.timestamp, {}],
         }
         this.aNodeCountMem = {
             root: Memory,
@@ -61,6 +22,7 @@ class ServerNode
 
         this.mFirstTick = Game.time;
         this.mLastTick = Game.time;
+
         this.mNode = _.get(this.aNodeCountMem.root,this.aNodeCountMem.path,0) + 1;
         this.mTimeStamp = pModule.timestamp;
         this.saveNode();
@@ -77,25 +39,48 @@ class ServerNode
         });
         console.log(JS(aSave));
 
-
-
-
         if (aSave.timeStamp != this.mTimeStamp)
         {
             aSave.timeStamp = this.mTimeStamp;
+            aSave.nodes = {};
+            aSave.nodeCounter = 1;
+            this.mNode = 1;
             _.set(this.aMem.root,this.aMem.path,aSave);
+
+
+
+            if (!_.isUndefined(this.mCallback))
+            {
+                Log(undefined,'NODE: reset processs callback!');
+                this.mCallback(true);
+            }
         }
+        else
+        {
+            if (!_.isUndefined(this.mCallback))
+            {
+                Log(undefined,'NODE: memory processs callback!');
+                this.mCallback(false);
+            }
+        }
+
         //return;
+        var aDate = new Date();
 
         aSave.nodes[this.mNode] = {
             firstTick: this.mFirstTick,
             lastTick: this.mLastTick,
+            date: aDate.getMinutes()+' '+aDate.getSeconds(),
         }
         _.set(this.aNodeCountMem.root,this.aNodeCountMem.path,this.mNode);
     }
 
     updateTick(pDebug = false)
     {
+        this.aMem.root = Memory;
+        this.aNodeCountMem.root = Memory;
+        this.aNodeMem.root = Memory;
+
         var myNodes = _.get(this.aNodeMem.root,this.aNodeMem.path);
         this.mLastTick = myNodes[this.mNode].lastTick;
 
@@ -124,13 +109,12 @@ class ServerNode
         console.log('SERVER NODE: '+JSON.stringify(derp,undefined,2));
 
         var myNodes = _.get(this.aNodeMem.root,this.aNodeMem.path);
-
         _.forEach(myNodes, (a,b) =>
         {
-            var msg = b+' -> '+(Game.time-a.lastTick)+' fist: '+a.firstTick;
+            var msg = b+' -> '+(Game.time-a.lastTick)+' fist: '+a.firstTick +' delta: '+(a.lastTick-a.firstTick);
             if (b == this.mNode)
             {
-                msg = '<font color="#a52a2a">'+msg+'</font>';
+                msg = `<font color="#a52a2a">${msg}</font>`;
             }
             console.log(msg);
         });

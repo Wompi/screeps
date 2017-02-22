@@ -88,6 +88,13 @@ Creep.prototype.getRepairTarget = function()
 	);
 }
 
+
+Creep.prototype.hasRole = function(pRole)
+{
+	return this.memory.role == pRole;
+}
+
+
 Creep.prototype.getLoadedContainerTarget = function()
 {
 	return this.getTarget(
@@ -95,4 +102,9 @@ Creep.prototype.getLoadedContainerTarget = function()
 		(container) => _.sum(container.store) > 0,
 		(containers) => _.max(containers, c => _.sum(container.store))
 	)
+}
+
+Creep.prototype.canBuild = function()
+{
+	return this.getActiveBodyparts(WORK) > 0 && this.carryCapacity > 0;
 }
