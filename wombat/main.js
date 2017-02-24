@@ -1,5 +1,10 @@
 
+
+
+
 console.log('-------------------------- RESTART '+Game.time+'------------------ C -----------------');
+console.log('TEST: '+JSON.stringify(_.find(Game.rooms).controller.entityType));
+
 
 
 // REQUIRE: debug related classes
@@ -66,6 +71,8 @@ require('prototype.structure.owned.Storage');
 require('prototype.structure.owned.Terminal');
 require('prototype.structure.owned.Tower');
 
+console.log('TEST TEST: '+JSON.stringify(_.find(Game.rooms).controller.upgradePositions()));
+
 
 var GlobalGameManager = require('case.design.GlobalGameManager');
 _.assign(global,
@@ -89,6 +96,53 @@ if (aNode.mNode > 4)
     Log(undefined,aNode.mNode+' ------------------------ BUG REMOVED ---------------------------');
 }
 
+var aTestChache = {};
+
+
+_.each(Game.rooms, (aRoom,aRoomName) =>
+{
+    _.each(aRoom.find(FIND_STRUCTURES), (aStruct) =>
+    {
+        aTestChache[aStruct.id] = new Proxy(
+        {
+            entity: aStruct,
+            lastUpdate: Game.time,
+        },
+        {
+            get: function(target, name)
+            {
+                if (Game.time > target['lastUpdate'])
+                {
+                    var aEntityBehavior = target['entity'].getEntityBehavior();
+
+                    // not all entities need to be updated aka RoomPositions
+                    if (!_.isUndefined(aEntityBehavior))
+                    {
+                        var aEntity = aEntityBehavior.currentEntity();
+                        if (aEntity != null)
+                        {
+                            if (aEntityBehavior.hasOwnProperty('onChange'))
+                            {
+                                aEntity.getEntityBehavior().onChange(target['lastUpdate'],target['entity']);
+                            }
+                            target['entity'] = aEntity;
+                            target['lastUpdate'] = Game.time;
+                            //Log(undefined,'PROXY: update - '+aEntity.entityType+' ID: '+aEntity.id);
+                        }
+                        else
+                        {
+                            if (aEntityBehavior.hasOwnProperty('onInvalid'))
+                            {
+                                aEntity.onInvalid();
+                            }
+                        }
+                    }
+                }
+                return target['entity'][name];
+            },
+        });
+    });
+});
 
 module.exports.loop = function ()
 {
@@ -123,6 +177,18 @@ module.exports.loop = function ()
 
     Cache.mLastUpdate = Game.time;
 
+
+    var a = Game.cpu.getUsed();
+    _.each(aTestChache, (aProxy, aID) =>
+    {
+        aProxy.id;
+    });
+    var b = Game.cpu.getUsed();
+    Log(WARN,'PROFILE: proxy - '+(b-a).toFixed(4) +' keys: '+_.keys(aTestChache).length);
+
+    // var aController = aTestCache[ENTITY_TYPES.controller][aController.id];
+    //
+    // Log(undefined,'TEST: cache: '+aTestCache[aController.id].progress+' tick: '+aController.progress);
 
     // var aScoutOperation = new ScoutOperation();
     // aScoutOperation.processOperation();

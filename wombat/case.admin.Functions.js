@@ -22,7 +22,10 @@ var mod =
         };
         return codes[code];
     },
-    JS: (obj, asLine = true) => asLine ? JSON.stringify(obj) :  JSON.stringify(obj,undefined,2),
+    JS: (obj,replacer = undefined, space = undefined) =>
+    {
+        return JSON.stringify(obj,replacer, space);
+    },
     getID: function()
     {
         if (Memory.globalId == undefined || Memory.globalId > 10000)

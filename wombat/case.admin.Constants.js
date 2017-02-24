@@ -13,6 +13,10 @@ _.assign(global,
         room: 'room',
         roomPosition: 'roomPosition',
         roomVisial: 'roomVisual',
+
+
+        controller: 'controller',
+        road: 'road',
     },
 });
 

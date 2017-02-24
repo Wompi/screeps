@@ -17,7 +17,7 @@ StructureController.prototype.upgradePositions = function(pVisualize = false)
             {
                 aColor = COLOR.red;
             }
-            this.room.visual.circle(Number(x),Number(y), {fill: aColor});            
+            this.room.visual.circle(Number(x),Number(y), {fill: aColor});
         });
     }
 
@@ -32,4 +32,21 @@ StructureController.prototype.upgradePositions = function(pVisualize = false)
         });
     });
     return result;
+}
+
+
+StructureController.prototype.getEntityBehavior = function()
+{
+    return {
+        currentEntity: () => Game.getObjectById(this.id),
+        onInvalid: () => false,
+        onChange: (pLastUpdate,pLastEntity) =>
+        {
+            let aDeltaProgress = this.progress - pLastEntity.progress;
+            let aDeltaUpdate = Game.time - pLastUpdate;
+            let aAvg = _.floor(aDeltaProgress/aDeltaUpdate);
+
+            Log(undefined,'StructureController: onChange - deltaProgress: '+aDeltaProgress+' age: '+aDeltaUpdate+' avg: '+aAvg);
+        },
+    };
 }

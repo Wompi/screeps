@@ -47,7 +47,7 @@ class GlobalCache
 		// TODO: this is not realy needed because the GlobalGameManager should filter it out as well
 		if (needsCleaning)
 		{
-			Log(undefined,'----- CLeaning ---- '+aIndex);
+			Log(undefined,'----- CLeaning ---- ');
 			this.mCache = _.filter(this.mCache, (aEntity) => !_.isUndefined(aEntity));
 		}
 	}
