@@ -75,6 +75,11 @@ var mod =
                 Log(undefined,'Constructor: '+objectToInspect.constructor);
             }
 
+            // if (aName[4] == 'progress')
+            // {
+            //     Log(undefined,'Progress: '+objectToInspect.progress);
+            // }
+
           result = result.concat(aName);
     	}
 
@@ -121,7 +126,7 @@ var mod =
     },
     getCreepsForRole: (pRole) =>
     {
-        return _.filter(Game.creeps, (aCreep) => aCreep.hasRole(pRole));    
+        return _.filter(Game.creeps, (aCreep) => aCreep.hasRole(pRole));
     },
 };
 module.exports = mod;

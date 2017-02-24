@@ -6,7 +6,7 @@ class ResettleOperation
         this.mRoom = this.mSpawn.room;
         this.mController = this.mRoom.controller;
 
-        this.mSources = _.sortBy(this.mRoom.find(FIND_SOURCES), (aSource) => this.mSpawn.pos.getRangeTo(aSource));
+        this.mSources = _.sortBy(GameMan.getEntityForType(ENTITY_TYPES.source), (aSource) => this.mSpawn.pos.getRangeTo(aSource));
 
         var mySourcePos = [];
         _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions(true)));
@@ -24,14 +24,14 @@ class ResettleOperation
             },res);
         },[]);
 
-        this.mExtensions = _.filter(GameMan.getStructureForType('extension'), (aStruct) => aStruct.energy < aStruct.energyCapacity);
+        this.mExtensions = _.filter(GameMan.getEntityForType('extension'), (aStruct) => aStruct.energy < aStruct.energyCapacity);
         this.mConstructions = _.filter(Game.constructionSites, (aSite) => aSite.room.name == this.mRoom.name);
         this.mResources = this.mRoom.find(FIND_DROPPED_RESOURCES);
 
-        this.mContainers = GameMan.getStructureForType('container');
-        this.mRoads = GameMan.getStructureForType('road');
+        this.mContainers = GameMan.getEntityForType('container');
+        this.mRoads = GameMan.getEntityForType('road');
 
-        this.mTowers = GameMan.getStructureForType('tower');
+        this.mTowers = GameMan.getEntityForType('tower');
 
         this.mTasks = [];
     }
@@ -49,7 +49,7 @@ class ResettleOperation
     {
         _.each(Game.creeps, (aCreep) =>
         {
-            if (!aCreep.spawning)
+            if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0)
             {
                 //Log(WARN,'CREEP: '+aCreep.name);
                 let isEmpty = aCreep.carry[RESOURCE_ENERGY] == 0;

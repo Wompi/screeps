@@ -17,6 +17,30 @@ var mod =
         miner: 'miner',
     },
 
+    SOURCE_TYPE:
+    {
+        drop: 'drop',
+        box: 'box',
+        link: 'link',
+    },
+
+    ENTITY_TYPES:
+    {
+        source: 'source',
+    },
+
+    ROOM_OBJECTS:
+    {
+        source: Source,
+        flag: Flag,
+        creep: Creep,
+        constructionSite: ConstructionSite,
+        mineral: Mineral,
+        nuke: Nuke,
+        resource: Resource,
+        //structure: Structure,
+    },
+
     LOG_LEVEL: [ 'debug', 'info' , 'warn' , 'error'],
     DEBUG: false,
     ERROR: true,

@@ -1,3 +1,13 @@
+
+
+var CLASSIFY =
+{
+    unknown: 'unknown',
+    dangerous: 'dangerous',
+    visited: 'visited',
+};
+
+
 /**
  *  SCOUT OPERATION: the scout is meant to be a automatic room detector and should roam around and survey the
  *                      surraoundings
@@ -31,43 +41,67 @@ class ScoutOperation
 
         var aScout = this.mScouts[0]; // for starters we use only one scout to see how it goes
 
-
         var myRoomsToScout = Mem.getEnsured(aScout.memory,'roomsToScout',[]);
-        var myRoomsIntel = Mem.getEnsured(aScout.memory,'roomIntel',{});
 
         if (_.isEmpty(myRoomsToScout))
         {
             // if the scout has no targets (memory wiped or new start) we push the current room as start pPoints
             // this is allways a owned room because we had to spawn here
-            myRoomsToScout.push(aCreep.pos.roomName);
+            // TODO: if the memory gets wiped and rooms allrady scouted - maybe loop over the rooms to find the next one
+            myRoomsToScout.push(aScout.pos.roomName);
         }
 
-        var aTargetRoom = Mem.getEnsured(aScout.memory,['roomIntel',myRoomsToScout[0]],
+        if (aScout.pos.roomName != myRoomsToScout[0])
         {
-            classified: 'unknown',
-        })
+            var myExits = Mem.getEnsured(Memory,['rooms',aScout.pos.roomName,'exits',myRoomsToScout[0]]);
+            Log(undefined,'DERP: '+JS(myExits))
+            Visualizer.visualizePoints(aScout.pos.roomName,myExits,{fill: COLOR.blue})
 
-        if (aTargetRoom.classified == 'unknown')
-        {
-            if (aCreep.pos.roomName != myRoomsToScout[0])
+
+            // var res = aScout.travelTo({pos: new RoomPosition(25,25,myRoomsToScout[0])})
+            var res = aScout.moveTo(new RoomPosition(25,25,myRoomsToScout[0]),
             {
-                var res = aCreep.travelTo({pos: new RoomPosition(25,25,myRoomsToScout[0])})
-                Log(undefined,'OPERATION: scout moves to '+myRoomsToScout[0]+' '+ErrorString(res));
+                costCallback:  function(roomName)
+                {
+                    Log(undefined,'MOVE DERP ........ '+roomName);
+                    return new PathFinder.CostMatrix(255);
+                }
+            });
+            aScout.say(myRoomsToScout[0]);
+            Log(undefined,'OPERATION: scout moves to '+myRoomsToScout[0]+' '+ErrorString(res));
+        }
+        else
+        {
+            Log(undefined,'OPERATION: scout - derp');
+            // hmmm we need to move off of the exit here otherwise the scout stops and gets teleported back to the
+            // previeous room
+            var aCreepRoom = aScout.room;
+
+            var hasInvaders = aCreepRoom.find(FIND_HOSTILE_CREEPS).length > 0;
+
+            if (!hasInvaders)
+            {
+                // TODO: the findLocalExits will be processed every time change this
+                var myRoomExits = Mem.getEnsured(Memory,['rooms',aCreepRoom.name,'exits'],aCreepRoom.findLocalExits());
+
+                _.each(_.keys(myRoomExits), (aName) =>
+                {
+                    var isNotClassified = Mem.getEnsured(Memory,['rooms',aName,'classified'],CLASSIFY.unknown) == CLASSIFY.unknown;
+                    Log(undefined,'MEGADERP: '+Mem.getEnsured(Memory,['rooms',aName,'classified'],CLASSIFY.unknown)+' '+isNotClassified);
+                    if (isNotClassified)
+                    {
+                        myRoomsToScout.push(aName);
+                    }
+                });
+                // TODO: here should be the whole classification stuff
+                _.set(Memory,['rooms',aCreepRoom.name,'classified'],CLASSIFY.visited);
             }
             else
             {
-                // hmmm we need to move off of the exit here otherwise the scout stops and gets teleported back to the
-                // previeous room
-                var myRoomExits = aCreep.room.findLocalExits();
-                
-
+                _.set(Memory,['rooms',aCreepRoom.name,'classified'],CLASSIFY.dangerous);
             }
+            myRoomsToScout.shift(); // remove the target
         }
-
-
-
-
-
     }
 
     spawnScout()
@@ -80,7 +114,7 @@ class ScoutOperation
         if (aSpawn.room.energyAvailable >= 50)
         {
             // reuse the last dead scout
-            var aName = _.find(Memory.creeps, (aCreepMem,aCreepName) =>
+            var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
             {
                 if (aCreepMem.role != CREEP_ROLE.scout) return false;
                 if (!_.isUndefined(Game.creeps[aCreepName])) return false;

@@ -12,7 +12,16 @@ class GlobalCache
 	constructor(pMemoryPath)
 	{
 		this.mLastUpdate = Game.time;
+		this.mFirstTick = Game.time;
 		this.mCache = [];
+
+		this.FIND_MAP = [ 	FIND_STRUCTURES,
+							FIND_SOURCES,
+							FIND_DROPPED_RESOURCES,
+							FIND_MY_CONSTRUCTION_SITES,
+							FIND_NUKES,
+							FIND_MINERALS,
+						];
 	}
 
 	updateCache()
@@ -38,7 +47,7 @@ class GlobalCache
 		// TODO: this is not realy needed because the GlobalGameManager should filter it out as well
 		if (needsCleaning)
 		{
-			Log(undefined,'----- CLeaning ------');
+			Log(undefined,'----- CLeaning ---- '+aEntity.entityType);
 			this.mCache = _.filter(this.mCache, (aEntity) => !_.isUndefined(aEntity));
 		}
 	}
@@ -73,10 +82,13 @@ class GlobalCache
 	        // });
 			_.each(Game.rooms, (aRoom) =>
 	        {
-				var myRoomStructures = aRoom.find(FIND_STRUCTURES);
-				this.mCache = this.mCache.concat(myRoomStructures);
-				aMem.IDs = aMem.IDs.concat(_.map(myRoomStructures,'id'));
-		        Log(WARN,'CHACHE RESET: add '+myRoomStructures.length+' entities for room '+aRoom.name+' to chache!');
+				_.each(this.FIND_MAP, (aFindKey) =>
+				{
+					var myRoomStructures = aRoom.find(aFindKey);
+					this.mCache = this.mCache.concat(myRoomStructures);
+					aMem.IDs = aMem.IDs.concat(_.map(myRoomStructures,'id'));
+			        Log(WARN,'CHACHE RESET: add '+myRoomStructures.length+' entities for room '+aRoom.name+' to chache!');
+				});
 	        });
 		}
 	    else

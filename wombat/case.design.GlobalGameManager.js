@@ -24,7 +24,7 @@ class GlobalGameManager
         {
             if (!_.isUndefined(aEntity))
             {
-                var aType = aEntity.structureType;
+                var aType = aEntity.entityType;
                 if (_.isUndefined(this.mEntities[aType]))
                 {
                     this.mEntities[aType] = [];
@@ -34,7 +34,7 @@ class GlobalGameManager
         }
     }
 
-    getStructureForType(pType)
+    getEntityForType(pType)
     {
         if (_.isUndefined(this.mEntities[pType]))
         {
@@ -42,6 +42,16 @@ class GlobalGameManager
         }
 
         return this.mEntities[pType];
+    }
+
+    getStructureForRoom(pType,pRoom)
+    {
+        if (_.isUndefined(this.mEntities[pType]))
+        {
+            return [];
+        }
+
+        return _.filter(this.mEntities[pType], (aEntity) => aEntity.structureType == pType);
     }
 }
 module.exports = GlobalGameManager;

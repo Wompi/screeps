@@ -46,47 +46,47 @@ Room.prototype.findLocalExits = function(pVisualize = false)
 
 
 
-
-var memGet = _.memoize(() =>
-{
-    console.log('memoize room test');
-    return 'a super derp memoize test';
-},() => 'testHash');
-
-
-var extend = function()
-{
-    Object.defineProperties(Room.prototype,
-    {
-        'mineral':
-        {
-            configurable: true,
-            get: function()
-            {
-                if (!this._mineral)
-                {
-                    var aArr = this.find(FIND_MINERALS);
-                    this._mineral = aArr[0];
-                }
-                else
-                {
-                    console.log('MINERAL CACHE......');
-                }
-                return this._mineral;
-
-            }
-        },
-        'test':
-        {
-            configurable: true,
-            get: memGet,
-            set: (pValue) =>
-            {
-                memGet.cache.set('testHash',pValue);
-            },
-        },
-
-    });
-}
-extend();
-//module.exports = extend;
+//
+// var memGet = _.memoize(() =>
+// {
+//     console.log('memoize room test');
+//     return 'a super derp memoize test';
+// },() => 'testHash');
+//
+//
+// var extend = function()
+// {
+//     Object.defineProperties(Room.prototype,
+//     {
+//         'mineral':
+//         {
+//             configurable: true,
+//             get: function()
+//             {
+//                 if (!this._mineral)
+//                 {
+//                     var aArr = this.find(FIND_MINERALS);
+//                     this._mineral = aArr[0];
+//                 }
+//                 else
+//                 {
+//                     console.log('MINERAL CACHE......');
+//                 }
+//                 return this._mineral;
+//
+//             }
+//         },
+//         'test':
+//         {
+//             configurable: true,
+//             get: memGet,
+//             set: (pValue) =>
+//             {
+//                 memGet.cache.set('testHash',pValue);
+//             },
+//         },
+//
+//     });
+// }
+// extend();
+// //module.exports = extend;

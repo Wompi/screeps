@@ -2,25 +2,30 @@
 console.log('-------------------------- RESTART '+Game.time+'------------------ C -----------------');
 
 
-var myCPU = {};
-
-var a = Game.cpu.getUsed();
-
 // REQUIRE: debug related classes
 var Visualization = require('case.debug.Visualization');
-var Test = require('case.debug.Test');
-
-// REQUIRE: admin related classes
 var Logging = require('case.admin.Logging');
-var ServerNode = require('case.admin.ServerNode');
-var Constants = require('case.admin.Constants');
-var Functions = require('case.admin.Functions');
-var ClassExtensions = require('case.admin.ClassExtensions');
 
 // REQUIRE: design related classes
 var MemoryManager = require('case.design.MemoryManager');
 var GlobalCache = require('case.design.GlobalCache');
-var GlobalGameManager = require('case.design.GlobalGameManager');
+
+
+// REQUIRE: admin related classes
+_.assign(global,require('case.admin.Constants'));
+_.assign(global,require('case.admin.Functions'));
+_.assign(global,
+{
+    Visualizer: new Visualization(),
+    Log: (level,msg) => new Logging(level,msg),
+    Mem: new MemoryManager(),
+    Cache: new GlobalCache(),
+});
+
+var ServerNode = require('case.admin.ServerNode');
+
+
+
 
 // REQUIRE: operation related classes
 var RespawnOperation = require('case.operations.respawn.Operation');
@@ -30,6 +35,7 @@ var ScoutOperation = require('case.operations.scout.Operation');
 var Traveler = require('Traveler');
 
 // REQUIRE: prototype class extensions - they don't need to be named
+require('prototype.RoomObject');
 require('prototype.Creep');
 require('prototype.RoomVisual');
 require('prototype.StructureController');
@@ -39,48 +45,15 @@ require('prototype.RoomPosition');
 require('prototype.Room');
 require('prototype.Tower');
 
+
+var GlobalGameManager = require('case.design.GlobalGameManager');
 _.assign(global,
 {
     CreepBody: require('case.util.CreepBody'),
 });
 
-myCPU['require'] = Game.cpu.getUsed() - a;
 
-var a = Game.cpu.getUsed();
-_.assign(global,Constants);
-_.assign(global,Functions);
-_.assign(global,
-{
-    Visualizer: new Visualization(),
-    Log: (level,msg) => new Logging(level,msg),
-    Mem: new MemoryManager(),
-    Cache: new GlobalCache(),
-});
-
-myCPU['assignConstants'] = Game.cpu.getUsed() - a;
-
-
-var a = Game.cpu.getUsed();
 var aNode = new ServerNode(module,(isReset) => Cache.makeCache(isReset));
-//var aNode = new ServerNode(module);
-myCPU['serverNode'] = Game.cpu.getUsed() - a;
-
-var aHeavy = [];
-if (aNode.mNode > 4)
-{
-    var a = Game.cpu.getUsed();
-    // for (let x=0;x<50;x=x+1)
-    // {
-    //     for (let y=0;y<50;y=y+1)
-    //     {
-    //         //Game.map.getTerrainAt(x,y,_.find(Game.rooms).name);
-    //         //Game.map.getTerrainAt(x,y,_.find(Game.rooms).name);
-    //         aHeavy.push(Game.map.getTerrainAt(x,y,_.find(Game.rooms).name));
-    //     }
-    // }
-    myCPU['heavyWork'] = Game.time + ' '+ (Game.cpu.getUsed() - a);
-}
-
 
 
 // TODO: think about this again - this is because the objects here are using stuff from the above assign
@@ -90,11 +63,44 @@ _.assign(global,
     GameMan: new GlobalGameManager(),
 })
 
+if (aNode.mNode > 4)
+{
+    Log(undefined,aNode.mNode+' ------------------------ BUG REMOVED ---------------------------');
+}
 
+var aChachedRoad  = _.find(_.find(Game.rooms).find(FIND_STRUCTURES), (aStruct) => aStruct.structureType == STRUCTURE_ROAD);
+var aChachedController  = _.find(Game.rooms).controller;
+
+
+var aList = [aChachedRoad,aChachedController];
+
+var aDerp = {};
+_.each(aList, (aEntity,aIndex) =>
+{
+    var aType = aEntity.entityType;
+    if (_.isUndefined(aDerp[aType]))
+    {
+        aDerp[aType] = [];
+    }
+    aDerp[aType].push(aIndex);
+});
+
+getDerp(aType)
+{
+
+}
 
 module.exports.loop = function ()
 {
     var start = Game.cpu.getUsed();
+
+    // for(var name in Memory.creeps)
+    // {
+    //     if (Game.creeps[name] == undefined)
+    //     {
+    //         delete Memory.creeps[name];
+    //     }
+    // }
 
     var a = Game.cpu.getUsed();
     Cache.updateCache();
@@ -103,15 +109,40 @@ module.exports.loop = function ()
     Log(WARN,'PROFILE: cache update - '+(b-a));
 
     var aDefenseOperation = new DefenseOperation();
-    aDefenseOperation.processOperation(true);
+    aDefenseOperation.processOperation(false);
 
     var aRespawnOperation = new ResettleOperation();
     aRespawnOperation.processOperation();
 
-    var aCacheAge = Game.time - Cache.mLastUpdate;
+    var aCacheAge = Game.time - Cache.mFirstTick;
+    var aCacheDelta = Game.time - Cache.mLastUpdate;
+
     var aCount = {}
     //_.each(Cache.mCache,(aValue,aKey) => aCount[aKey] = aValue.length);
-    Log(undefined, 'GAME['+aNode.mNode+'] TICK['+Game.time+']: (cache) - '+aCacheAge+' '+Cache.mCache.length);
+    Log(undefined, 'GAME['+aNode.mNode+'] TICK['+Game.time+']: (cache) - age: '+aCacheAge+' last: '+aCacheDelta+' length: '+Cache.mCache.length);
+
+    Cache.mLastUpdate = Game.time;
+
+
+
+    // var aScoutOperation = new ScoutOperation();
+    // aScoutOperation.processOperation();
+
+    // var derp = listAllProperties(PathFinder.CostMatrix);
+    // Log(undefined,'PATHFINDER: '+JS(derp,false));
+
+    // _.find(Game.rooms).visual.rect(1.5, 1.5, 1, 1);
+    //
+    //
+    //
+    // _.each(GameMan.getEntityForType('container'), (aSource) =>
+    // {
+    //     //Log(undefined,'SOURCE TYPE: '+aSource.entityType);
+    //     Log(undefined,'SOURCE DERP: '+aSource.entityType);
+    //     //Log(undefined,'SOURCE: '+aSource.getSourceType());
+    // })
+    //
+    // Log(undefined,'COST: '+aCost.serialize());
 
 
     // var derp = {
