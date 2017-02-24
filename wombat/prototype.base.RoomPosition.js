@@ -38,7 +38,7 @@ RoomPosition.prototype.adjacentPositions = function(pRange)
 /**
  * Overload: this is the same as in the server - but without all the checks
  *  - not sure if this is faster but it looks cleaner to me
- *  - TODO: check this again something is wrong with it 
+ *  - TODO: check this again something is wrong with it
  *
  */
 // RoomPosition.prototype.getRangeTo = function(pPos)
@@ -94,3 +94,28 @@ RoomPosition.prototype.inBoundPositions = function(pRange)
     }
     return result;
 }
+
+
+extend = function()
+{
+    Object.defineProperties(RoomPosition.prototype,
+    {
+        'entityType':
+        {
+            configurable: true,
+            get: function()
+            {
+                return ENTITY_TYPES.roomPosition;
+            },
+        },
+        'id':
+        {
+            configurable: true,
+            get: function()
+            {
+                return this.toString(false);
+            },
+        }
+    });
+};
+extend();

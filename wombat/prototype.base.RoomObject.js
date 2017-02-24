@@ -1,7 +1,6 @@
 
 
 
-
 extend = function()
 {
     Object.defineProperties(RoomObject.prototype,

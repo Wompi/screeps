@@ -1,4 +1,22 @@
-var mod =
+
+_.assign(global,
+{
+    ENTITY_TYPES:
+    {
+        source: 'source',
+        flag: 'flag',
+        creep: 'creep',
+        constructionSite: 'constructionSite',
+        mineral: 'mineral',
+        nuke: 'nuke',
+        resource: 'resource',
+        room: 'room',
+        roomPosition: 'roomPosition',
+        roomVisial: 'roomVisual',
+    },
+});
+
+_.assign(global,
 {
     SAY_PUBLIC: true,
     // CREEP_ROLE:
@@ -24,20 +42,15 @@ var mod =
         link: 'link',
     },
 
-    ENTITY_TYPES:
-    {
-        source: 'source',
-    },
-
     ROOM_OBJECTS:
     {
-        source: Source,
-        flag: Flag,
-        creep: Creep,
-        constructionSite: ConstructionSite,
-        mineral: Mineral,
-        nuke: Nuke,
-        resource: Resource,
+        [ENTITY_TYPES.source]: Source,
+        [ENTITY_TYPES.flag]: Flag,
+        [ENTITY_TYPES.creep]: Creep,
+        [ENTITY_TYPES.constructionSite]: ConstructionSite,
+        [ENTITY_TYPES.mineral]: Mineral,
+        [ENTITY_TYPES.nuke]: Nuke,
+        [ENTITY_TYPES.resource]: Resource,
         //structure: Structure,
     },
 
@@ -120,6 +133,4 @@ var mod =
     {
         return CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][rcl] * EXTENSION_ENERGY_CAPACITY[rcl] + CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][rcl] * SPAWN_ENERGY_CAPACITY
     }
-
-}
-module.exports = mod;
+});

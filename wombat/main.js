@@ -12,7 +12,7 @@ var GlobalCache = require('case.design.GlobalCache');
 
 
 // REQUIRE: admin related classes
-_.assign(global,require('case.admin.Constants'));
+require('case.admin.Constants');
 _.assign(global,require('case.admin.Functions'));
 _.assign(global,
 {
@@ -25,8 +25,6 @@ _.assign(global,
 var ServerNode = require('case.admin.ServerNode');
 
 
-
-
 // REQUIRE: operation related classes
 var RespawnOperation = require('case.operations.respawn.Operation');
 var ResettleOperation = require('case.operations.resettle.Operation');
@@ -35,15 +33,38 @@ var ScoutOperation = require('case.operations.scout.Operation');
 var Traveler = require('Traveler');
 
 // REQUIRE: prototype class extensions - they don't need to be named
-require('prototype.RoomObject');
-require('prototype.Creep');
-require('prototype.RoomVisual');
-require('prototype.StructureController');
-require('prototype.Source');
-require('prototype.Mineral');
-require('prototype.RoomPosition');
-require('prototype.Room');
-require('prototype.Tower');
+require('prototype.base.Room');
+require('prototype.base.RoomPosition');
+require('prototype.base.RoomVisual');
+require('prototype.base.RoomObject');
+require('prototype.roomobject.ConstructionSite');
+require('prototype.roomobject.Creep');
+require('prototype.roomobject.Flag')
+require('prototype.roomobject.Mineral');
+require('prototype.roomobject.Nuke');
+require('prototype.roomobject.Resource');
+require('prototype.roomobject.Source');
+require('prototype.base.Structure');
+require('prototype.structure.Container');
+require('prototype.structure.Portal');
+require('prototype.structure.Road');
+require('prototype.structure.Wall');
+require('prototype.base.structure.OwnedStructure');
+require('prototype.structure.owned.Controller');
+require('prototype.structure.owned.Extension');
+require('prototype.structure.owned.Extractor');
+require('prototype.structure.owned.KeeperLair');
+require('prototype.structure.owned.Lab');
+require('prototype.structure.owned.Link');
+require('prototype.structure.owned.Nuker');
+require('prototype.structure.owned.Observer');
+require('prototype.structure.owned.PowerBank');
+require('prototype.structure.owned.PowerSpawn');
+require('prototype.structure.owned.Rampart');
+require('prototype.structure.owned.Spawn');
+require('prototype.structure.owned.Storage');
+require('prototype.structure.owned.Terminal');
+require('prototype.structure.owned.Tower');
 
 
 var GlobalGameManager = require('case.design.GlobalGameManager');
@@ -68,27 +89,6 @@ if (aNode.mNode > 4)
     Log(undefined,aNode.mNode+' ------------------------ BUG REMOVED ---------------------------');
 }
 
-var aChachedRoad  = _.find(_.find(Game.rooms).find(FIND_STRUCTURES), (aStruct) => aStruct.structureType == STRUCTURE_ROAD);
-var aChachedController  = _.find(Game.rooms).controller;
-
-
-var aList = [aChachedRoad,aChachedController];
-
-var aDerp = {};
-_.each(aList, (aEntity,aIndex) =>
-{
-    var aType = aEntity.entityType;
-    if (_.isUndefined(aDerp[aType]))
-    {
-        aDerp[aType] = [];
-    }
-    aDerp[aType].push(aIndex);
-});
-
-getDerp(aType)
-{
-
-}
 
 module.exports.loop = function ()
 {
@@ -122,7 +122,6 @@ module.exports.loop = function ()
     Log(undefined, 'GAME['+aNode.mNode+'] TICK['+Game.time+']: (cache) - age: '+aCacheAge+' last: '+aCacheDelta+' length: '+Cache.mCache.length);
 
     Cache.mLastUpdate = Game.time;
-
 
 
     // var aScoutOperation = new ScoutOperation();

@@ -43,7 +43,29 @@ Room.prototype.findLocalExits = function(pVisualize = false)
 
 
 
-
+extend = function()
+{
+    Object.defineProperties(Room.prototype,
+    {
+        'entityType':
+        {
+            configurable: true,
+            get: function()
+            {
+                return ENTITY_TYPES.room;
+            },
+        },
+        'id':
+        {
+            configurable: true,
+            get: function()
+            {
+                return this.name;
+            },
+        }
+    });
+};
+extend();
 
 
 //
