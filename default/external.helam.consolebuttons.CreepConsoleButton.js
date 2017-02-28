@@ -154,25 +154,3 @@ global.svgCreep = function(creep) {
     outstr += `</svg>`;
     return outstr;
 };
-
-/**
- * Prints buttons to console that allow for manual movement control of the creep.
- * Still want to add more features, could easily be modified to do other actions
- * with more buttons. If you do anything with it please share!
- * Author: Helam
- */
-// Creep.prototype.override = function() {
-//     let directions = [8,1,2,3,4,5,6,7];
-//     let labels = ['.','.','.','.','.','.','.','.'];
-//     let buttons = directions.map((dir, idx)=>{
-//         let id = getId();
-//         let manualCommand = `Game.creeps.${this.name}.move(${dir});`;
-//         return makeButton(id, undefined, `${labels[idx]}`, manualCommand);
-//     });
-//     let holdId = getId();
-//     let holdCommand = `Game.creeps.${this.name}.cancelOrder('move')`;
-//     let holdButton = makeButton(holdId, undefined, 'X', holdCommand);
-//     let [top_left, top, topRight, right, bottom_right, bottom, bottom_left, left] = buttons;
-//     let output = top_left + top + topRight + `\n` + left + holdButton + right + `\n` + bottom_left + bottom + bottom_right;
-//     console.log(output);
-// };
