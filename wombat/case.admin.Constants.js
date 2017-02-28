@@ -22,6 +22,15 @@ _.assign(global,
         container: 'container',
         tower: 'tower',
     },
+
+    LOG_LEVEL:
+    {
+        debug: 'debug',
+        info: 'info',
+        warn: 'warn',
+        error: 'error',
+        profile: 'profile',
+    },
 });
 
 _.assign(global,
@@ -71,11 +80,15 @@ _.assign(global,
         //structure: Structure,
     },
 
-    LOG_LEVEL: [ 'debug', 'info' , 'warn' , 'error'],
-    DEBUG: false,
-    ERROR: true,
-    WARN: true,
-    INFO: true,
+    LOG_STATE:
+    {
+        [LOG_LEVEL.debug]: true,
+        [LOG_LEVEL.error]: true,
+        [LOG_LEVEL.warn]: true,
+        [LOG_LEVEL.profile]: true,
+        [LOG_LEVEL.info]: true,
+    },
+
 
     WALL: 'wall',
     PLAIN: 'plain',

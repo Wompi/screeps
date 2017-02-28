@@ -8,15 +8,35 @@ class Logging
     log(pLevel,pLogMsg)
     {
         var msg = '';
-        if (pLevel == WARN)
+        if (pLevel == LOG_LEVEL.warn)
         {
-            msg = '<font style="color:#E6DE99">' + pLogMsg + '</font>'
+            msg = '<font style="color:#E6DE99">WARN: ' + pLogMsg + '</font>'
+        }
+        else if (pLevel == LOG_LEVEL.profile)
+        {
+            msg = '<font style="color:#D98424">PROFILE: ' + pLogMsg + '</font>';
+        }
+        else if (pLevel == LOG_LEVEL.error)
+        {
+            msg = '<font style="color:#D98424">ERROR: ' + pLogMsg + '</font>';
+        }
+        else if (pLevel == LOG_LEVEL.info)
+        {
+            msg = '<font style="color:#559C22">INFO: ' + pLogMsg + '</font>';
+        }
+        else if (pLevel == LOG_LEVEL.debug)
+        {
+            msg = '<font style="color:#757776;font-size:10px">DEBUG: ' + pLogMsg + '</font>';
         }
         else
         {
-            var msg = '<font style="color:#4C71D6">' + pLogMsg + '</font>';
+            msg = '<font style="color:#4C71D6;font-size:10px">UNDEFINED: ' + pLogMsg + '</font>';
         }
-        console.log(msg);
+
+        if (_.isUndefined(pLevel) || LOG_STATE[pLevel])
+        {
+            console.log(msg);
+        }
     }
 }
 module.exports = Logging;

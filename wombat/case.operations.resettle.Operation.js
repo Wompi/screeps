@@ -51,7 +51,7 @@ class ResettleOperation
         {
             if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0)
             {
-                //Log(WARN,'CREEP: '+aCreep.name);
+                //Log(LOG_LEVEL.warn,'CREEP: '+aCreep.name);
                 let isEmpty = aCreep.carry[RESOURCE_ENERGY] == 0;
                 let isFull = aCreep.carry[RESOURCE_ENERGY] == aCreep.carryCapacity;
                 let hasEnergy = aCreep.carry[RESOURCE_ENERGY] > 0;

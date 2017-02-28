@@ -3,13 +3,24 @@ class ProxyCache
     constructor()
     {
         this.mCache = {};
+        this.mFirstTick = Game.time;
+        this.mLastTick = Game.time;
+
+        this.mCacheAge = 0;
+        this.mCacheUpdateDelta = 0
+
+
         this.mInitList = [];
-        this.makeCache();
     }
 
-    makeCache()
+    makeCache(pReset)
     {
-        let CACHE_FIND = [FIND_STRUCTURES, FIND_SOURCES];
+        let CACHE_FIND = [FIND_STRUCTURES,
+							FIND_SOURCES,
+							FIND_DROPPED_RESOURCES,
+							FIND_MY_CONSTRUCTION_SITES,
+							FIND_NUKES,
+							FIND_MINERALS];
 
         _.each(Game.rooms, (aRoom,aRoomName) =>
         {
@@ -17,22 +28,12 @@ class ProxyCache
             {
                 _.each(aRoom.find(aFindKey), (aEntity) =>
                 {
-                    let aProxy = this.makeProxy();
-                    _.set(this.mCache,[aEntity.entityType,aEntity.id],aProxy);
-
-                    aProxy.entity = aEntity;
-                    if ('init' in aEntity )
-                    {
-                        this.mInitList.push(aProxy);
-                    }
-                    else
-                    {
-                        //Log(undefined, 'PROXY: '+aStruct.entityType+' has no Init!');
-                    }
-
+                    this.registerEntity(aEntity);
                 });
             });
+            this.registerEntity(aRoom);
         });
+        this.initProxyCache();
     }
 
     initProxyCache()
@@ -55,13 +56,20 @@ class ProxyCache
         return this.mCache[pEntity.entityType][pEntity.id];
     }
 
-
-
     registerEntity(pEntity)
     {
-
+        let aProxy = this.makeProxy();
+        _.set(this.mCache,[pEntity.entityType,pEntity.id],aProxy);
+        aProxy.entity = pEntity;
+        if ('init' in pEntity )
+        {
+            this.mInitList.push(aProxy);
+        }
+        else
+        {
+            //Log(undefined, 'PROXY: '+aStruct.entityType+' has no Init!');
+        }
     }
-
 
     makeProxy()
     {
@@ -76,7 +84,7 @@ class ProxyCache
                     // not all entities need to be updated aka RoomPositions
                     if (!_.isUndefined(aEntityBehavior))
                     {
-                        var aEntity = aEntityBehavior.currentEntity();
+                        let aEntity = aEntityBehavior.currentEntity();
                         if (aEntity != null)
                         {
                             if (aEntityBehavior.hasOwnProperty('onChange'))
@@ -123,7 +131,19 @@ class ProxyCache
         });
     }
 
+    updateCache()
+    {
+        this.mCacheAge = Game.time - this.mFirstTick;
+        this.mCacheUpdateDelta = Game.time - this.mLastTick;
+        this.mLastTick = Game.time;
+    }
 
-
+    printStats()
+    {
+        var aCount = {}
+        _.each(this.mCache,(aValue,aKey) => aCount[aKey] = _.size(aValue));
+        Log(LOG_LEVEL.info, 'CACHE['+SNode.mNode+'] age: '+this.mCacheAge+' last: '+this.mCacheUpdateDelta);
+        Log(LOG_LEVEL.debug,JS(aCount));
+    }
 }
 module.exports = ProxyCache;
