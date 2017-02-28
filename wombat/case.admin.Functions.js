@@ -131,5 +131,29 @@ var mod =
     {
         return _.filter(Game.creeps, (aCreep) => aCreep.hasRole(pRole));
     },
+    getRoomType: (pRoomName) =>
+    {
+        let reg = /\d+/g
+
+        let EW = rmName.match(reg)[0]
+        let NS = rmName.match(reg)[1]
+
+        if ((EW%10 == 0 || NS%10 == 0))
+        {
+            return ROOM_TYPE.highway;
+        }
+        else if (EW%5 == 0 && NS%5 == 0)
+        {
+            return ROOM_TYPE.center;
+        }
+        else if ((EW%5 == 1 || EW%5 == 4 || EW%5 == 0) && (NS%5 == 1 || NS%5 == 4 || NS%5 == 0))
+        {
+            return ROOM_TYPE.sourceKeeper;
+        }
+        else
+        {
+            return ROOM_TYPE.playerRoom;
+        }
+    },
 };
 module.exports = mod;

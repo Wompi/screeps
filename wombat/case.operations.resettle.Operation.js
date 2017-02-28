@@ -6,15 +6,15 @@ class ResettleOperation
         this.mRoom = this.mSpawn.room;
         this.mController = this.mRoom.controller;
 
-        this.mSources = _.sortBy(GameMan.getEntityForType(ENTITY_TYPES.source), (aSource) => this.mSpawn.pos.getRangeTo(aSource));
+        this.mSources = _.sortBy(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) => this.mSpawn.pos.getRangeTo(aSource));
 
         var mySourcePos = [];
-        _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions(true)));
+        _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions));
 
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
-            return _.reduce(aSource.possibleMiningPositions(), (res,value,aX) =>
+            return _.reduce(aSource.possibleMiningPositions, (res,value,aX) =>
             {
                 return _.reduce(value, (res,aCount,aY) =>
                 {
@@ -24,14 +24,14 @@ class ResettleOperation
             },res);
         },[]);
 
-        this.mExtensions = _.filter(GameMan.getEntityForType('extension'), (aStruct) => aStruct.energy < aStruct.energyCapacity);
+        this.mExtensions =  _.filter(PCache.getEntityCache(ENTITY_TYPES.extension), (aExt) => aExt.energy < aExt.energyCapacity);
         this.mConstructions = _.filter(Game.constructionSites, (aSite) => aSite.room.name == this.mRoom.name);
         this.mResources = this.mRoom.find(FIND_DROPPED_RESOURCES);
 
-        this.mContainers = GameMan.getEntityForType('container');
-        this.mRoads = GameMan.getEntityForType('road');
+        this.mContainers = PCache.getEntityCache(ENTITY_TYPES.container);
+        this.mRoads = PCache.getEntityCache(ENTITY_TYPES.road);
 
-        this.mTowers = GameMan.getEntityForType('tower');
+        this.mTowers = PCache.getEntityCache(ENTITY_TYPES.tower);
 
         this.mTasks = [];
     }
@@ -55,6 +55,8 @@ class ResettleOperation
                 let isEmpty = aCreep.carry[RESOURCE_ENERGY] == 0;
                 let isFull = aCreep.carry[RESOURCE_ENERGY] == aCreep.carryCapacity;
                 let hasEnergy = aCreep.carry[RESOURCE_ENERGY] > 0;
+                let isCloseToMine = !_.isUndefined(_.find(this.mSources, (aSource) => aSource.energy > 0 && aSource.pos.isNearTo(aCreep)));
+
 
                 let aSay = aCreep.saying;
 
@@ -62,7 +64,7 @@ class ResettleOperation
 
 
                 var aTarget = undefined;
-                if (!isFull && (isEmpty || aSay == 'H'))
+                if ((isCloseToMine && !isFull) || isEmpty)
                 {
                     aTarget = this.mSourcePoses.shift();
                 }
@@ -97,7 +99,14 @@ class ResettleOperation
                 var res = aCreep.travelTo( _.isUndefined(aTarget.pos) ? {pos: aTarget} : aTarget,  _.isUndefined(aTarget.pos) ? {range: 0} : {} );
                 //Log(undefined,'MOVE: '+ErrorString(res));
 
-                var res = aCreep.harvest(_.find(this.mSources, (aSource) => aSource.pos.isNearTo(aTarget)));
+
+                var aBla = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(aTarget));
+                var res = undefined;
+                if (!_.isUndefined(aBla))
+                {
+                    res = aCreep.harvest(aBla.entity);
+                }
+
                 if (res == OK)
                 {
                     if (aCreep.pos.isEqualTo(aTarget)) aCreep.cancelOrder('move');
@@ -126,8 +135,8 @@ class ResettleOperation
                         //Log(undefined,'RESOURCE:'+ErrorString(res));
                     }
                 }
-                //var hasBuildPower = aCreep.carry[RESOURCE_ENERGY] >= (aCreep.getActiveBodyparts(WORK) * BUILD_POWER);
-                if (/*hasBuildPower &&*/ (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
+                //var hasBuildPower = isCloseToMine && (aCreep.carry[RESOURCE_ENERGY] >= (aCreep.getActiveBodyparts(WORK) * BUILD_POWER));
+                if (!isCloseToMine && (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
                 {
                     var mySites = _.sortBy(_.filter(this.mConstructions, (aSite) => aCreep.pos.inRangeTo(aSite,3)),'progress').reverse();
                     if (mySites.length > 0)
@@ -135,6 +144,7 @@ class ResettleOperation
                         aCreep.build(mySites[0]);
                     }
                 }
+
 
                 var aRoad = _.find(this.mRoads, (aRoad) =>
                 {
@@ -144,7 +154,7 @@ class ResettleOperation
                 });
                 if (!_.isUndefined(aRoad) && (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
                 {
-                    var res = aCreep.repair(aRoad);
+                    var res = aCreep.repair(aRoad.entity);
                     //Log(undefined,'REPAIR ROAD:'+ErrorString(res));
                 }
 
@@ -154,7 +164,7 @@ class ResettleOperation
                     var canRepair = (aContainer.hits + (aCreep.getActiveBodyparts(WORK) * REPAIR_POWER)) < aContainer.hitsMax;
                     if (canRepair)
                     {
-                        var res = aCreep.repair(aContainer);
+                        var res = aCreep.repair(aContainer.entity);
                         //Log(undefined,'REPAIR CONTAINER:'+ErrorString(res));
                     }
                 }
@@ -182,7 +192,7 @@ class ResettleOperation
             let aExtensionTask =
             {
                 priority: 0.1,
-                target: aExtension,
+                target: aExtension.entity,
                 task: 'E',
             }
             this.mTasks.push(aExtensionTask);
@@ -195,7 +205,7 @@ class ResettleOperation
             var aTowerFillTask =
             {
                 priority: 0.14,
-                target: aTower,
+                target: aTower.entity,
                 task: 'D',
             }
             this.mTasks.push(aTowerFillTask);
@@ -220,26 +230,81 @@ class ResettleOperation
             });
         }
 
-        var myExstensionConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_EXTENSION);
-        if (!_.isUndefined(myExstensionConstruction))
+        var myExstensionConstructions = _.filter(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_EXTENSION);
+        if (myExstensionConstructions.length > 0)
         {
-            var aExtensionBuildTask =
+            let prio = 0.13;
+            _.each(myExstensionConstructions, (aBuild) =>
             {
-                priority: 0.15,
-                target: myExstensionConstruction,
-                task: 'B',
-            }
-            this.mTasks.push(aExtensionBuildTask);
+                let aBuildTask =
+                {
+                    priority: (prio + 0.02),
+                    target: aBuild,
+                    task: 'B',
+                }
+                this.mTasks.push(aBuildTask);
+            });
         }
 
-        var aContainer = _.find(this.mContainers, (aBox) => aBox.hits < (aBox.hitsMax * 0.75));
+        var myExtractorConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_EXTRACTOR);
+        if (!_.isUndefined(myExtractorConstruction))
+        {
+            var aExtractorBuildTask =
+            {
+                priority: 0.16,
+                target: myExtractorConstruction,
+                task: 'B',
+            }
+            this.mTasks.push(aExtractorBuildTask);
+        }
+
+        var myTerminalConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_TERMINAL);
+        if (!_.isUndefined(myTerminalConstruction))
+        {
+            let aBuildTask =
+            {
+                priority: 0.16,
+                target: myTerminalConstruction,
+                task: 'B',
+            }
+            this.mTasks.push(aBuildTask);
+        }
+
+        var myLabConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_LAB);
+        if (!_.isUndefined(myLabConstruction))
+        {
+            let aBuildTask =
+            {
+                priority: 0.16,
+                target: myLabConstruction,
+                task: 'B',
+            }
+            this.mTasks.push(aBuildTask);
+        }
+
+
+        var myRoadConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_ROAD);
+        if (!_.isUndefined(myRoadConstruction))
+        {
+            var aRoadBuildTask =
+            {
+                priority: 0.16,
+                target: myRoadConstruction,
+                task: 'B',
+            }
+            this.mTasks.push(aRoadBuildTask);
+        }
+
+
+
+        var aContainer = _.find(this.mContainers, (aBox) => aBox.room.controller.my && aBox.hits < (aBox.hitsMax * 0.75));
 
         if (!_.isUndefined(aContainer))
         {
             var aRepairTask =
             {
                 priority: 0.2,
-                target: aContainer,
+                target: aContainer.entity,
                 task: 'R',
             }
             this.mTasks.push(aRepairTask);

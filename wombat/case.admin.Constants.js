@@ -17,6 +17,10 @@ _.assign(global,
 
         controller: 'controller',
         road: 'road',
+        spawn: 'spawn',
+        extension: 'extension',
+        container: 'container',
+        tower: 'tower',
     },
 });
 
@@ -31,6 +35,15 @@ _.assign(global,
     MAX_ROOM_RANGE: 100000, // for some range checks use this as max room range
     STORAGE_MAINTENANCE_RESERVE_LIMIT: 20000, // how many energy I want to be in the storage before it can be used for other stuff
     HAULER_PICKUP_RANGE: 7, // this is the range at whitch the hauler can pickup scattered resources
+
+    ROOM_TYPE:
+    {
+        highway: 'Highway',
+        center: 'Center',
+        sourceKeeper: 'SourceKeeper',
+        playerRoom: 'PlayerRoom',
+    },
+
 
     // hese are my screep roles
     CREEP_ROLE:

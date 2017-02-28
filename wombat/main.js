@@ -3,8 +3,6 @@
 
 
 console.log('-------------------------- RESTART '+Game.time+'------------------ C -----------------');
-console.log('TEST: '+JSON.stringify(_.find(Game.rooms).controller.entityType));
-
 
 
 // REQUIRE: debug related classes
@@ -14,6 +12,7 @@ var Logging = require('case.admin.Logging');
 // REQUIRE: design related classes
 var MemoryManager = require('case.design.MemoryManager');
 var GlobalCache = require('case.design.GlobalCache');
+var ProxyCache = require('case.design.ProxyCache');
 
 
 // REQUIRE: admin related classes
@@ -71,10 +70,6 @@ require('prototype.structure.owned.Storage');
 require('prototype.structure.owned.Terminal');
 require('prototype.structure.owned.Tower');
 
-console.log('TEST TEST: '+JSON.stringify(_.find(Game.rooms).controller.upgradePositions()));
-
-
-var GlobalGameManager = require('case.design.GlobalGameManager');
 _.assign(global,
 {
     CreepBody: require('case.util.CreepBody'),
@@ -88,61 +83,11 @@ var aNode = new ServerNode(module,(isReset) => Cache.makeCache(isReset));
 // not sure if the classes are initialized properly there
 _.assign(global,
 {
-    GameMan: new GlobalGameManager(),
-})
-
-if (aNode.mNode > 4)
-{
-    Log(undefined,aNode.mNode+' ------------------------ BUG REMOVED ---------------------------');
-}
-
-var aTestChache = {};
-
-
-_.each(Game.rooms, (aRoom,aRoomName) =>
-{
-    _.each(aRoom.find(FIND_STRUCTURES), (aStruct) =>
-    {
-        aTestChache[aStruct.id] = new Proxy(
-        {
-            entity: aStruct,
-            lastUpdate: Game.time,
-        },
-        {
-            get: function(target, name)
-            {
-                if (Game.time > target['lastUpdate'])
-                {
-                    var aEntityBehavior = target['entity'].getEntityBehavior();
-
-                    // not all entities need to be updated aka RoomPositions
-                    if (!_.isUndefined(aEntityBehavior))
-                    {
-                        var aEntity = aEntityBehavior.currentEntity();
-                        if (aEntity != null)
-                        {
-                            if (aEntityBehavior.hasOwnProperty('onChange'))
-                            {
-                                aEntity.getEntityBehavior().onChange(target['lastUpdate'],target['entity']);
-                            }
-                            target['entity'] = aEntity;
-                            target['lastUpdate'] = Game.time;
-                            //Log(undefined,'PROXY: update - '+aEntity.entityType+' ID: '+aEntity.id);
-                        }
-                        else
-                        {
-                            if (aEntityBehavior.hasOwnProperty('onInvalid'))
-                            {
-                                aEntity.onInvalid();
-                            }
-                        }
-                    }
-                }
-                return target['entity'][name];
-            },
-        });
-    });
+    PCache: new ProxyCache(),
 });
+
+PCache.initProxyCache();
+
 
 module.exports.loop = function ()
 {
@@ -158,9 +103,9 @@ module.exports.loop = function ()
 
     var a = Game.cpu.getUsed();
     Cache.updateCache();
-    GameMan.init();
     var b = Game.cpu.getUsed();
     Log(WARN,'PROFILE: cache update - '+(b-a));
+
 
     var aDefenseOperation = new DefenseOperation();
     aDefenseOperation.processOperation(false);
@@ -178,13 +123,17 @@ module.exports.loop = function ()
     Cache.mLastUpdate = Game.time;
 
 
+
     var a = Game.cpu.getUsed();
-    _.each(aTestChache, (aProxy, aID) =>
+    _.each(PCache.getCache()[ENTITY_TYPES.controller], (aController) => aController.visualize());
+    _.each(PCache.getCache()[ENTITY_TYPES.source], (aSource) =>
     {
-        aProxy.id;
+        Log(undefined,'Derp: source '+aSource.id+' HomeSpawn: '+aSource.homeSpawn.name+' SpawnEnergy: '+aSource.homeSpawn.energy+' Spawning: '+JS(aSource.homeSpawn.spawning));
+        aSource.visualize();
+
     });
     var b = Game.cpu.getUsed();
-    Log(WARN,'PROFILE: proxy - '+(b-a).toFixed(4) +' keys: '+_.keys(aTestChache).length);
+    Log(WARN,'PROFILE: proxy - '+(b-a).toFixed(4) +' keys: '+JS(_.keys(PCache.getCache())));
 
     // var aController = aTestCache[ENTITY_TYPES.controller][aController.id];
     //
@@ -210,34 +159,104 @@ module.exports.loop = function ()
     // Log(undefined,'COST: '+aCost.serialize());
 
 
-    // var derp = {
-    //     a: 100,
-    //     b: 'derp',
-    // }
-    //
-    // var aRoom = _.find(Game.rooms);
-    // var aEnergy = RCL_ENERGY(aRoom.controller.level);
-    // var aCreepBody = new CreepBody();
-    // var aSearch =
-    // {
-    //     name: CARRY,
-    //     max: _.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
-    // };
-    // var aBodyOptions =
-    // {
-    //     hasRoads: true,
-    //     moveBoost: '',
-    // };
-    // var aBody =
-    // {
-    //     [WORK]:
-    //     {
-    //         count: () => getWorkCount(),
-    //     },
-    // };
-    //
-    // var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
-    // Log(undefined,JS(aResult));
+
+
+    var aDefender = Game.creeps['Wallaby'];
+
+    if (!_.isUndefined(aDefender))
+    {
+        if (!aDefender.spawning)
+        {
+            var aSpawn = Game.getObjectById('58b222d59019b0f04abbe79a');
+            var aExtension = _.find(aDefender.room.find(FIND_STRUCTURES), (aStucture) => aStucture.structureType == STRUCTURE_EXTENSION);
+            var aCivCreep = _.find(aDefender.room.find(FIND_HOSTILE_CREEPS), (aCreep) => true);
+            var aContainer = _.find(aDefender.room.find(FIND_STRUCTURES), (aBox) => aBox.structureType == STRUCTURE_CONTAINER);
+            var myRoads = _.filter(aDefender.room.find(FIND_STRUCTURES), (aStruct) => aStruct.structureType == STRUCTURE_ROAD);
+            var aRoad = _.min(myRoads,(aRoad) => aRoad.pos.getRangeTo(aDefender));
+
+            if (aSpawn != null)
+            {
+                var aDerp = _.find(aDefender.room.find(FIND_HOSTILE_CREEPS), (aCreep) => aCreep.getActiveBodyparts(ATTACK) > 0);
+
+                if (!_.isUndefined(aDerp))
+                {
+                    var res = aDefender.moveTo(aDerp);
+                    aDefender.attack(aDerp);
+                    Log(undefined,'DERP defend: '+ErrorString(res));
+
+                }
+                else
+                {
+                    var res = aDefender.moveTo(aSpawn);
+                    aDefender.attack(aSpawn);
+                    Log(undefined,'DERP derp: '+ErrorString(res));
+                }
+            }
+            else if (!_.isUndefined(aExtension))
+            {
+                var res = aDefender.moveTo(aExtension);
+                aDefender.attack(aExtension);
+                Log(undefined,'DERP extension: '+ErrorString(res));
+
+            }
+            else if (!_.isUndefined(aCivCreep))
+            {
+                var res = aDefender.moveTo(aCivCreep);
+                aDefender.attack(aCivCreep);
+                Log(undefined,'DERP civ creep: '+ErrorString(res));
+
+            }
+            else if (!_.isUndefined(aContainer))
+            {
+                var res = aDefender.moveTo(aContainer);
+                aDefender.attack(aContainer);
+                Log(undefined,'DERP box: '+ErrorString(res));
+
+            }
+            else if (!_.isUndefined(aRoad))
+            {
+                var res = aDefender.moveTo(aRoad);
+                aDefender.attack(aRoad);
+                Log(undefined,'DERP road: '+ErrorString(res));
+
+            }
+            else
+            {
+                var res = aDefender.moveTo(new RoomPosition(23,26,'W68S76'));
+                Log(undefined,'DERP: '+ErrorString(res));
+            }
+
+        }
+    }
+    else
+    {
+        // var aRoom = _.find(Game.rooms);
+        // var aEnergy = RCL_ENERGY(aRoom.controller.level);
+        // var aCreepBody = new CreepBody();
+        // var aSearch =
+        // {
+        //     name: CARRY,
+        //     //max:  10,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
+        // };
+        // var aBodyOptions =
+        // {
+        //     hasRoads: true,
+        //     //moveBoost: '',
+        // };
+        // var aBody =
+        // {
+        //     [WORK]:
+        //     {
+        //         count: () => getWorkCount(),
+        //     },
+        // };
+        //
+        // var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
+        // Log(undefined,JS(_.countBy(aResult.body)));
+        // var res = _.find(Game.spawns).createCreep(aResult.body,'Wallaby');
+        // Log(undefined,'WAR: '+ErrorString(res));
+
+    }
 
     var end = Game.cpu.getUsed();
     Log(WARN,'GAME: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket);
@@ -254,7 +273,7 @@ getCarryMax = function(a)
 getWorkCount = function(a,b)
 {
     Log(undefined,'WORK CALLBACK ......');
-    return 4;
+    return 10;
 }
 
 derp = function()

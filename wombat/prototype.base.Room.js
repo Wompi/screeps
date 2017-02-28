@@ -4,6 +4,11 @@ Room.prototype.test = function()
     console.log('ROOM PROTOTYPE TEST');
 }
 
+Room.prototype.getRoomType = function()
+{
+    return getRoomType(this.name);
+}
+
 Room.prototype.findLocalExits = function(pVisualize = false)
 {
     var myRanges =
