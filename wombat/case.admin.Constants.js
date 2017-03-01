@@ -21,6 +21,9 @@ _.assign(global,
         extension: 'extension',
         container: 'container',
         tower: 'tower',
+        extractor: 'extractor',
+        storage: 'storage',
+        link: 'link',
     },
 
     LOG_LEVEL:
@@ -30,6 +33,7 @@ _.assign(global,
         warn: 'warn',
         error: 'error',
         profile: 'profile',
+        storage: 'storage',
     },
 });
 
@@ -54,12 +58,26 @@ _.assign(global,
     },
 
 
+    FLAG_TYPE:
+    {
+        extensionBay:
+        {
+            color: COLOR_CYAN,
+            secondaryColor: COLOR_CYAN,
+        },
+    },
+
+
     // hese are my screep roles
     CREEP_ROLE:
     {
         scout: 'scout',
         miner: 'miner',
+        mineral: 'mineral',
+        mineralHauler: 'mineral hauler',
     },
+
+    USER_NAME: 'Casegard',
 
     SOURCE_TYPE:
     {

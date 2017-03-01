@@ -11,7 +11,7 @@ RoomObject.prototype.getEntityBehavior = function()
 
 RoomObject.prototype.getProxy = function()
 {
-    return PCache.getCache()[this.entityType][this.id];
+    return PCache.getEntityProxy(this);
 }
 
 extend = function()

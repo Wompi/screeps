@@ -33,6 +33,10 @@ class ProxyCache
             });
             this.registerEntity(aRoom);
         });
+        _.each(Game.flags, (aFlag,aFlagName) =>
+        {
+            this.registerEntity(aFlag);
+        });
         this.initProxyCache();
     }
 
@@ -41,19 +45,22 @@ class ProxyCache
         _.each(this.mInitList, (aProxy) => aProxy.entity.init(aProxy));
     }
 
-    getCache()
-    {
-        return this.mCache;
-    }
-
     getEntityCache(pEntityType)
     {
-        return _.map(this.mCache[pEntityType]);
+        return _.map(_.filter(this.mCache[pEntityType],(aEntity) => aEntity.update), (aProxy,aKey) =>
+        {
+            // Log(LOG_LEVEL.error,'aKEY: '+aKey);
+            // Log(LOG_LEVEL.error,'aProxy: '+JS(aProxy));
+            return aProxy;
+        });
     }
 
     getEntityProxy(pEntity)
     {
-        return this.mCache[pEntity.entityType][pEntity.id];
+        // Log(LOG_LEVEL.error,'type: '+pEntity.entityType+' id: '+pEntity.id);
+        var aProxy = this.mCache[pEntity.entityType][pEntity.id];
+        // Log(LOG_LEVEL.error,'proxy: '+JS(aProxy));
+        return aProxy;
     }
 
     registerEntity(pEntity)
@@ -77,36 +84,56 @@ class ProxyCache
         {
             get: function(target, name)
             {
-                if (Game.time > target['lastUpdate'])
+                // if (typeof name === 'symbol')
+                // {
+                //     Log(LOG_LEVEL.debug,'symbol')
+                // }
+                // else
+                // {
+                //     Log(LOG_LEVEL.debug,'PROXY: '+name+' - '+target['entity'].entityType+' ID: '+target['entity'].id);
+                // }
+
+                // TODO: the time check is a fallback and should be removed when I have another idear
+                // - problem here is when you register another proxy to this one it can be that this proxy is not
+                //   updated acordingly
+                // - a global update at tickstart couls solve this - but meh
+                // - nope its not working - then you ask for a name property but gets updated and returns false/true - super meh
+                if ( name == 'update' /*|| Game.time > target['lastUpdate'] */)
                 {
-                    var aEntityBehavior = target['entity'].getEntityBehavior();
 
-                    // not all entities need to be updated aka RoomPositions
-                    if (!_.isUndefined(aEntityBehavior))
+                    //Log(LOG_LEVEL.debug,'PROXY: '+name+' - '+target['entity'].entityType+' ID: '+target['entity'].id);
+
+                    let isNotInvalid = true;
+                    if (Game.time > target['lastUpdate'])
                     {
-                        let aEntity = aEntityBehavior.currentEntity();
-                        if (aEntity != null)
-                        {
-                            if (aEntityBehavior.hasOwnProperty('onChange'))
-                            {
-                                aEntity.getEntityBehavior().onChange(target['lastUpdate'],target['entity']);
-                            }
-                            target['entity'] = aEntity;
-                            target['lastUpdate'] = Game.time;
-                            //Log(undefined,'PROXY: update - '+aEntity.entityType+' ID: '+aEntity.id);
-                        }
-                        else
-                        {
-                            if (aEntityBehavior.hasOwnProperty('onInvalid'))
-                            {
-                                // if (aEntity != null)
-                                // {
-                                //     aEntity.onInvalid();
+                        var aEntityBehavior = target['entity'].getEntityBehavior();
 
+                        // not all entities need to be updated aka RoomPositions
+                        if (!_.isUndefined(aEntityBehavior))
+                        {
+                            let aEntity = aEntityBehavior.currentEntity();
+                            if (aEntity != null)
+                            {
+                                if (aEntityBehavior.hasOwnProperty('onChange'))
+                                {
+                                    aEntity.getEntityBehavior().onChange(target['lastUpdate'],target['entity']);
+                                }
+                                target['entity'] = aEntity;
+                            }
+                            else
+                            {
+                                //Log(undefined,'DERP: '+name);
+                                if (aEntityBehavior.hasOwnProperty('onInvalid'))
+                                {
+                                    isNotInvalid = aEntityBehavior.onInvalid(target['lastUpdate']);
+                                }
                             }
                         }
+                        target['lastUpdate'] = Game.time;
                     }
+                    return isNotInvalid;
                 }
+
                 let res = target[name];
                 if (_.isUndefined(res))
                 {
@@ -124,7 +151,7 @@ class ProxyCache
                 }
                 else
                 {
-                    Log(undefined, 'PROXY: set '+name+' '+JS(value));
+                    Log(LOG_LEVEL.debug, 'PROXY: set '+name+' '+target['entity'].entityType+' value: '+value);
                 }
                 return true;
             },
@@ -135,6 +162,12 @@ class ProxyCache
     {
         this.mCacheAge = Game.time - this.mFirstTick;
         this.mCacheUpdateDelta = Game.time - this.mLastTick;
+
+
+
+
+
+
         this.mLastTick = Game.time;
     }
 

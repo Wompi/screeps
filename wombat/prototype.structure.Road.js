@@ -6,7 +6,7 @@ StructureRoad.prototype.getEntityBehavior = function()
         onInvalid: () => false,
         onChange: (pLastUpdate,pLastEntity) =>
         {
-            if (this.hits < this.hitsMax)
+            if (this.hits < (this.hitsMax * 0.5))
             {
                 let aDeltaHits = this.hitsMax - this.hits;
                 Log(undefined,'StructureRoad: onChange - hits: '+aDeltaHits);

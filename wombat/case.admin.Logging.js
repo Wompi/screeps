@@ -18,7 +18,7 @@ class Logging
         }
         else if (pLevel == LOG_LEVEL.error)
         {
-            msg = '<font style="color:#D98424">ERROR: ' + pLogMsg + '</font>';
+            msg = '<font style="color:#9E1928">ERROR: ' + pLogMsg + '</font>';
         }
         else if (pLevel == LOG_LEVEL.info)
         {

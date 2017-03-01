@@ -47,9 +47,12 @@ class ResettleOperation
 
     goMining()
     {
+
+
+
         _.each(Game.creeps, (aCreep) =>
         {
-            if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0)
+            if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role))
             {
                 //Log(LOG_LEVEL.warn,'CREEP: '+aCreep.name);
                 let isEmpty = aCreep.carry[RESOURCE_ENERGY] == 0;
@@ -66,6 +69,7 @@ class ResettleOperation
                 var aTarget = undefined;
                 if ((isCloseToMine && !isFull) || isEmpty)
                 {
+                    this.mSourcePoses = _.sortBy(this.mSourcePoses, (aPos) => aPos.getRangeTo(aCreep));
                     aTarget = this.mSourcePoses.shift();
                 }
                 else
@@ -138,10 +142,21 @@ class ResettleOperation
                 //var hasBuildPower = isCloseToMine && (aCreep.carry[RESOURCE_ENERGY] >= (aCreep.getActiveBodyparts(WORK) * BUILD_POWER));
                 if (!isCloseToMine && (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
                 {
-                    var mySites = _.sortBy(_.filter(this.mConstructions, (aSite) => aCreep.pos.inRangeTo(aSite,3)),'progress').reverse();
-                    if (mySites.length > 0)
+                    if (!_.isUndefined(aTask) && (aTask.task == 'T' || aTask.task == 'B') && aTarget.pos.inRangeTo(aCreep,3))
                     {
-                        aCreep.build(mySites[0]);
+                        let res = aCreep.build(aTarget);
+                        if (res == OK)
+                        {
+                            aCreep.cancelOrder('move');
+                        }
+                    }
+                    else
+                    {
+                        var mySites = _.sortBy(_.filter(this.mConstructions, (aSite) => aCreep.pos.inRangeTo(aSite,3)),'progress').reverse();
+                        if (mySites.length > 0)
+                        {
+                            aCreep.build(mySites[0]);
+                        }
                     }
                 }
 
@@ -282,7 +297,6 @@ class ResettleOperation
             this.mTasks.push(aBuildTask);
         }
 
-
         var myRoadConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_ROAD);
         if (!_.isUndefined(myRoadConstruction))
         {
@@ -295,7 +309,17 @@ class ResettleOperation
             this.mTasks.push(aRoadBuildTask);
         }
 
-
+        var myContainerConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_CONTAINER);
+        if (!_.isUndefined(myContainerConstruction))
+        {
+            let aBuildTask =
+            {
+                priority: 0.16,
+                target: myContainerConstruction,
+                task: 'B',
+            }
+            this.mTasks.push(aBuildTask);
+        }
 
         var aContainer = _.find(this.mContainers, (aBox) => aBox.room.controller.my && aBox.hits < (aBox.hitsMax * 0.75));
 
@@ -362,7 +386,8 @@ class ResettleOperation
 
     spawnFirst()
     {
-        if (_.size(Game.creeps) > 3) return;
+        var myCreeps = _.filter(Game.creeps, (aCreep) => aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role));
+        if (myCreeps.length > 3) return;
 
 
         var aCreepBody = new CreepBody();
@@ -385,7 +410,11 @@ class ResettleOperation
         }
 
         var aCount = 1;
-        if (aEnergy >= 1300)
+        if (aEnergy >= 2000)
+        {
+            aCount = 10;
+        }
+        else if (aEnergy >= 1300)
         {
             aCount = 8;
         }

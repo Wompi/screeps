@@ -34,6 +34,8 @@ var ResettleOperation = require('case.operations.resettle.Operation');
 var DefenseOperation = require('case.operations.defense.Operation');
 var ScoutOperation = require('case.operations.scout.Operation');
 var AttackOperation = require('case.operations.attack.Operation');
+var MineralOperation = require('case.operations.mineral.Operation');
+var MiningOperation = require('case.operations.mining.Operation');
 var Traveler = require('Traveler');
 
 // REQUIRE: prototype class extensions - they don't need to be named
@@ -94,6 +96,7 @@ module.exports.loop = function ()
     //     }
     // }
 
+
     Pro.profile( () =>
     {
         SNode.updateNode();
@@ -103,29 +106,70 @@ module.exports.loop = function ()
     Pro.profile( () =>
     {
         let myOperations = [
-             new DefenseOperation(),
-             new ResettleOperation(),
-             //new ScoutOperation(),
-             //new AttackOperation(),
+            () => [new DefenseOperation()],
+            () => [new ResettleOperation()],
+            //() => new ScoutOperation(),
+            () => [new AttackOperation()],
+            () =>
+            {
+                let myMineralOps = [];
+                // TODO: filter for the mineral status
+                _.each(PCache.getEntityCache(ENTITY_TYPES.extractor), (aExtractor) =>
+                {
+                    myMineralOps.push(new MineralOperation(aExtractor));
+                });
+                return myMineralOps;
+            },
+            // () =>
+            // {
+            //     let myMiningOps = [];
+            //     // TODO: filter for the mineral status
+            //     _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
+            //     {
+            //         if (aSource.isMine)
+            //         {
+            //             myMiningOps.push(new MiningOperation(aSource));
+            //         }
+            //     });
+            //     return myMiningOps;
+            //},
         ];
-        _.each(myOperations, (aOps) => aOps.processOperation());
+        _.each(myOperations, (aCall) =>
+        {
+            _.each(aCall(), (aOps) =>
+            {
+                aOps.processOperation()
+            });
+        });
     },'operations')
+
 
     Pro.profile( () =>
     {
-        _.each(PCache.getCache()[ENTITY_TYPES.controller], (aController) => aController.visualize());
-        _.each(PCache.getCache()[ENTITY_TYPES.source], (aSource) =>
+        // _.each(PCache.getEntityCache(ENTITY_TYPES.controller), (aController) => aController.visualize());
+        _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
         {
-            Log(undefined,'Derp: source '+aSource.id+' HomeSpawn: '+aSource.homeSpawn.name+' SpawnEnergy: '+aSource.homeSpawn.energy+' Spawning: '+JS(aSource.homeSpawn.spawning));
+            Log(undefined,'source '+aSource.pos.toString()+' HomeSpawn: '+aSource.homeSpawn.name+' SpawnEnergy: '+aSource.homeSpawn.energy+' Spawning: '+JS(aSource.homeSpawn.spawning)+' isMine: '+aSource.isMine);
             aSource.visualize();
 
         });
+        // _.each(PCache.getEntityCache(ENTITY_TYPES.flag), (aProxy) =>
+        // {
+        //     Log(undefined,'ID: '+aProxy.id+' PROXY: '+aProxy.entityType+' pos: '+aProxy.pos.toString());
+        // });
+        // _.each(PCache.getEntityCache(ENTITY_TYPES.room), (aRoom) => aRoom.id);
     },'proxy');
 
     SNode.printStats();
     PCache.printStats();
     var end = Game.cpu.getUsed();
     Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket);
+
+    // ------- TEST ME ----------------
+    //testCreepBody();
+
+
+
 };
 
 
@@ -139,7 +183,7 @@ testCreepBody = function()
     var aCreepBody = new CreepBody();
     var aSearch =
     {
-        name: CARRY,
+        name: WORK,
         //max:  10,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
     };
     var aBodyOptions =
@@ -149,10 +193,10 @@ testCreepBody = function()
     };
     var aBody =
     {
-        [WORK]:
-        {
-            count: () => getWorkCount(),
-        },
+        // [WORK]:
+        // {
+        //     count: () => getWorkCount(),
+        // },
     };
 
     var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

@@ -42,7 +42,7 @@ class CreepBody
             });
         });
 
-        Log(undefined,('aBody: '+JS(aBody)))
+        //Log(undefined,('aBody: '+JS(aBody)))
 
         var aMoveAdjust = pOptions.hasRoads ? 1/2 : 1
         if (!_.isUndefined(BOOSTS[MOVE][pOptions.moveBoost]))

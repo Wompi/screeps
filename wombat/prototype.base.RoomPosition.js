@@ -6,6 +6,7 @@ RoomPosition.prototype.toString =  function (htmlLink = true) {
     return `[${ this.roomName } ${ this.x },${ this.y }]`;
 };
 
+
 RoomPosition.prototype.adjacentPositions = function(pRange)
 {
     if (pRange < 1) return undefined;

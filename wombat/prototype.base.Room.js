@@ -1,13 +1,27 @@
-
-Room.prototype.test = function()
-{
-    console.log('ROOM PROTOTYPE TEST');
-}
-
 Room.prototype.getRoomType = function()
 {
     return getRoomType(this.name);
 }
+
+
+Room.prototype.getEntityBehavior = function()
+{
+    return {
+        currentEntity: () =>
+        {
+            let aRoom = Game.rooms[this.name];
+            if (_.isUndefined(aRoom)) return null;
+            return aRoom;
+        },
+        onInvalid: (pLastUpdate) => false,
+        onChange: (pLastEntity) =>
+        {
+            Log(undefined,'ROOM: '+this.name+' available: '+this.energyAvailable+' capacity: '+this.energyCapacityAvailable);
+        }, // here we could check for deltas to the last state and react on it
+    };
+}
+
+
 
 Room.prototype.findLocalExits = function(pVisualize = false)
 {
@@ -46,8 +60,6 @@ Room.prototype.findLocalExits = function(pVisualize = false)
 }
 
 
-
-
 extend = function()
 {
     Object.defineProperties(Room.prototype,
@@ -71,49 +83,3 @@ extend = function()
     });
 };
 extend();
-
-
-//
-// var memGet = _.memoize(() =>
-// {
-//     console.log('memoize room test');
-//     return 'a super derp memoize test';
-// },() => 'testHash');
-//
-//
-// var extend = function()
-// {
-//     Object.defineProperties(Room.prototype,
-//     {
-//         'mineral':
-//         {
-//             configurable: true,
-//             get: function()
-//             {
-//                 if (!this._mineral)
-//                 {
-//                     var aArr = this.find(FIND_MINERALS);
-//                     this._mineral = aArr[0];
-//                 }
-//                 else
-//                 {
-//                     console.log('MINERAL CACHE......');
-//                 }
-//                 return this._mineral;
-//
-//             }
-//         },
-//         'test':
-//         {
-//             configurable: true,
-//             get: memGet,
-//             set: (pValue) =>
-//             {
-//                 memGet.cache.set('testHash',pValue);
-//             },
-//         },
-//
-//     });
-// }
-// extend();
-// //module.exports = extend;
