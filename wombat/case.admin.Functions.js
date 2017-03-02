@@ -155,5 +155,6 @@ var mod =
             return ROOM_TYPE.playerRoom;
         }
     },
+    getDiagonalDirection: (aDir) => aDir % 2 + aDir,
 };
 module.exports = mod;

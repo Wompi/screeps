@@ -55,6 +55,13 @@ class ProxyCache
         });
     }
 
+    getEntityProxyForType(pEntityType,pID)
+    {
+        var aProxy = this.mCache[pEntityType][pID];
+        aProxy.update;
+        return aProxy;
+    }
+
     getEntityProxy(pEntity)
     {
         // Log(LOG_LEVEL.error,'type: '+pEntity.entityType+' id: '+pEntity.id);

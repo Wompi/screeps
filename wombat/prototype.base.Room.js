@@ -21,8 +21,6 @@ Room.prototype.getEntityBehavior = function()
     };
 }
 
-
-
 Room.prototype.findLocalExits = function(pVisualize = false)
 {
     var myRanges =
@@ -57,6 +55,12 @@ Room.prototype.findLocalExits = function(pVisualize = false)
     }
 
     return aResult;
+}
+
+Room.prototype.init = function(pProxy)
+{
+    Log(LOG_LEVEL.info,'ROOM: init - '+pProxy.id+' proxy: '+pProxy.toString());
+    pProxy.isMine = this.controller && this.controller.my;
 }
 
 

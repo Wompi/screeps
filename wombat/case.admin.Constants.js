@@ -24,6 +24,7 @@ _.assign(global,
         extractor: 'extractor',
         storage: 'storage',
         link: 'link',
+        terminal: 'terminal',
     },
 
     LOG_LEVEL:
@@ -67,6 +68,12 @@ _.assign(global,
         },
     },
 
+    FILL_STATUS:
+    {
+        isFull: 'full',
+        isEmpty: 'empty',
+        isPartial: 'partial',
+    },
 
     // hese are my screep roles
     CREEP_ROLE:
@@ -75,6 +82,8 @@ _.assign(global,
         miner: 'miner',
         mineral: 'mineral',
         mineralHauler: 'mineral hauler',
+        bayLoader: 'bay loader',
+        extensionHauler: 'extension hauler',
     },
 
     USER_NAME: 'Casegard',

@@ -6,11 +6,12 @@ class ResettleOperation
         this.mRoom = this.mSpawn.room;
         this.mController = this.mRoom.controller;
 
-        this.mSources = _.sortBy(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) => this.mSpawn.pos.getRangeTo(aSource));
+        let mySources = _.filter(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) => aSource.isMine);
 
-        var mySourcePos = [];
-        _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions));
+        this.mSources = _.sortBy(mySources, (aSource) => this.mSpawn.pos.getRangeTo(aSource));
 
+        // var mySourcePos = [];
+        // _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions));
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
@@ -33,6 +34,8 @@ class ResettleOperation
 
         this.mTowers = PCache.getEntityCache(ENTITY_TYPES.tower);
 
+        this.mStorage = _.find(PCache.getEntityCache(ENTITY_TYPES.storage), (aProxy) => aProxy.pos.roomName == this.mRoom.name);
+
         this.mTasks = [];
     }
 
@@ -47,9 +50,6 @@ class ResettleOperation
 
     goMining()
     {
-
-
-
         _.each(Game.creeps, (aCreep) =>
         {
             if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role))
@@ -71,6 +71,12 @@ class ResettleOperation
                 {
                     this.mSourcePoses = _.sortBy(this.mSourcePoses, (aPos) => aPos.getRangeTo(aCreep));
                     aTarget = this.mSourcePoses.shift();
+
+                    let aLook = aTarget.lookFor(LOOK_CREEPS);
+                    if (aLook.length > 0 && aLook[0].name != aCreep.name)
+                    {
+                        aTarget = this.mSourcePoses.shift();
+                    }
                 }
                 else
                 {
@@ -176,56 +182,84 @@ class ResettleOperation
                 var aContainer = _.find(this.mContainers, (aBox) => aBox.pos.inRangeTo(aCreep,3));
                 if (!_.isUndefined(aContainer) && (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
                 {
-                    var canRepair = (aContainer.hits + (aCreep.getActiveBodyparts(WORK) * REPAIR_POWER)) < aContainer.hitsMax;
-                    if (canRepair)
+                    if (!_.isUndefined(aTask) && (aTask.task == 'R'))
                     {
-                        var res = aCreep.repair(aContainer.entity);
-                        //Log(undefined,'REPAIR CONTAINER:'+ErrorString(res));
+                        let res = aCreep.repair(aTarget);
+                        if (res == OK)
+                        {
+                            aCreep.cancelOrder('move');
+                        }
+                    }
+                    else
+                    {
+                        var canRepair = (aContainer.hits + (aCreep.getActiveBodyparts(WORK) * REPAIR_POWER)) < aContainer.hitsMax;
+                        if (canRepair)
+                        {
+                            var res = aCreep.repair(aContainer.entity);
+                            //Log(undefined,'REPAIR CONTAINER:'+ErrorString(res));
+                        }
                     }
                 }
-
-
             }
         });
     }
 
     makeTasks()
     {
-        let aSpawnTask =
-        {
-            priority: 0,
-            target: this.mSpawn,
-            task: 'S',
-        }
-        if (this.mSpawn.energy < this.mSpawn.energyCapacity)
-        {
-            this.mTasks.push(aSpawnTask);
-        }
+        // let aSpawnTask =
+        // {
+        //     priority: 0,
+        //     target: this.mSpawn,
+        //     task: 'S',
+        // }
+        // if (this.mSpawn.energy < this.mSpawn.energyCapacity)
+        // {
+        //     this.mTasks.push(aSpawnTask);
+        // }
 
-        _.each(this.mExtensions, (aExtension) =>
+        // _.each(this.mExtensions, (aExtension) =>
+        // {
+        //     let aExtensionTask =
+        //     {
+        //         priority: 0.1,
+        //         target: aExtension.entity,
+        //         task: 'E',
+        //     }
+        //     this.mTasks.push(aExtensionTask);
+        // });
+
+
+        // var aTower = _.find(this.mTowers, (aTower) => aTower.energy < aTower.energyCapacity);
+        // if (!_.isUndefined(aTower))
+        // {
+        //     var aTowerFillTask =
+        //     {
+        //         priority: 0.14,
+        //         target: aTower.entity,
+        //         task: 'D',
+        //     }
+        //     this.mTasks.push(aTowerFillTask);
+        // }
+
+        var aContainer =  _.find(this.mContainers, (aBox) =>
         {
-            let aExtensionTask =
-            {
-                priority: 0.1,
-                target: aExtension.entity,
-                task: 'E',
-            }
-            this.mTasks.push(aExtensionTask);
+            if (_.sum(aBox.store) > aBox.storeCapacity * 0.5) return false;
+
+            let aSource = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(aBox));
+            if (!_.isUndefined(aSource)) return false;
+
+            return true;
         });
-
-
-        var aTower = _.find(this.mTowers, (aTower) => aTower.energy < aTower.energyCapacity);
-        if (!_.isUndefined(aTower))
+        if (!_.isUndefined(aContainer))
         {
-            var aTowerFillTask =
+            var aBoxFillTask =
             {
-                priority: 0.14,
-                target: aTower.entity,
-                task: 'D',
+                priority: 0.145,
+                target: aContainer.entity,
+                task: 'C',
             }
-            this.mTasks.push(aTowerFillTask);
+            this.mTasks.push(aBoxFillTask);
         }
-
 
         var aTowerConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_TOWER);
         if (!_.isUndefined(aTowerConstruction))
@@ -336,58 +370,83 @@ class ResettleOperation
 
         var aUpgradeTask =
         {
-            priority: 1,
+            priority: 0.9,
             target: this.mController,
             task: 'U',
         }
         this.mTasks.push(aUpgradeTask);
 
-        var aUpgradeTask =
+        if (!_.isUndefined(this.mStorage) && this.mStorage.store[RESOURCE_ENERGY] < 500000)
         {
-            priority: 1,
-            target: this.mController,
-            task: 'U',
+            var aStorageTask =
+            {
+                priority: 1,
+                target: this.mStorage.entity,
+                task: 'F',
+            }
+            this.mTasks.push(aStorageTask);
+            var aStorageTask =
+            {
+                priority: 1,
+                target: this.mStorage.entity,
+                task: 'F',
+            }
+            this.mTasks.push(aStorageTask);
+            var aStorageTask =
+            {
+                priority: 1,
+                target: this.mStorage.entity,
+                task: 'F',
+            }
+            this.mTasks.push(aStorageTask);
+            var aStorageTask =
+            {
+                priority: 1,
+                target: this.mStorage.entity,
+                task: 'F',
+            }
+            this.mTasks.push(aStorageTask);
         }
-        this.mTasks.push(aUpgradeTask);
-
-        var aUpgradeTask =
+        else
         {
-            priority: 1,
-            target: this.mController,
-            task: 'U',
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
         }
-        this.mTasks.push(aUpgradeTask);
-
-        var aUpgradeTask =
-        {
-            priority: 1,
-            target: this.mController,
-            task: 'U',
-        }
-        this.mTasks.push(aUpgradeTask);
-
-        var aUpgradeTask =
-        {
-            priority: 1,
-            target: this.mController,
-            task: 'U',
-        }
-        this.mTasks.push(aUpgradeTask);
 
 
-        _.sortBy(this.mTasks,'priority');
-
-        // debug
-        var a = '';
-        _.each(this.mTasks, (aTask) => a = a + aTask.task + ' ');
-
-        //Log(undefined,'TASKS: '+ a);
+        this.mTasks = _.sortBy(this.mTasks,'priority');
     }
 
     spawnFirst()
     {
         var myCreeps = _.filter(Game.creeps, (aCreep) => aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role));
-        if (myCreeps.length > 3) return;
+        if (myCreeps.length > 0) return;
 
 
         var aCreepBody = new CreepBody();

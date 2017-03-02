@@ -25,7 +25,15 @@ class AttackOperation
 
                 var aSpawn = _.find(aDefender.room.find(FIND_STRUCTURES), (aStucture) => aStucture.structureType == STRUCTURE_SPAWN);
                 var aExtension = _.find(aDefender.room.find(FIND_STRUCTURES), (aStucture) => aStucture.structureType == STRUCTURE_EXTENSION);
-                var aCivCreep = _.find(aDefender.room.find(FIND_HOSTILE_CREEPS), (aCreep) => true);
+
+                var myCivCreeps = _.filter(aDefender.room.find(FIND_HOSTILE_CREEPS), (aCreep) => aCreep.getActiveBodyparts(ATTACK) == 0);
+                var aCivCreep = undefined;
+                if (myCivCreeps.length > 0)
+                {
+                    aCivCreep = _.min(myCivCreeps, (aCreep) => aCreep.pos.getRangeTo(aDefender));
+                }
+
+
                 var aContainer = _.find(aDefender.room.find(FIND_STRUCTURES), (aBox) => aBox.structureType == STRUCTURE_CONTAINER);
 
                 var myRoads = _.filter(aDefender.room.find(FIND_STRUCTURES), (aStruct) => aStruct.structureType == STRUCTURE_ROAD);
@@ -43,6 +51,7 @@ class AttackOperation
                 }
 
                 var myHostiles = _.filter(aDefender.room.find(FIND_HOSTILE_CREEPS), (aCreep) => aCreep.getActiveBodyparts(ATTACK) > 0);
+
                 var aHostile = undefined;
                 if (myHostiles.length > 0)
                 {
@@ -112,7 +121,7 @@ class AttackOperation
             var aSearch =
             {
                 name: ATTACK,
-                max:  5,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
+                max:  7,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
             };
             var aBodyOptions =
             {
@@ -129,8 +138,8 @@ class AttackOperation
 
             var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
             Log(undefined,JS(_.countBy(aResult.body)));
-            // var res = _.find(Game.spawns).createCreep(aResult.body,'Wallaby');
-            // Log(undefined,'WAR: '+ErrorString(res));
+            //var res = _.find(Game.spawns).createCreep(aResult.body,'Wallaby');
+            //Log(undefined,'WAR: '+ErrorString(res));
 
         }
 

@@ -36,6 +36,9 @@ var ScoutOperation = require('case.operations.scout.Operation');
 var AttackOperation = require('case.operations.attack.Operation');
 var MineralOperation = require('case.operations.mineral.Operation');
 var MiningOperation = require('case.operations.mining.Operation');
+var LoadingOperation = require('case.operations.loading.Operation');
+var LinkOperation = require('case.operations.link.Operation');
+var HaulerOperation = require('case.operations.hauler.Operation');
 var Traveler = require('Traveler');
 
 // REQUIRE: prototype class extensions - they don't need to be named
@@ -113,26 +116,61 @@ module.exports.loop = function ()
             () =>
             {
                 let myMineralOps = [];
-                // TODO: filter for the mineral status
                 _.each(PCache.getEntityCache(ENTITY_TYPES.extractor), (aExtractor) =>
                 {
                     myMineralOps.push(new MineralOperation(aExtractor));
                 });
                 return myMineralOps;
             },
-            // () =>
-            // {
-            //     let myMiningOps = [];
-            //     // TODO: filter for the mineral status
-            //     _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
-            //     {
-            //         if (aSource.isMine)
-            //         {
-            //             myMiningOps.push(new MiningOperation(aSource));
-            //         }
-            //     });
-            //     return myMiningOps;
-            //},
+            () =>
+            {
+                let myMiningOps = [];
+                _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
+                {
+                    if (aSource.isMine)
+                    {
+                        myMiningOps.push(new MiningOperation(aSource));
+                    }
+                });
+                return myMiningOps;
+            },
+            () =>
+            {
+                let myLinks = {};
+                _.each(PCache.getEntityCache(ENTITY_TYPES.link), (aProxy) => _.set(myLinks,[aProxy.room.name,aProxy.id],aProxy));
+
+                let myLinkOps = [];
+                _.each(myLinks, (aProxyMap, aRoomName) =>
+                {
+                    myLinkOps.push(new LinkOperation(PCache.getEntityProxyForType(ENTITY_TYPES.room,aRoomName),_.map(aProxyMap)));
+                });
+                return myLinkOps;
+            },
+            () =>
+            {
+                let myLoadingOps = [];
+                // TODO: change the flag to soemthing memory related
+                let myBays = _.filter(PCache.getEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+                //Log(undefined,JS(myBays));
+                _.each(myBays, (aFlag) =>
+                {
+                    myLoadingOps.push(new LoadingOperation(aFlag.pos));
+                });
+                return myLoadingOps;
+            },
+            () =>
+            {
+                let myHaulerOps = [];
+                _.each(PCache.getEntityCache(ENTITY_TYPES.room), (aRoom) =>
+                {
+                    if (aRoom.isMine)
+                    {
+                        myHaulerOps.push(new HaulerOperation(aRoom));
+                    }
+                });
+
+                return myHaulerOps;
+            },
         ];
         _.each(myOperations, (aCall) =>
         {

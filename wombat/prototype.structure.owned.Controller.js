@@ -87,5 +87,5 @@ StructureController.prototype.init = function(pProxy)
     var aRange = 3;
     var aArea = this.pos.inBoundPositions(aRange);
     pProxy.upgradePositions = aArea;
-    pProxy.isMine = this.my || this.reservation.username == USER_NAME;
+    pProxy.isMine = this.my || (!_.isUndefined(this.reservation) && this.reservation.username == USER_NAME);
 }
