@@ -28,9 +28,11 @@ class ServerNode
         this.mLastTick = Game.time;
     }
 
-    printStats()
+    printStats(toConsole = true)
     {
-        Log(LOG_LEVEL.info,'NODE['+this.mNode+'] age: '+this.mNodeAge+' last: '+this.mNodeUpdateDelta);
+        let aMsg = 'NODE['+this.mNode+'] age: '+this.mNodeAge+' last: '+this.mNodeUpdateDelta;
+         if (toConsole) Log(LOG_LEVEL.info,aMsg);
+         return aMsg;
     }
 }
 module.exports = ServerNode;

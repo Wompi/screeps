@@ -60,9 +60,7 @@ Room.prototype.findLocalExits = function(pVisualize = false)
 Room.prototype.init = function(pProxy)
 {
     Log(LOG_LEVEL.info,'ROOM: init - '+pProxy.id+' proxy: '+pProxy.toString());
-    pProxy.isMine = this.controller && this.controller.my;
 }
-
 
 extend = function()
 {
@@ -82,6 +80,19 @@ extend = function()
             get: function()
             {
                 return this.name;
+            },
+        },
+        'isMy':
+        {
+            configurable: true,
+            get: function()
+            {
+                let aController = this.controller;
+                if (!_.isUndefined(aController))
+                {
+                    return aController.isMy // if it has a controller return the ownership
+                }
+                return false; // no controller not mine
             },
         }
     });

@@ -108,3 +108,20 @@ Creep.prototype.canBuild = function()
 {
 	return this.getActiveBodyparts(WORK) > 0 && this.carryCapacity > 0;
 }
+
+
+extend = function()
+{
+    Object.defineProperties(Creep.prototype,
+    {
+        'isMy':
+        {
+            configurable: true,
+            get: function()
+            {
+                return this.my;              // a creep has ownership
+            },
+        }
+    });
+};
+extend();

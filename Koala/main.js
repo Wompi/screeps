@@ -36,20 +36,7 @@ var ServerNode = require('case.admin.ServerNode');  // needs Log and Constants
 
 // REQUIRE: operation related classes
 var ResettleOperation = require('case.operations.resettle.Operation');
-var DefenseOperation = require('case.operations.defense.Operation');
-var ScoutOperation = require('case.operations.scout.Operation');
-var AttackOperation = require('case.operations.attack.Operation');
-var MineralOperation = require('case.operations.mineral.Operation');
-var MiningOperation = require('case.operations.mining.Operation');
-var LoadingOperation = require('case.operations.loading.Operation');
-var LinkOperation = require('case.operations.link.Operation');
-var HaulerOperation = require('case.operations.hauler.Operation');
-var FixerOperation = require('case.operations.fixer.Operation');
-var BuilderOperation = require('case.operations.builder.Operation');
-var UpgraderOperation = require('case.operations.upgrader.Operation');
-var ClaimOperation = require('case.operations.claim.Operation');
 var Traveler = require('Traveler');
-var Market = require('case.Market');
 
 // REQUIRE: prototype class extensions - they don't need to be named
 require('prototype.base.Room');
@@ -93,7 +80,6 @@ _.assign(global,
     CreepBody: require('case.util.CreepBody'),
     PCache: new ProxyCache(),
     SNode: new ServerNode(module),
-    M: new Market(),
 });
 
 PCache.makeCache(SNode.mReset);
@@ -117,121 +103,23 @@ module.exports.loop = function ()
         PCache.updateCache();
     },'cache update')
 
+    // Pro.profile( () =>
+    // {
+    //     let myOperations = [
+    //         () => [new ResettleOperation()],
+    //     ];
+    //     _.each(myOperations, (aCall) =>
+    //     {
+    //         _.each(aCall(), (aOps) =>
+    //         {
+    //             aOps.processOperation()
+    //         });
+    //     });
+    // },'operations')
 
-
-    Pro.profile( () =>
-    {
-        let myOperations = [
-            // () => [new DefenseOperation()],
-            () => [new ResettleOperation()],
-            //() => new ScoutOperation(),
-            //() => [new AttackOperation('Wallaby')],
-            // () => [new AttackOperation('Wombat')],
-            // () => [new AttackOperation('Cooper')],
-            // () => [new AttackOperation('Evan')],
-        //    () => [new AttackOperation('Coogar')],
-        //    () => [new AttackOperation('Cold')],
-            // () =>
-            // {
-            //     let myMineralOps = [];
-            //     _.each(PCache.getEntityCache(ENTITY_TYPES.extractor), (aExtractor) =>
-            //     {
-            //         myMineralOps.push(new MineralOperation(aExtractor));
-            //     });
-            //     return myMineralOps;
-            // },
-            // () =>
-            // {
-            //     let myMiningOps = [];
-            //     _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
-            //     {
-            //         if (aSource.isMine)
-            //         {
-            //             myMiningOps.push(new MiningOperation(aSource));
-            //         }
-            //     });
-            //     return myMiningOps;
-            // },
-            // () =>
-            // {
-            //     let myLinks = {};
-            //     _.each(PCache.getEntityCache(ENTITY_TYPES.link), (aProxy) => _.set(myLinks,[aProxy.room.name,aProxy.id],aProxy));
-            //
-            //     let myLinkOps = [];
-            //     _.each(myLinks, (aProxyMap, aRoomName) =>
-            //     {
-            //         myLinkOps.push(new LinkOperation(PCache.getEntityProxyForType(ENTITY_TYPES.room,aRoomName),_.map(aProxyMap)));
-            //     });
-            //     return myLinkOps;
-            // },
-            // () =>
-            // {
-            //     let myLoadingOps = [];
-            //     // TODO: change the flag to soemthing memory related
-            //     let myBays = _.filter(PCache.getEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
-            //     //Log(undefined,JS(myBays));
-            //     _.each(myBays, (aFlag) =>
-            //     {
-            //         myLoadingOps.push(new LoadingOperation(aFlag.pos));
-            //     });
-            //     return myLoadingOps;
-            // },
-            // () =>
-            // {
-            //     let myHaulerOps = [];
-            //     _.each(PCache.getEntityCache(ENTITY_TYPES.room), (aRoom) =>
-            //     {
-            //         // TODO: fix this this is ugly stuff
-            //         let aStorage = _.find(PCache.getEntityCache(ENTITY_TYPES.storage), (aS) => aS.pos.roomName == aRoom.name);
-            //         if (aRoom.isMine && !_.isUndefined(aStorage))
-            //         {
-            //             myHaulerOps.push(new HaulerOperation(aRoom));
-            //         }
-            //     });
-            //
-            //     return myHaulerOps;
-            // },
-            // () => [new FixerOperation()],
-            // () => [new BuilderOperation()],
-            // () => [new UpgraderOperation('W67S74','Lucy')],
-            // () => [new UpgraderOperation('W67S74','Logan')],
-            // () => [new ClaimOperation()],
-        ];
-        _.each(myOperations, (aCall) =>
-        {
-            _.each(aCall(), (aOps) =>
-            {
-                aOps.processOperation()
-            });
-        });
-    },'operations')
-
-
-
-    Pro.profile( () =>
-    {
-        _.each(PCache.getEntityCache(ENTITY_TYPES.controller), (aController) =>
-        {
-            Log(LOG_LEVEL.debug,'Controller '+aController.pos.toString()+' ticks: '+aController.ticksToDowngrade);
-             aController.visualize();
-        });
-        _.each(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) =>
-        {
-            Log(undefined,'source '+aSource.pos.toString()+' HomeSpawn: '+aSource.homeSpawn.name+' SpawnEnergy: '+aSource.homeSpawn.energy+' Spawning: '+JS(aSource.homeSpawn.spawning)+' isMine: '+aSource.isMine);
-            aSource.visualize();
-
-        });
-        // _.each(PCache.getEntityCache(ENTITY_TYPES.flag), (aProxy) =>
-        // {
-        //     Log(undefined,'ID: '+aProxy.id+' PROXY: '+aProxy.entityType+' pos: '+aProxy.pos.toString());
-        // });
-        // _.each(PCache.getEntityCache(ENTITY_TYPES.room), (aRoom) => aRoom.id);
-    },'proxy');
-    //
-    SNode.printStats();
     PCache.printStats();
     var end = Game.cpu.getUsed();
-    Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket);
+    Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket+' '+SNode.printStats(false));
 
     // ------- TEST ME ----------------
     //testCreepBody();

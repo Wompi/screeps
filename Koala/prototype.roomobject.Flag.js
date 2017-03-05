@@ -22,7 +22,6 @@ Flag.prototype.getEntityBehavior = function()
 }
 
 
-
 extend = function()
 {
     Object.defineProperties(Flag.prototype,
@@ -33,6 +32,14 @@ extend = function()
             get: function()
             {
                 return this.name;
+            },
+        },
+        'isMy':
+        {
+            configurable: true,
+            get: function()
+            {
+                return true; // a flag can only be mine
             },
         }
     });

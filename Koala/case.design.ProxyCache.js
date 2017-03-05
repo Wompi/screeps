@@ -2,15 +2,15 @@ class ProxyCache
 {
     constructor()
     {
-        this.mCache = {};
+        this._mFriendlyCache = {};
+        this._mHostileCache = {};
+
+
+
         this.mFirstTick = Game.time;
         this.mLastTick = Game.time;
-
         this.mCacheAge = 0;
         this.mCacheUpdateDelta = 0
-
-
-        this.mInitList = [];
     }
 
     makeCache(pReset)
@@ -28,142 +28,47 @@ class ProxyCache
             {
                 _.each(aRoom.find(aFindKey), (aEntity) =>
                 {
-                    this.registerEntity(aEntity);
+                    this._registerEntity(aEntity);
                 });
             });
-            this.registerEntity(aRoom);
+            this._registerEntity(aRoom);
         });
         _.each(Game.flags, (aFlag,aFlagName) =>
         {
-            this.registerEntity(aFlag);
-        });
-        this.initProxyCache();
-    }
-
-    initProxyCache()
-    {
-        _.each(this.mInitList, (aProxy) => aProxy.entity.init(aProxy));
-    }
-
-    getEntityCache(pEntityType)
-    {
-        return _.map(_.filter(this.mCache[pEntityType],(aEntity) => aEntity.update), (aProxy,aKey) =>
-        {
-            // Log(LOG_LEVEL.error,'aKEY: '+aKey);
-            // Log(LOG_LEVEL.error,'aProxy: '+JS(aProxy));
-            return aProxy;
+            this._registerEntity(aFlag);
         });
     }
 
-    getEntityProxyForType(pEntityType,pID)
+    _registerEntity(pEntity)
     {
-        if (_.isUndefined(this.mCache[pEntityType])) return undefined;
-
-        var aProxy = this.mCache[pEntityType][pID];
-        if (!_.isUndefined(aProxy))
+        if (pEntity.isMy)
         {
-            aProxy.update;
-        }
-        return aProxy;
-    }
-
-    getEntityProxy(pEntity)
-    {
-        if (_.isUndefined(this.mCache[pEntity.entityType])) return undefined;
-        // Log(LOG_LEVEL.error,'type: '+pEntity.entityType+' id: '+pEntity.id);
-        var aProxy = this.mCache[pEntity.entityType][pEntity.id];
-        if (!_.isUndefined(aProxy))
-        {
-            aProxy.update;
-        }
-        // Log(LOG_LEVEL.error,'proxy: '+JS(aProxy));
-        return aProxy;
-    }
-
-    derpRegisterEntity(pEntity)
-    {
-        let aProxy = this.makeProxy();
-        _.set(this.mCache,[pEntity.entityType,pEntity.id],aProxy);
-        aProxy.entity = pEntity;
-
-        if ('init' in pEntity )
-        {
-            pEntity.init(aProxy);
-        }
-    }
-
-
-    registerEntity(pEntity)
-    {
-        let aProxy = this.makeProxy();
-        _.set(this.mCache,[pEntity.entityType,pEntity.id],aProxy);
-        aProxy.entity = pEntity;
-        if ('init' in pEntity )
-        {
-            this.mInitList.push(aProxy);
+            return this._setEntity(pEntity,this._mFriendlyCache);
         }
         else
         {
-            //Log(undefined, 'PROXY: '+aStruct.entityType+' has no Init!');
+            return this._setEntity(pEntity,this._mHostileCache);
         }
     }
 
-    makeProxy()
+    _setEntity(pEntity,pCache)
+    {
+        let aProxy = undefined;
+        if (_.isUndefined(pCache[pEntity.id]))
+        {
+            aProxy = this._makeEntityProxy();
+            _.set(pCache,[pEntity.id],aProxy);
+            aProxy.entity = pEntity;
+        }
+        return aProxy;
+    }
+
+    _makeEntityProxy()
     {
         return new Proxy({},
         {
             get: function(target, name)
             {
-                // if (typeof name === 'symbol')
-                // {
-                //     Log(LOG_LEVEL.debug,'symbol')
-                // }
-                // else
-                // {
-                //     Log(LOG_LEVEL.debug,'PROXY: '+name+' - '+target['entity'].entityType+' ID: '+target['entity'].id);
-                // }
-
-                // TODO: the time check is a fallback and should be removed when I have another idear
-                // - problem here is when you register another proxy to this one it can be that this proxy is not
-                //   updated acordingly
-                // - a global update at tickstart couls solve this - but meh
-                // - nope its not working - then you ask for a name property but gets updated and returns false/true - super meh
-                if ( name == 'update' /*|| Game.time > target['lastUpdate'] */)
-                {
-
-                    //Log(LOG_LEVEL.debug,'PROXY: '+name+' - '+target['entity'].entityType+' ID: '+target['entity'].id);
-
-                    let isNotInvalid = true;
-                    if (Game.time > target['lastUpdate'])
-                    {
-                        var aEntityBehavior = target['entity'].getEntityBehavior();
-
-                        // not all entities need to be updated aka RoomPositions
-                        if (!_.isUndefined(aEntityBehavior))
-                        {
-                            let aEntity = aEntityBehavior.currentEntity();
-                            if (aEntity != null)
-                            {
-                                if (aEntityBehavior.hasOwnProperty('onChange'))
-                                {
-                                    aEntity.getEntityBehavior().onChange(target['lastUpdate'],target['entity']);
-                                }
-                                target['entity'] = aEntity;
-                            }
-                            else
-                            {
-                                //Log(undefined,'DERP: '+name);
-                                if (aEntityBehavior.hasOwnProperty('onInvalid'))
-                                {
-                                    isNotInvalid = aEntityBehavior.onInvalid(target['lastUpdate']);
-                                }
-                            }
-                        }
-                        target['lastUpdate'] = Game.time;
-                    }
-                    return isNotInvalid;
-                }
-
                 let res = target[name];
                 if (_.isUndefined(res))
                 {
@@ -174,39 +79,81 @@ class ProxyCache
             set: function(target,name,value)
             {
                 target[name] = value;
-
-                if (name == 'entity')
-                {
-                    target['lastUpdate'] = Game.time;
-                }
-                else
-                {
-                    Log(LOG_LEVEL.debug, 'PROXY: set '+name+' '+target['entity'].entityType+' value: '+value);
-                }
+                //Log(LOG_LEVEL.debug, 'PROXY: set '+name+' '+target['entity'].entityType+' value: '+value);
                 return true;
             },
         });
     }
+
+    _updateEntityProxy(pProxy)
+    {
+        var aEntityBehavior = pProxy.entity.getEntityBehavior();
+        let aEntity = aEntityBehavior.currentEntity();
+        if (aEntity != null)
+        {
+            pProxy.lastUpdate = Game.time;
+        }
+        else
+        {
+            Log(LOG_LEVEL.debug,'PROXY CACHE: _updateEntityProxy - entity: '+pProxy.entityType+' is invalid!');
+        }
+    }
+
+    _updateClientEntities()
+    {
+        /// construction Sites can be places by the gui and need to be inserted if they changed as well flags
+        _.each(Game.flags, (aFlag) =>
+        {
+            this.addEntity(aFlag);
+        })
+
+        _.each(Game.constructionSites, (aSite) =>
+        {
+            this.addEntity(aSite);
+        });
+    }
+
+    // -------------------------------- PUBLIC FUNCTIONS ----------------------------------------
 
     updateCache()
     {
         this.mCacheAge = Game.time - this.mFirstTick;
         this.mCacheUpdateDelta = Game.time - this.mLastTick;
 
+        _.each(this._mFriendlyCache, (aProxy,aID) => this._updateEntityProxy(aProxy));
+        _.each(this._mHostileCache, (aProxy,aID) => this._updateEntityProxy(aProxy));
 
-
-
-
+        this._updateClientEntities();
 
         this.mLastTick = Game.time;
+    }
+
+    addEntity(pEntity)
+    {
+        if (_.isUndefined(pEntity)) return;
+        let aProxy = this._registerEntity(pEntity);
+        if (!_.isUndefined(aProxy))
+        {
+            Log(LOG_LEVEL.debug,'PROXY CACHE: addEntity - new entity '+pEntity.entityType+' found!');
+            this._updateEntityProxy(aProxy);
+        }
     }
 
     printStats()
     {
         var aCount = {}
-        _.each(this.mCache,(aValue,aKey) => aCount[aKey] = _.size(aValue));
-        Log(LOG_LEVEL.info, 'CACHE['+SNode.mNode+'] age: '+this.mCacheAge+' last: '+this.mCacheUpdateDelta);
-        Log(LOG_LEVEL.debug,JS(aCount));
+        Log(LOG_LEVEL.info,'--------- Cache Stats ---------');
+        Log(LOG_LEVEL.info,'CACHE['+SNode.mNode+']: friendly - '+_.size(this._mFriendlyCache));
+        Log(LOG_LEVEL.debug,JS(_.countBy(_.map(this._mFriendlyCache),'entityType')));
+
+
+        Log(LOG_LEVEL.info,'CACHE['+SNode.mNode+']: hostile - '+_.size(this._mHostileCache));
+        Log(LOG_LEVEL.debug,JS(_.countBy(_.map(this._mHostileCache),'entityType')));
+
+
+        // _.each(this.mCache,(aValue,aKey) => aCount[aKey] = _.size(aValue));
+        // Log(LOG_LEVEL.info, 'CACHE['+SNode.mNode+'] age: '+this.mCacheAge+' last: '+this.mCacheUpdateDelta);
+        // Log(LOG_LEVEL.debug,JS(aCount));
     }
 }
 module.exports = ProxyCache;

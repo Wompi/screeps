@@ -77,3 +77,25 @@ Source.prototype.init = function(pProxy)
     //       better test for path length
     pProxy.isMine = (_.isUndefined(aController) ? false : aController.isMine) && Game.map.getRoomLinearDistance(this.pos.roomName,pProxy.homeSpawn.pos.roomName) < 1;
 }
+
+
+extend = function()
+{
+    Object.defineProperties(Source.prototype,
+    {
+        'isMy':
+        {
+            configurable: true,
+            get: function()
+            {
+                let aController = this.room.controller;
+                if (!_.isUndefined(aController))
+                {
+                    return aController.isMy // if it has a controller return the ownership
+                }
+                return false; // no controller not mine
+            },
+        }
+    });
+};
+extend();

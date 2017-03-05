@@ -14,3 +14,27 @@ StructureRoad.prototype.getEntityBehavior = function()
         },
     };
 }
+
+
+extend = function()
+{
+    Object.defineProperties(StructureRoad.prototype,
+    {
+        'isMy':
+        {
+            configurable: true,
+            get: function()
+            {
+                // TODO: this is a tricky one - what if I build roads through neutral territory?
+
+                let aController = this.room.controller;
+                if (!_.isUndefined(aController))
+                {
+                    return aController.isMy // if it has a controller return the ownership
+                }
+                return false; // no controller not mine
+            },
+        }
+    });
+};
+extend();
