@@ -5,11 +5,11 @@ Mineral.prototype.miningPositions = function()
     return aArea;
 }
 
-Mineral.prototype.init = function(pProxy)
-{
-    Log(undefined,'MINERAL: '+this.pos.toString()+' init - '+pProxy.id+' proxy: '+pProxy);
-    pProxy.mineralBox = _.find(PCache.getEntityCache(ENTITY_TYPES.container), (aProxy) => aProxy.pos.isNearTo(this.pos));
-}
+// Mineral.prototype.init = function(pProxy)
+// {
+//     Log(undefined,'MINERAL: '+this.pos.toString()+' init - '+pProxy.id+' proxy: '+pProxy);
+//     pProxy.mineralBox = _.find(PCache.getEntityCache(ENTITY_TYPES.container), (aProxy) => aProxy.pos.isNearTo(this.pos));
+// }
 
 
 extend = function()
@@ -19,6 +19,7 @@ extend = function()
         'isMy':
         {
             configurable: true,
+            enumerable: true,
             get: function()
             {
                 let aController = this.room.controller;
@@ -28,7 +29,9 @@ extend = function()
                 }
                 return false; // no controller not mine
             },
-        }
+        },
     });
+
+
 };
 extend();

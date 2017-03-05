@@ -156,5 +156,15 @@ var mod =
         }
     },
     getDiagonalDirection: (aDir) => aDir % 2 + aDir,
+    isMine: (pEntity) =>
+    {
+        let aController = _.isUndefined(pEntity.room) ? pEntity.controller : pEntity.room.controller;
+        let result = false;
+        if (!_.isUndefined(aController))
+        {
+            result = aController.my // if it has a controller return the ownership
+        }
+        return result;
+    },
 };
 module.exports = mod;

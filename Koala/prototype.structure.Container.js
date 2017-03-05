@@ -1,20 +1,6 @@
-extend = function()
+
+StructureContainer.prototype.init = function(pProxy)
 {
-    Object.defineProperties(StructureContainer.prototype,
-    {
-        'isMy':
-        {
-            configurable: true,
-            get: function()
-            {
-                let aController = this.room.controller;
-                if (!_.isUndefined(aController))
-                {
-                    return aController.isMy // if it has a controller return the ownership
-                }
-                return false; // no controller not mine
-            },
-        }
-    });
-};
-extend();
+    Log(LOG_LEVEL.debug,'StructureContainer: init - '+this.entityType);
+    pProxy.isMy = isMine(this);
+}

@@ -75,5 +75,5 @@ Source.prototype.init = function(pProxy)
 
     // TODO: the distance check for the rooms needs a rework - diagonal rooms count as well and it should
     //       better test for path length
-    pProxy.isMine = (_.isUndefined(aController) ? false : aController.isMine) && Game.map.getRoomLinearDistance(this.pos.roomName,pProxy.homeSpawn.pos.roomName) < 1;
+    pProxy.isMine = (_.isUndefined(aController) ? false : aController.isMine)    && Game.map.getRoomLinearDistance(this.pos.roomName,pProxy.homeSpawn.pos.roomName) < 1;
 }

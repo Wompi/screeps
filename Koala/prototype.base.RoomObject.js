@@ -1,18 +1,32 @@
 
-RoomObject.prototype.getEntityBehavior = function()
+RoomObject.prototype.getEntityEvents = function()
 {
     return {
         currentEntity: () => Game.getObjectById(this.id),
-        onInvalid: (pLastUpdate) => false,
-        //onChange: (pLastEntity) => false, // here we could check for deltas to the last state and react on it
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
     };
 }
-
 
 RoomObject.prototype.getProxy = function()
 {
     return PCache.getEntityProxy(this);
 }
+
+RoomObject.prototype.getEntityEvents = function()
+{
+    return {
+        currentEntity: () => Game.getObjectById(this.id),
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
+    };
+}
+
+RoomObject.prototype.init = function(pProxy)
+{
+    Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
+    pProxy.isMy = isMine(this);
+}
+
+
 
 extend = function()
 {
@@ -27,7 +41,7 @@ extend = function()
                 if (_.isUndefined(res))
                 {
                     /// ERROR: maybe a new class was added to the API you have to adjust ROOM_OBJECTS for that
-                    Log(undefined,'ERROR: RoomObject.entityType - undefined FIX THIS!');
+                    Log(LOG_LEVEL.error,'RoomObject.entityType - undefined FIX THIS!');
                     res = 'roomObject';
                 }
                 return res;

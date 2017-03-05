@@ -65,6 +65,12 @@ _.assign(global,
         playerRoom: 'PlayerRoom',
     },
 
+    INVALID_ACTION:
+    {
+        delete: 'delete',
+        none: 'none',
+        save: 'save',
+    },
 
     FLAG_TYPE:
     {

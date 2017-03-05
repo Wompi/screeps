@@ -96,6 +96,19 @@ RoomPosition.prototype.inBoundPositions = function(pRange)
     return result;
 }
 
+RoomPosition.prototype.getEntityEvents = function()
+{
+    return {
+        currentEntity: () => this,
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
+    };
+}
+
+RoomPosition.prototype.init = function(pProxy)
+{
+    Log(LOG_LEVEL.debug,'RoomPosition: default init - '+this.entityType);
+}
+
 
 extend = function()
 {

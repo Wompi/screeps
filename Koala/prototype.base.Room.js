@@ -4,7 +4,7 @@ Room.prototype.getRoomType = function()
 }
 
 
-Room.prototype.getEntityBehavior = function()
+Room.prototype.getEntityEvents = function()
 {
     return {
         currentEntity: () =>
@@ -13,11 +13,7 @@ Room.prototype.getEntityBehavior = function()
             if (_.isUndefined(aRoom)) return null;
             return aRoom;
         },
-        onInvalid: (pLastUpdate) => false,
-        onChange: (pLastEntity) =>
-        {
-            Log(undefined,'ROOM: '+this.name+' available: '+this.energyAvailable+' capacity: '+this.energyCapacityAvailable);
-        }, // here we could check for deltas to the last state and react on it
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.none,
     };
 }
 
@@ -60,6 +56,7 @@ Room.prototype.findLocalExits = function(pVisualize = false)
 Room.prototype.init = function(pProxy)
 {
     Log(LOG_LEVEL.info,'ROOM: init - '+pProxy.id+' proxy: '+pProxy.toString());
+    pProxy.isMy = isMine(this);
 }
 
 extend = function()

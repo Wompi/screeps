@@ -1,9 +1,7 @@
 
 
 
-
-
-Flag.prototype.getEntityBehavior = function()
+Flag.prototype.getEntityEvents = function()
 {
     return {
         currentEntity: () =>
@@ -12,15 +10,9 @@ Flag.prototype.getEntityBehavior = function()
             if (_.isUndefined(aFlag)) return null;
             return aFlag;
         },
-        onInvalid: (pLastUpdate) =>
-        {
-            Log(LOG_LEVEL.error,'FLAG: onInvalid - '+this.toString());
-            return false;
-        },
-        //onChange: (pLastEntity) => false, // here we could check for deltas to the last state and react on it
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
     };
 }
-
 
 extend = function()
 {

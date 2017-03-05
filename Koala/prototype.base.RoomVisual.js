@@ -5,6 +5,18 @@ RoomVisual.prototype.drawCross = function(x, y, style)
 };
 
 
+RoomVisual.prototype.getEntityEvents = function()
+{
+    return {
+        currentEntity: () => this,
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
+    };
+}
+
+RoomVisual.prototype.init = function(pProxy)
+{
+    Log(LOG_LEVEL.debug,'RoomVisual: default init - '+this.entityType);
+}
 
 
 extend = function()

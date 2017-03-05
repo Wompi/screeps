@@ -103,19 +103,47 @@ module.exports.loop = function ()
         PCache.updateCache();
     },'cache update')
 
-    // Pro.profile( () =>
-    // {
-    //     let myOperations = [
-    //         () => [new ResettleOperation()],
-    //     ];
-    //     _.each(myOperations, (aCall) =>
-    //     {
-    //         _.each(aCall(), (aOps) =>
-    //         {
-    //             aOps.processOperation()
-    //         });
-    //     });
-    // },'operations')
+    Pro.profile( () =>
+    {
+        let myOperations = [
+            () => [new ResettleOperation()],
+        ];
+        _.each(myOperations, (aCall) =>
+        {
+            _.each(aCall(), (aOps) =>
+            {
+                aOps.processOperation()
+            });
+        });
+    },'operations')
+
+    let myEntities = PCache.getAllEntityCache(ENTITY_TYPES.constructionSite);
+    _.each(myEntities,(aEntity) =>
+    {
+        Log(LOG_LEVEL.debug,'DERP: '+aEntity.isValid+' type: '+aEntity.entityType+' id: '+aEntity.id+' room: '+aEntity.pos.roomName);
+    });
+    //Log(LOG_LEVEL.debug,'MAIN: entities '+JS(myEntities));
+
+    let aCreep = Game.creeps['derp'];
+    let aPos = new RoomPosition(47,33,'W87S33');
+    if (Game.time % 20 > 10)
+    {
+        aPos = new RoomPosition(3,35,'W86S33');
+    }
+    if (_.isUndefined(aCreep))
+    {
+        let aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
+        aSpawn.createCreep([MOVE],'derp');
+    }
+    else if (!aCreep.spawning && !aCreep.pos.isNearTo(aPos))
+    {
+        let res = aCreep.travelTo({pos: aPos,range: 0});
+    }
+
+
+
+
+
 
     PCache.printStats();
     var end = Game.cpu.getUsed();

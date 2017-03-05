@@ -1,15 +1,13 @@
 
 
 
-Structure.prototype.getEntityBehavior = function()
+Structure.prototype.getEntityEvents = function()
 {
     return {
         currentEntity: () => Game.getObjectById(this.id),
-        onInvalid: (pLastUpdate) => false,
-        //onChange: (pLastEntity) => false, // here we could check for deltas to the last state and react on it
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
     };
 }
-
 
 extend = function()
 {

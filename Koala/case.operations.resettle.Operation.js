@@ -5,8 +5,9 @@ class ResettleOperation
         this.mSpawn = _.find(Game.spawns);
         this.mRoom = this.mSpawn.room;
         this.mController = this.mRoom.controller;
+        this.mController.visualize();
 
-        let mySources = _.filter(PCache.getEntityCache(ENTITY_TYPES.source), (aSource) => aSource.isMine);
+        let mySources = PCache.getFriendlyEntityCache(ENTITY_TYPES.source);
 
         this.mSources = _.sortBy(mySources, (aSource) => this.mSpawn.pos.getRangeTo(aSource));
 
@@ -15,6 +16,7 @@ class ResettleOperation
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
+            aSource.visualize();
             return _.reduce(aSource.possibleMiningPositions, (res,value,aX) =>
             {
                 return _.reduce(value, (res,aCount,aY) =>
@@ -25,16 +27,16 @@ class ResettleOperation
             },res);
         },[]);
 
-        this.mExtensions =  _.filter(PCache.getEntityCache(ENTITY_TYPES.extension), (aExt) => aExt.energy < aExt.energyCapacity);
-        this.mConstructions = _.filter(Game.constructionSites, (aSite) => aSite.room.name == this.mRoom.name);
+        this.mExtensions =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extension), (aExt) => aExt.energy < aExt.energyCapacity);
+        this.mConstructions = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite), (aSite) => aSite.pos.roomName == this.mRoom.name);
         this.mResources = this.mRoom.find(FIND_DROPPED_RESOURCES);
 
-        this.mContainers = PCache.getEntityCache(ENTITY_TYPES.container);
-        this.mRoads = PCache.getEntityCache(ENTITY_TYPES.road);
+        this.mContainers = PCache.getFriendlyEntityCache(ENTITY_TYPES.container);
+        this.mRoads = PCache.getFriendlyEntityCache(ENTITY_TYPES.road);
 
-        this.mTowers = PCache.getEntityCache(ENTITY_TYPES.tower);
+        this.mTowers = PCache.getFriendlyEntityCache(ENTITY_TYPES.tower);
 
-        this.mStorage = _.find(PCache.getEntityCache(ENTITY_TYPES.storage), (aProxy) => aProxy.pos.roomName == this.mRoom.name);
+        this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aProxy) => aProxy.pos.roomName == this.mRoom.name);
 
         this.mTasks = [];
     }
@@ -78,6 +80,7 @@ class ResettleOperation
                     {
                         aTarget = this.mSourcePoses.shift();
                     }
+                    if (_.isUndefined(aTarget)) return;
                 }
                 else
                 {
@@ -92,6 +95,7 @@ class ResettleOperation
                         aTarget = aTask.target;
                     }
                 }
+                if (_.isUndefined(aTarget)) return;
 
                 if (!_.isUndefined(aTask)) aCreep.say(aTask.task);
 
@@ -154,7 +158,7 @@ class ResettleOperation
                         var mySites = _.sortBy(_.filter(this.mConstructions, (aSite) => aCreep.pos.inRangeTo(aSite,3)),'progress').reverse();
                         if (mySites.length > 0)
                         {
-                            aCreep.build(mySites[0]);
+                            aCreep.build(mySites[0].entity);
                         }
                     }
                 }
@@ -218,7 +222,11 @@ class ResettleOperation
                 target: aExtension.entity,
                 task: 'E',
             }
-            this.mTasks.push(aExtensionTask);
+
+            if (aExtension.energy < aExtension.energyCapacity)
+            {
+                this.mTasks.push(aExtensionTask);
+            }
         });
 
 
@@ -275,7 +283,7 @@ class ResettleOperation
         var myExstensionConstructions = _.filter(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_EXTENSION);
         if (myExstensionConstructions.length > 0)
         {
-            let prio = 0.13;
+            var prio = 0.13;
             _.each(myExstensionConstructions, (aBuild) =>
             {
                 let aBuildTask =
@@ -402,6 +410,34 @@ class ResettleOperation
         }
         else
         {
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
+            var aUpgradeTask =
+            {
+                priority: 1,
+                target: this.mController,
+                task: 'U',
+            }
+            this.mTasks.push(aUpgradeTask);
             var aUpgradeTask =
             {
                 priority: 1,
