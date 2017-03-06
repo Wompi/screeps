@@ -8,7 +8,7 @@ class ProxyCache
                             FIND_CONSTRUCTION_SITES,
                             FIND_NUKES,
                             FIND_MINERALS,
-                            FIND_CREEPS];
+                            FIND_HOSTILE_CREEPS];
 
 
         this._mCache = {};
@@ -195,6 +195,11 @@ class ProxyCache
     getAllEntityCache(pType)
     {
         return _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType));
+    }
+
+    getHostileEntityCache(pType)
+    {
+        return _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && !aProxy.isMy));
     }
 
 

@@ -5,6 +5,7 @@
 console.log('-------------------------- RESTART '+Game.time+'------------------ C -----------------');
 
 
+
 // REQUIRE: debug related classes
 var Visualization = require('case.debug.Visualization');
 var Logging = require('case.admin.Logging');
@@ -36,6 +37,8 @@ var ServerNode = require('case.admin.ServerNode');  // needs Log and Constants
 
 // REQUIRE: operation related classes
 var ResettleOperation = require('case.operations.resettle.Operation');
+var DefenseOperation = require('case.operations.defense.Operation');
+var ClaimOperation = require('case.operations.claim.Operation');
 var Traveler = require('Traveler');
 
 // REQUIRE: prototype class extensions - they don't need to be named
@@ -96,17 +99,20 @@ module.exports.loop = function ()
     //     }
     // }
 
-
     Pro.profile( () =>
     {
         SNode.updateNode();
         PCache.updateCache();
     },'cache update')
 
+
+
     Pro.profile( () =>
     {
         let myOperations = [
+            //() => [new DefenseOperation()],
             () => [new ResettleOperation()],
+            //() => [new ClaimOperation()],
         ];
         _.each(myOperations, (aCall) =>
         {
@@ -116,34 +122,6 @@ module.exports.loop = function ()
             });
         });
     },'operations')
-
-    let myEntities = PCache.getAllEntityCache(ENTITY_TYPES.constructionSite);
-    _.each(myEntities,(aEntity) =>
-    {
-        Log(LOG_LEVEL.debug,'DERP: '+aEntity.isValid+' type: '+aEntity.entityType+' id: '+aEntity.id+' room: '+aEntity.pos.roomName);
-    });
-    //Log(LOG_LEVEL.debug,'MAIN: entities '+JS(myEntities));
-
-    let aCreep = Game.creeps['derp'];
-    let aPos = new RoomPosition(47,33,'W87S33');
-    if (Game.time % 20 > 10)
-    {
-        aPos = new RoomPosition(3,35,'W86S33');
-    }
-    if (_.isUndefined(aCreep))
-    {
-        let aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
-        aSpawn.createCreep([MOVE],'derp');
-    }
-    else if (!aCreep.spawning && !aCreep.pos.isNearTo(aPos))
-    {
-        let res = aCreep.travelTo({pos: aPos,range: 0});
-    }
-
-
-
-
-
 
     PCache.printStats();
     var end = Game.cpu.getUsed();

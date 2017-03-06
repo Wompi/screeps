@@ -2,17 +2,13 @@ class ResettleOperation
 {
     constructor()
     {
-        this.mSpawn = _.find(Game.spawns);
-        this.mRoom = this.mSpawn.room;
-        this.mController = this.mRoom.controller;
+        this.mSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
+        this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room));
+        this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller));
         this.mController.visualize();
 
-        let mySources = PCache.getFriendlyEntityCache(ENTITY_TYPES.source);
-
-        this.mSources = _.sortBy(mySources, (aSource) => this.mSpawn.pos.getRangeTo(aSource));
-
-        // var mySourcePos = [];
-        // _.each(this.mSources, (aSource) => mySourcePos = mySourcePos.concat(aSource.possibleMiningPositions));
+        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aSource) => aSource.pos.roomName == this.mRoom.name);
+    //    this.mSources = PCache.getFriendlyEntityCache(ENTITY_TYPES.source);
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
@@ -72,7 +68,27 @@ class ResettleOperation
                 if ((isCloseToMine && !isFull) || isEmpty)
                 {
                     this.mSourcePoses = _.sortBy(this.mSourcePoses, (aPos) => aPos.getRangeTo(aCreep));
-                    aTarget = this.mSourcePoses.shift();
+
+                    // if (isCloseToMine)
+                    // {
+                    //     for (let aIndex in this.mSourcePoses)
+                    //     {
+                    //         let a = _.find(this.mSources, (aSource) => aSource.pos,isNearTo(this.mSourcePoses[aIndex]));
+                    //         if (!_.isUndefined(a))
+                    //         {
+                    //             aTarget = a;
+                    //             delete this.mSourcePoses[aIndex];
+                    //             break;
+                    //         }
+                    //     }
+                    // }
+                    // else
+                    {
+                        aTarget = this.mSourcePoses.shift();
+                    }
+
+
+
                     if (_.isUndefined(aTarget)) return;
 
                     let aLook = aTarget.lookFor(LOOK_CREEPS);
@@ -121,15 +137,16 @@ class ResettleOperation
                 }
                 //Log(undefined,'HARVEST:'+ErrorString(res));
 
-                var res = aCreep.transfer(aTarget,RESOURCE_ENERGY);
+                var res = aCreep.transfer(_.isUndefined(aTarget.entity)? aTarget: aTarget.entity,RESOURCE_ENERGY);
                 //Log(undefined,'TRANSFER:'+ErrorString(res));
 
-                var res = aCreep.upgradeController(aTarget);
+                var res = aCreep.upgradeController(_.isUndefined(aTarget.entity)? aTarget: aTarget.entity);
                 if (res == OK)
                 {
                     aCreep.cancelOrder('move');
                 }
                 //Log(undefined,'UPGRADE: '+ErrorString(res));
+
 
 
                 // opportunity tasks
@@ -203,15 +220,36 @@ class ResettleOperation
 
     makeTasks()
     {
-        let aSpawnTask =
+        var aSpawnConstruction = _.find(this.mConstructions, (aBuild) => aBuild.structureType == STRUCTURE_SPAWN);
+        if (!_.isUndefined(aSpawnConstruction))
         {
-            priority: 0,
-            target: this.mSpawn,
-            task: 'S',
+            _.each(Game.creeps, (aCreep) =>
+            {
+                if (aCreep.pos.roomName == aSpawnConstruction.pos.roomName && aCreep.canBuild())
+                {
+                    var aSpawnBuildTask =
+                    {
+                        priority: 0,
+                        target: aSpawnConstruction.entity,
+                        task: 'X',
+                    }
+                    this.mTasks.push(aSpawnBuildTask);
+                }
+            });
         }
-        if (this.mSpawn.energy < this.mSpawn.energyCapacity)
+
+        if (!_.isUndefined(this.mSpawn))
         {
-            this.mTasks.push(aSpawnTask);
+            let aSpawnTask =
+            {
+                priority: 0,
+                target: this.mSpawn.entity,
+                task: 'S',
+            }
+            if (this.mSpawn.energy < this.mSpawn.energyCapacity)
+            {
+                this.mTasks.push(aSpawnTask);
+            }
         }
 
         _.each(this.mExtensions, (aExtension) =>
@@ -475,7 +513,7 @@ class ResettleOperation
     spawnFirst()
     {
         var myCreeps = _.filter(Game.creeps, (aCreep) => aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role));
-        if (myCreeps.length > 6) return;
+        if (myCreeps.length > 4) return;
 
 
         var aCreepBody = new CreepBody();
@@ -535,7 +573,7 @@ class ResettleOperation
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
 
-        if (!_.isEmpty(aResult.body))
+        if (!_.isEmpty(aResult.body) && !_.isUndefined(this.mSpawn))
         {
             var res = this.mSpawn.createCreep(aResult.body);
         }
