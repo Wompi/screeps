@@ -1,12 +1,16 @@
 class ClaimOperation
 {
-    constructor()
+    constructor(pName,pRooms)
     {
-        this.CLAIM_ROOMS = ['W87S34','W87S32'];
+        this.CLAIM_ROOMS = pRooms;
+        this.mCreepName = pName
         this.mCreep = undefined;
         this.isClaim = false;
 
+
         this.mClaimPosition = this.searchClaimRoom();
+        this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
+
     }
 
     processOperation()
@@ -29,18 +33,65 @@ class ClaimOperation
 
         if (this.mCreep.getActiveBodyparts(CARRY) > 0 && this.mCreep.carry[RESOURCE_ENERGY] == 0 )
         {
-            let aStorage = _.min(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.pos.getRangeTo(this.mCreep.pos));
-            if (!this.mCreep.pos.isNearTo(aStorage))
+            if (this.mResources.length > 0)
             {
-                let res = this.mCreep.travelTo({pos: aStorage.pos});
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to storage '+this.aStorage.pos.toString()+' res: '+ErrorString(res));
+                var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mCreep));
+                if (!_.isUndefined(aResource))
+                {
+                    let res = this.mCreep.pickup(aResource.entity);
+                    //Log(undefined,'RESOURCE:'+ErrorString(res));
+                }
             }
-            let res = this.mCreep.withdraw(aStorage.entity,RESOURCE_ENERGY);
-            this.log(LOG_LEVEL.debug,this.mCreep.name+' withdraw storage '+this.aStorage.pos.toString()+' res: '+ErrorString(res));
 
-            if (res != OK)
+
+            let myStorages = PCache.getFriendlyEntityCache(ENTITY_TYPES.storage);
+            let aStorage = undefined;
+            if (myStorages.length > 0)
             {
+                aStorage = _.min(myStorages, (aS) => aS.pos.getRangeTo(this.mCreep.pos));
+            }
+
+
+            let myBoxes = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container),(aS) => aS.store[RESOURCE_ENERGY] > 0);
+            let aBox = undefined;
+            if (myBoxes.length > 0)
+            {
+                aBox = _.min(myBoxes, (aS) => aS.pos.getRangeTo(this.mCreep.pos));
+            }
+
+
+            this.log(LOG_LEVEL.debug,'CLAIM: '+JS(aBox))
+            let aTarget = undefined
+            if (!_.isUndefined(aStorage))
+            {
+                this.log(LOG_LEVEL.debug,'DERP 1: '+JS(aStorage))
+                aTarget = aStorage.entity;
+            }
+            else if (!_.isUndefined(aBox))
+            {
+                this.log(LOG_LEVEL.debug,'DERP 2: '+JS(aBox))
+                aTarget = aBox.entity;
+            }
+            else
+            {
+                Log(LOG_LEVEL.error,'CALIM: no box no storage! - fix this')
                 return;
+            }
+
+            if (!_.isUndefined(aTarget))
+            {
+                if (!this.mCreep.pos.isNearTo(aTarget))
+                {
+                    let res = this.mCreep.travelTo({pos: aTarget.pos});
+                    this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                }
+                let res = this.mCreep.withdraw(aTarget,RESOURCE_ENERGY);
+                this.log(LOG_LEVEL.debug,this.mCreep.name+' withdraw storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+
+                if (res != OK)
+                {
+                    return;
+                }
             }
         }
 
@@ -108,7 +159,7 @@ class ClaimOperation
         var aSearch =
         {
             name: CARRY,
-            max: 1,
+            max: 2,   /// 1
         };
         var aBodyOptions =
         {
@@ -119,7 +170,7 @@ class ClaimOperation
         {
             [WORK]:
             {
-                count: 1,
+                count: 3, // 1
             }
         }
 

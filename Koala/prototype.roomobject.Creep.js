@@ -45,6 +45,30 @@ Creep.prototype.getTarget = function(selector, validator=_.identity, chooser=_.f
 }
 
 /**
+ *	This one looks for used carry parts (used means has energy in it)
+ *		- a: filter for carry parts with boost
+ *		- b: pluck the values of boost
+ *		- c: find the boost string (undefined or one of the carry boost strings KH KH2O XKH2O)
+ *		- d: get the value for this boost string from BOOSTS
+ *
+ *		- e: calulate the used carry parts ceil(A/(50 * b))
+ *
+ *	Can be used to calculate the fatigue costs for this creep or some other little thingies like path matrix
+ *
+ *	TODO: not sure how it works with partial boosting if this is a thing someday
+ */
+Creep.prototype.getUsedCarryParts = function()
+{
+	return _.ceil(_.sum(this.carry)/(CARRY_CAPACITY * _.get(BOOSTS,[CARRY,_.find(_.pluck(_.filter(this.body,(i) => i.type == CARRY && !!i.boost),'boost')),'capacity'],1)));
+}
+
+Creep.prototype.getFatigueCost = function()
+{
+	Log(LOG_LEVEL.debug,'name: '+this.name+' aLoad: '+this.getUsedCarryParts());
+}
+
+
+/**
  * Similar to getTarget, but ensures no other creep is assigned to this target.
  *
  * @param function selector - Gets a list of target candidates

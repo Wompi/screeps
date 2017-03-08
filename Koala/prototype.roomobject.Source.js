@@ -16,8 +16,8 @@ Source.prototype.getNeededWorkParts = function()
 
 Source.prototype.getSourceType = function()
 {
-    var aLink = _.find(PCache.getEntityCache(ENTITY_TYPES.link), (aLink) => aLink.pos.roomName == this.pos.roomName && aLink.pos.inRangeTo(this.pos,2));
-    var aBox = _.find(PCache.getEntityCache(ENTITY_TYPES.container), (aBox) => aBox.pos.roomName == this.pos.roomName && aBox.pos.isNearTo(this.pos));
+    var aLink = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.link), (aLink) => aLink.pos.roomName == this.pos.roomName && aLink.pos.inRangeTo(this.pos,2));
+    var aBox = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) => aBox.pos.roomName == this.pos.roomName && aBox.pos.isNearTo(this.pos));
 
     if (!_.isUndefined(aLink))
     {

@@ -21,7 +21,7 @@ ConstructionSite.prototype.getEntityEvents = function()
         onInvalid: (pLastUpdate,pProxy) =>
         {
             Log(LOG_LEVEL.debug,'ConstructionSite onInvalid()');
-            if (!pProxy.entity.isMy) return INVALID_ACTION.delete;
+            if (!pProxy.isMy) return INVALID_ACTION.delete;
             let aType = pProxy.structureType;
 
             let aRoom = Game.rooms[pProxy.pos.roomName];

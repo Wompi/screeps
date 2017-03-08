@@ -100,6 +100,7 @@ class ProxyCache
         }
         else
         {
+
             if (myEvents.hasOwnProperty('onInvalid'))
             {
                 let res = myEvents.onInvalid(pProxy.lastUpdate,pProxy);
@@ -144,6 +145,16 @@ class ProxyCache
                 // NOTE: the overall update happens after this in updateCache();
             }
         });
+
+
+        _.each(Game.rooms, (aRoom) =>
+        {
+            _.each(aRoom.find(FIND_DROPPED_RESOURCES), (aDrop) =>
+            {
+                this.addEntity(aDrop,false);
+            });
+        });
+
 
 
         /// construction Sites can be places by the gui and need to be inserted if they changed as well flags

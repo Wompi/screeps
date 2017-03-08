@@ -47,6 +47,8 @@ _.assign(global,
     DEFAULT_WALL_HITS: 50000,
     DEFAULT_RAMPART_HITS: 50000,
 
+    COSTMATRIX_BLOCK_VALUE: 255,
+
     SAY_PUBLIC: true,
     // CREEP_ROLE:
     // {
@@ -91,8 +93,10 @@ _.assign(global,
     // hese are my screep roles
     CREEP_ROLE:
     {
+        multiTool: 'multi tool',
         scout: 'scout',
         miner: 'miner',
+        miningHauler: 'mining hauler',
         mineral: 'mineral',
         mineralHauler: 'mineral hauler',
         bayLoader: 'bay loader',

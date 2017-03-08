@@ -3,12 +3,16 @@ class ResettleOperation
     constructor()
     {
         this.mSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
-        this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room));
-        this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller));
-        this.mController.visualize();
+        this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room), (aR) => aR.name == 'W47N84');
+        this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) =>  aC.level < 3);
+        if (_.isUndefined(this.mController))
+        {
+            this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) =>  aC.pos.roomName == this.mRoom.name);
+        }
+        //this.mController.visualize();
 
-        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aSource) => aSource.pos.roomName == this.mRoom.name);
-    //    this.mSources = PCache.getFriendlyEntityCache(ENTITY_TYPES.source);
+//        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aSource) => aSource.pos.roomName == this.mRoom.name);
+        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aS) => aS.energy > 0);
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
@@ -17,7 +21,7 @@ class ResettleOperation
             {
                 return _.reduce(value, (res,aCount,aY) =>
                 {
-                    res.push(new RoomPosition(aX,aY,this.mRoom.name));
+                    res.push(new RoomPosition(aX,aY,aSource.pos.roomName));
                     return res;
                 },res);
             },res);
@@ -25,7 +29,7 @@ class ResettleOperation
 
         this.mExtensions =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extension), (aExt) => aExt.energy < aExt.energyCapacity);
         this.mConstructions = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite), (aSite) => aSite.pos.roomName == this.mRoom.name);
-        this.mResources = this.mRoom.find(FIND_DROPPED_RESOURCES);
+        this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
 
         this.mContainers = PCache.getFriendlyEntityCache(ENTITY_TYPES.container);
         this.mRoads = PCache.getFriendlyEntityCache(ENTITY_TYPES.road);
@@ -34,13 +38,15 @@ class ResettleOperation
 
         this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aProxy) => aProxy.pos.roomName == this.mRoom.name);
 
+        this.myCreeps = [];
+
         this.mTasks = [];
     }
 
 
     processOperation()
     {
-        //Log(undefined,'Lets start ....');
+        this.log(LOG_LEVEL.error,'processOperation()');
         this.spawnFirst();
         this.makeTasks();
         this.goMining();
@@ -48,9 +54,10 @@ class ResettleOperation
 
     goMining()
     {
-        _.each(Game.creeps, (aCreep) =>
+        _.each(this.myCreeps, (aCreep) =>
         {
-            if (!aCreep.spawning && aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role))
+
+            if (!aCreep.spawning)
             {
                 //Log(LOG_LEVEL.warn,'CREEP: '+aCreep.name);
                 let isEmpty = aCreep.carry[RESOURCE_ENERGY] == 0;
@@ -58,6 +65,31 @@ class ResettleOperation
                 let hasEnergy = aCreep.carry[RESOURCE_ENERGY] > 0;
                 let isCloseToMine = !_.isUndefined(_.find(this.mSources, (aSource) => aSource.energy > 0 && aSource.pos.isNearTo(aCreep)));
 
+                let aBox = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aB) =>
+                {
+                    if (isCloseToMine && aB.pos.isNearTo(aCreep) && aB.store[RESOURCE_ENERGY] > 0)
+                    {
+                        return true;
+                    }
+                    return false;
+                });
+                if (!_.isUndefined(aBox))
+                {
+                    let res = aCreep.withdraw(aBox.entity,RESOURCE_ENERGY);
+                    this.log(LOG_LEVEL.debug,'oppotunity withdraw from minign box '+aBox.pos.toString());
+                }
+
+
+                // opportunity tasks
+                if (this.mResources.length > 0)
+                {
+                    var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(aCreep));
+                    if (!_.isUndefined(aResource))
+                    {
+                        let res = aCreep.pickup(aResource.entity);
+                        //Log(undefined,'RESOURCE:'+ErrorString(res));
+                    }
+                }
 
                 let aSay = aCreep.saying;
 
@@ -73,7 +105,7 @@ class ResettleOperation
                     // {
                     //     for (let aIndex in this.mSourcePoses)
                     //     {
-                    //         let a = _.find(this.mSources, (aSource) => aSource.pos,isNearTo(this.mSourcePoses[aIndex]));
+                    //         let a = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(this.mSourcePoses[aIndex]));
                     //         if (!_.isUndefined(a))
                     //         {
                     //             aTarget = a;
@@ -88,8 +120,31 @@ class ResettleOperation
                     }
 
 
+                    if (_.isUndefined(aTarget))
+                    {
+                        let aSource = undefined;
+                        if (_.findIndex(this.myCreeps, (aC) => aC.name == aCreep.name) % 2 == 0)
+                        {
+                            aSource = _.max(this.mSources, (aSource) => aSource.pos.getRangeTo(this.mSpawn));
+                            aCreep.say('iii');
+                        }
+                        else
+                        {
+                            aSource = _.min(this.mSources, (aSource) => aSource.pos.getRangeTo(this.mSpawn));
+                            aCreep.say('ooo');
+                        }
 
-                    if (_.isUndefined(aTarget)) return;
+
+                        if (!_.isUndefined(aSource))
+                        {
+                            aCreep.travelTo(aSource);
+                        }
+                        if(!aCreep.pos.isNearTo(aSource)) return;
+                        else
+                        {
+                            aTarget = aCreep.pos;
+                        }
+                    }
 
                     let aLook = aTarget.lookFor(LOOK_CREEPS);
                     if (aLook.length > 0 && aLook[0].name != aCreep.name)
@@ -100,6 +155,7 @@ class ResettleOperation
                 }
                 else
                 {
+
                     aTask = this.mTasks.shift();
                     if (_.isUndefined(aTask))
                     {
@@ -140,25 +196,17 @@ class ResettleOperation
                 var res = aCreep.transfer(_.isUndefined(aTarget.entity)? aTarget: aTarget.entity,RESOURCE_ENERGY);
                 //Log(undefined,'TRANSFER:'+ErrorString(res));
 
-                var res = aCreep.upgradeController(_.isUndefined(aTarget.entity)? aTarget: aTarget.entity);
-                if (res == OK)
+                if (!_.isUndefined(aTask) && aTask.task != 'B')
                 {
-                    aCreep.cancelOrder('move');
+                    var res = aCreep.upgradeController(_.isUndefined(aTarget.entity)? aTarget: aTarget.entity);
+                    if (res == OK)
+                    {
+                        aCreep.cancelOrder('move');
+                        this.moveUpdaterFromRoad(aCreep);
+                    }
                 }
                 //Log(undefined,'UPGRADE: '+ErrorString(res));
 
-
-
-                // opportunity tasks
-                if (this.mResources.length > 0)
-                {
-                    var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(aCreep));
-                    if (!_.isUndefined(aResource))
-                    {
-                        let res = aCreep.pickup(aResource);
-                        //Log(undefined,'RESOURCE:'+ErrorString(res));
-                    }
-                }
                 //var hasBuildPower = isCloseToMine && (aCreep.carry[RESOURCE_ENERGY] >= (aCreep.getActiveBodyparts(WORK) * BUILD_POWER));
                 if (!isCloseToMine && (_.isUndefined(aTask) || (aTask.task != 'S' && aTask.task != 'E') ))
                 {
@@ -175,7 +223,11 @@ class ResettleOperation
                         var mySites = _.sortBy(_.filter(this.mConstructions, (aSite) => aCreep.pos.inRangeTo(aSite,3)),'progress').reverse();
                         if (mySites.length > 0)
                         {
-                            aCreep.build(mySites[0].entity);
+                            let res = aCreep.build(mySites[0].entity);
+                            if (res == OK)
+                            {
+                                aCreep.cancelOrder('move');
+                            }
                         }
                     }
                 }
@@ -238,35 +290,62 @@ class ResettleOperation
             });
         }
 
-        if (!_.isUndefined(this.mSpawn))
-        {
-            let aSpawnTask =
-            {
-                priority: 0,
-                target: this.mSpawn.entity,
-                task: 'S',
-            }
-            if (this.mSpawn.energy < this.mSpawn.energyCapacity)
-            {
-                this.mTasks.push(aSpawnTask);
-            }
-        }
+        // if (!_.isUndefined(this.mSpawn))
+        // {
+        //     let aSpawnTask =
+        //     {
+        //         priority: 0,
+        //         target: this.mSpawn.entity,
+        //         task: 'S',
+        //     }
+        //     if (this.mSpawn.energy < this.mSpawn.energyCapacity)
+        //     {
+        //         this.mTasks.push(aSpawnTask);
+        //     }
+        // }
 
         _.each(this.mExtensions, (aExtension) =>
         {
-            let aExtensionTask =
+            let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+            let aBay = undefined;
+            if (myBays.length > 0)
             {
-                priority: 0.1,
-                target: aExtension.entity,
-                task: 'E',
+                aBay = _.find(myBays,(aB) => aB.pos.inRangeTo(aExtension,2));
             }
 
-            if (aExtension.energy < aExtension.energyCapacity)
+            if (_.isUndefined(aBay))
             {
-                this.mTasks.push(aExtensionTask);
+                let aExtensionTask =
+                {
+                    priority: 0.1,
+                    target: aExtension.entity,
+                    task: 'E',
+                }
+
+                if (aExtension.energy < aExtension.energyCapacity)
+                {
+                    this.mTasks.push(aExtensionTask);
+                }
             }
         });
 
+        // _.each(this.mContainers, (aBox) =>
+        // {
+        //     if (aBox.pos.isNearTo(this.mSpawn) && _.sum(aBox.store) < (aBox.storeCapacity*0.75))
+        //     {
+        //         _.times(1, (aIndex) =>
+        //         {
+        //             let aBoxTask =
+        //             {
+        //                 priority: 0.1,
+        //                 target: aBox.entity,
+        //                 task: 'Y',
+        //             }
+        //             this.mTasks.push(aBoxTask);
+        //         });
+        //         this.log(LOG_LEVEL.debug,'BOX TASK!');
+        //     }
+        // });
 
         var aTower = _.find(this.mTowers, (aTower) => aTower.energy < aTower.energyCapacity);
         if (!_.isUndefined(aTower))
@@ -284,7 +363,7 @@ class ResettleOperation
         {
             if (_.sum(aBox.store) > aBox.storeCapacity * 0.5) return false;
 
-            let aSource = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(aBox));
+            let aSource = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.source), (aSource) => aSource.pos.isNearTo(aBox));
             if (!_.isUndefined(aSource)) return false;
 
             return true;
@@ -417,93 +496,41 @@ class ResettleOperation
 
         if (!_.isUndefined(this.mStorage) && this.mStorage.store[RESOURCE_ENERGY] < 500000)
         {
-            var aStorageTask =
+            _.times(_.max([0,this.myCreeps.length - 2]), (aIndex) =>
             {
-                priority: 1,
-                target: this.mStorage.entity,
-                task: 'F',
-            }
-            this.mTasks.push(aStorageTask);
-            var aStorageTask =
-            {
-                priority: 1,
-                target: this.mStorage.entity,
-                task: 'F',
-            }
-            this.mTasks.push(aStorageTask);
-            var aStorageTask =
-            {
-                priority: 1,
-                target: this.mStorage.entity,
-                task: 'F',
-            }
-            this.mTasks.push(aStorageTask);
-            var aStorageTask =
-            {
-                priority: 1,
-                target: this.mStorage.entity,
-                task: 'F',
-            }
-            this.mTasks.push(aStorageTask);
+                var aStorageTask =
+                {
+                    priority: 1,
+                    target: this.mStorage.entity,
+                    task: 'F',
+                }
+                this.mTasks.push(aStorageTask);
+            });
         }
         else
         {
-            var aUpgradeTask =
+            if (this.mController.ticksToDowngrade < 3300)
             {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
+                var aUpgradeTask =
+                {
+                    priority: 0,
+                    target: this.mController,
+                    task: 'U',
+                }
+                this.mTasks.push(aUpgradeTask);
             }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
+
+
+            _.times(this.myCreeps.length, (aIndex) =>
             {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
-            var aUpgradeTask =
-            {
-                priority: 1,
-                target: this.mController,
-                task: 'U',
-            }
-            this.mTasks.push(aUpgradeTask);
+                var aUpgradeTask =
+                {
+                    priority: 1,
+                    target: this.mController,
+                    task: 'U',
+                }
+                this.mTasks.push(aUpgradeTask);
+            });
         }
 
 
@@ -512,8 +539,20 @@ class ResettleOperation
 
     spawnFirst()
     {
-        var myCreeps = _.filter(Game.creeps, (aCreep) => aCreep.getActiveBodyparts(WORK) > 0 && _.isUndefined(aCreep.memory.role));
-        if (myCreeps.length > 4) return;
+        this.myCreeps = getCreepsForRole(CREEP_ROLE.multiTool);
+
+        if (this.myCreeps.length > 10) return;
+
+        var aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn)); // TODO: this will not work with multiple spawns
+
+        if (_.isUndefined(aSpawn)) return;
+        this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
+
+        var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
+        {
+            if (!_.isUndefined(Game.creeps[aCreepName])) return false;
+            return aCreepMem.role == CREEP_ROLE.multiTool;
+        });
 
 
         var aCreepBody = new CreepBody();
@@ -542,11 +581,11 @@ class ResettleOperation
         }
         else if (aEnergy >= 1300)
         {
-            aCount = 8;
+            aCount = 5; /// 8
         }
         else if (aEnergy >= 800)
         {
-            aCount = 5;
+            aCount = 4;  //5;   /// if we have a extension loader switch to 3
         }
         else if (aEnergy >= 650)
         {
@@ -573,12 +612,61 @@ class ResettleOperation
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
 
-        if (!_.isEmpty(aResult.body) && !_.isUndefined(this.mSpawn))
+        this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
+        if (aResult.aCost <=  aSpawn.room.energyAvailable)
         {
-            var res = this.mSpawn.createCreep(aResult.body);
+            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.multiTool})
+            this.log(LOG_LEVEL.info,'multiTool createCreep - '+ErrorString(res));
         }
-        Log(undefined,JS(aResult));
     }
 
+    moveUpdaterFromRoad(pCreep)
+    {
+        let aRoad = _.find(pCreep.pos.look(), (a) =>
+        {
+            return (_.get(a,['structure','structureType']) == STRUCTURE_ROAD)
+        });
+        if (_.isUndefined(aRoad)) return;
+
+
+        let myControllerPos = this.mController.upgradePositions.area;
+        //this.log(LOG_LEVEL.debug,JS(myControllerPos));
+
+        let aArea = pCreep.pos.adjacentPositions(3);
+        let myPos = [];
+        _.each(aArea, (a,x) =>
+        {
+            _.each(a, (ia,y) =>
+            {
+                if (!_.isUndefined(myControllerPos[x]) && !_.isUndefined(myControllerPos[x][y]))
+                {
+                    let aPos = new RoomPosition(x,y,pCreep.pos.roomName);
+                    let aLook = _.find(_.map(aPos.look(),'type'), (a) => a == 'structure' || a == 'creep');
+                    if (_.isUndefined(aLook))
+                    {
+                        myPos.push(aPos);
+                        //this.log(LOG_LEVEL.debug,'LOOK: '+JS(aPos));
+                    }
+                }
+            });
+        });
+        //this.log(LOG_LEVEL.debug,'hit: '+JS(myPos));
+
+        let aPos = undefined;
+        if (myPos.length > 0)
+        {
+            aPos = _.min(myPos, (a) => this.mController.pos.getRangeTo(a));
+            if (!pCreep.pos.isEqualTo(aPos))
+            {
+                let res = pCreep.travelTo({pos: aPos}, {range: 0});
+                this.log(LOG_LEVEL.info,'move from road '+pCreep.name+' '+aPos.toString()+' '+ErrorString(res));
+            }
+        }
+    }
+
+    log(pLevel,pMsg)
+    {
+        Log(pLevel,'ResettleOperation: '+pMsg);
+    }
 }
 module.exports = ResettleOperation;

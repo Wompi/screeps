@@ -156,6 +156,7 @@ var mod =
         }
     },
     getDiagonalDirection: (aDir) => aDir % 2 + aDir,
+    getCrossDirection: (aDir) => (((aDir-1) % 2 + aDir) % 8),
     isMine: (pEntity) =>
     {
         let aController = _.isUndefined(pEntity.room) ? pEntity.controller : pEntity.room.controller;

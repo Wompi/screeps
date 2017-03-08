@@ -2,8 +2,33 @@ class CreepBody
 {
     constructor()
     {
-
+        this._mEnergy = 0;
+        this._mSearch = {};
+        this._mBodyParts = {};
+        this._mOptions = {};
     }
+
+    setEnergy(pEnergy)
+    {
+        this.mEnergy = pEnergy;
+    }
+
+    setSearch(pSearchPart,pSearchPartOptions)
+    {
+        _.set(this._mSearch,pSearchPart,pSearchPartOptions);
+    }
+
+    setBodyPart(pBodyPart,pBodyPartOptions)
+    {
+        _.set(this._mSearch,pBodyPart,pBodyPartOptions);        
+    }
+
+    setOptions(pOptions)
+    {
+        this.mOptions = pOptions;
+    }
+
+
 
     /**
      * FORMULA: this is a the universal formula to calculate a creep bodyFormula

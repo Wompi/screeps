@@ -26,13 +26,38 @@ class DefenseOperation
             }
             else if (myInvaders.length > 0)
             {
-                var aInvader = _.min(myInvaders, (aCreep) =>
+                var aInvader = myInvaders[0];
+                let a = _.filter(this.mTowers, (aT) => aT.pos.roomName == aInvader.pos.roomName);
+
+                let aMap = {};
+                for (let aT of this.mTowers)
+                {
+                    for (let aI of myInvaders)
+                    {
+                        let aDmg = aT.calculateTowerEffectiveness(aT.pos.getRangeTo(aI),TOWER_POWER_ATTACK);
+                        _.set(aMap,aI.id,_.get(aMap,aI.id,0) + aDmg);
+                    }
+                }
+
+
+                Log(LOG_LEVEL.info,'TOWER DMG: '+JS(aMap));
+
+
+                aInvader = _.min(myInvaders, (aCreep) =>
                 {
                     if ( aCreep.getActiveBodyparts(ATTACK) == 0) return Infinity;
                     return aCreep.pos.getRangeTo(aTower);
                 });
-                var res = aTower.attack(aInvader);
-                Log(undefined, 'ATTACK: '+ErrorString(res));
+
+                if ( (aInvader.pos.x < 46 && aInvader.pos.x > 4 ) && (aInvader.pos.y < 46 && aInvader.pos.y > 4 ))
+                {
+                    var res = aTower.attack(aInvader);
+                    Log(undefined, 'ATTACK: '+ErrorString(res));
+                }
+                else
+                {
+                    Log(LOG_LEVEL.info,'Invader: '+aInvader.pos.toString()+' is near the edge NO SHOOTING!');
+                }
             }
         });
     }
