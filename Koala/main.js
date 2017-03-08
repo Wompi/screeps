@@ -113,7 +113,6 @@ module.exports.loop = function ()
     Pro.profile( () =>
     {
         let myOperations = [
-            () => [new DefenseOperation()],
             () => [new ResettleOperation()],
             () =>
             {
@@ -131,7 +130,7 @@ module.exports.loop = function ()
             () =>
             {
                 let myLoadingOps = [];
-                // TODO: change the flag to soemthing memory related
+                // TODO: change the flag to something memory related
                 let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
                 //Log(undefined,JS(myBays));
                 _.each(myBays, (aFlag) =>
@@ -141,6 +140,8 @@ module.exports.loop = function ()
                 return myLoadingOps;
             },
             () => [new ClaimOperation('Scarlett',['W47N83'])],     ///[','W48N84'] 'W48N84'
+            () => [new DefenseOperation()],
+
         ];
         _.each(myOperations, (aCall) =>
         {
@@ -150,24 +151,6 @@ module.exports.loop = function ()
             });
         });
     },'operations')
-
-
-    /// build
-    let aController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller));
-
-    let aBuildNext = {};
-    let aRank = aController.level + 1;
-
-    _.times(9,(aIndex) =>
-    {
-        let aBuild = _.reduce(CONTROLLER_STRUCTURES, (res,aLevel,aKey) =>
-        {
-            let aCount = aLevel[aIndex];
-            if (aCount > 0 && aCount != 2500) _.set(res,aKey,aLevel[aIndex]);
-            return res;
-        },{});
-        Log(LOG_LEVEL.debug,'LEVEL['+aIndex+']: '+JS(aBuild,true));
-    });
 
 
     PCache.printStats();
@@ -266,17 +249,17 @@ module.exports.loop = function ()
 
 
     // ------- TEST ME ----------------
-    testCreepBody();
+    //testCreepBody();
 
-    _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.tower), (aT) =>
-    {
-        if (aT.pos.roomName == 'W47N83')
-        {
-            //let aPos = new RoomPosition(44,24,'W47N83');
-            let aPos = new RoomPosition(2,22,'W47N83');
-            aT.calculateDamageTillBorder(aPos,undefined);
-        }
-    })
+    // _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.tower), (aT) =>
+    // {
+    //     if (aT.pos.roomName == 'W47N83')
+    //     {
+    //         let aPos = new RoomPosition(44,24,'W47N83');
+    //         //let aPos = new RoomPosition(2,22,'W47N83');
+    //         aT.calculateDamageTillBorder(aPos,undefined);
+    //     }
+    // })
 
     // Visualizer.visalizeRange(new RoomPosition(48,33,'W47N84'),2,false);
     // Visualizer.visalizeRange(new RoomPosition(3,33,'W47N84'),2,false);
@@ -304,6 +287,26 @@ module.exports.loop = function ()
     // _.each(Game.creeps, (aCreep) =>
     // {
     //     aCreep.getFatigueCost();
+    // });
+
+
+
+
+    /// build
+    // let aController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller));
+    //
+    // let aBuildNext = {};
+    // let aRank = aController.level + 1;
+    //
+    // _.times(9,(aIndex) =>
+    // {
+    //     let aBuild = _.reduce(CONTROLLER_STRUCTURES, (res,aLevel,aKey) =>
+    //     {
+    //         let aCount = aLevel[aIndex];
+    //         if (aCount > 0 && aCount != 2500) _.set(res,aKey,aLevel[aIndex]);
+    //         return res;
+    //     },{});
+    //     Log(LOG_LEVEL.debug,'LEVEL['+aIndex+']: '+JS(aBuild,true));
     // });
 
 };

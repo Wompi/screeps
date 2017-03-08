@@ -7,6 +7,8 @@ class DefenseOperation
 
     processOperation(pVisualize = false)
     {
+        this.log(LOG_LEVEL.error,'processOperation()');
+
         _.each(this.mTowers, (aTower) =>
         {
             if (pVisualize)
@@ -27,37 +29,63 @@ class DefenseOperation
             else if (myInvaders.length > 0)
             {
                 var aInvader = myInvaders[0];
-                let a = _.filter(this.mTowers, (aT) => aT.pos.roomName == aInvader.pos.roomName);
+                let myRoomTowers = _.filter(this.mTowers, (aT) => aT.pos.roomName == aInvader.pos.roomName);
 
                 let aMap = {};
-                for (let aT of this.mTowers)
+                for (let aT of myRoomTowers)
                 {
                     for (let aI of myInvaders)
                     {
-                        let aDmg = aT.calculateTowerEffectiveness(aT.pos.getRangeTo(aI),TOWER_POWER_ATTACK);
+                        let aHealPower = aI.getActiveBodyparts(HEAL) * HEAL_POWER;
+                        let aDmg = aT.calculateDamageTillBorder(aI.pos,aHealPower);
                         _.set(aMap,aI.id,_.get(aMap,aI.id,0) + aDmg);
                     }
                 }
 
 
-                Log(LOG_LEVEL.info,'TOWER DMG: '+JS(aMap));
-
-
-                aInvader = _.min(myInvaders, (aCreep) =>
+                let myTargets = _.map(aMap, (aDmg,aID) =>
                 {
-                    if ( aCreep.getActiveBodyparts(ATTACK) == 0) return Infinity;
-                    return aCreep.pos.getRangeTo(aTower);
-                });
+                    let aH = _.find(myInvaders, (aI) => aI.id == aID);
+                    this.log(LOG_LEVEL.debug,'aH: '+JS(aH));
+                    if (aH.hits < aDmg) return aH;
+                    return undefined;
+                })
+                myTargets = _.filter(myTargets, (aT) => !_.isUndefined(aT));
 
-                if ( (aInvader.pos.x < 46 && aInvader.pos.x > 4 ) && (aInvader.pos.y < 46 && aInvader.pos.y > 4 ))
+                if (myTargets.length > 0)
                 {
-                    var res = aTower.attack(aInvader);
-                    Log(undefined, 'ATTACK: '+ErrorString(res));
+                    this.log(LOG_LEVEL.debug,'myTargets: '+JS(myTargets));
+
+                    let aTarget = _.min(myTargets,'hits');
+
+                    this.log(LOG_LEVEL.debug,'aTarget: '+JS(aTarget));
+                    Log(LOG_LEVEL.info,'TOWER DMG: '+JS(aMap));
+
+                    if (!_.isUndefined(aTarget))
+                    {
+                        var res = aTower.attack(aTarget);
+                        Log(undefined, 'ATTACK: '+ErrorString(res));
+                    }
                 }
                 else
                 {
-                    Log(LOG_LEVEL.info,'Invader: '+aInvader.pos.toString()+' is near the edge NO SHOOTING!');
+                    this.log(LOG_LEVEL.info, 'TARGETS HAVE TO MUCH HITPOINTS! - danger?');
                 }
+                // aInvader = _.min(myInvaders, (aCreep) =>
+                // {
+                //     if ( aCreep.getActiveBodyparts(ATTACK) == 0) return Infinity;
+                //     return aCreep.pos.getRangeTo(aTower);
+                // });
+                //
+                // if ( (aInvader.pos.x < 46 && aInvader.pos.x > 4 ) && (aInvader.pos.y < 46 && aInvader.pos.y > 4 ))
+                // {
+                //     var res = aTower.attack(aInvader);
+                //     Log(undefined, 'ATTACK: '+ErrorString(res));
+                // }
+                // else
+                // {
+                //     Log(LOG_LEVEL.info,'Invader: '+aInvader.pos.toString()+' is near the edge NO SHOOTING!');
+                // }
             }
         });
     }
@@ -79,6 +107,11 @@ class DefenseOperation
             var y = _.max([0,pTower.pos.y-aRange]);
             pTower.room.visual.rect(x, y, _.min([aRange*2,49-x]), _.min([aRange*2,49-y]),aStyle);
         });
+    }
+
+    log(pLevel,pMsg)
+    {
+        Log(pLevel,'DefenseOperation: '+pMsg);
     }
 }
 module.exports = DefenseOperation;

@@ -46,41 +46,43 @@ StructureTower.prototype.calculateTowerEffectiveness = function(pRange, pTowerTa
  * This one should caclulate the damage a tower can do till the target can reach the exit
  *
  */
-StructureTower.prototype.calculateDamageTillBorder = function(pPos, pTowerTaskPower)
+StructureTower.prototype.calculateDamageTillBorder = function(pPos,pHealPower = 0)
 {
+    let aDmg = 0;
     Pro.profile( () =>
     {
         let myRoomExits = this.room.findLocalExits(true);
         Log(LOG_LEVEL.debug,'STRUCTURE TOWER: exits - '+JS(myRoomExits));
 
-        // TODO: I take the center as reference here but it should maybe the direction where the invader was coming from
-        // not sure how reasonable it is that the invader escapes to the nearest exit
-        let aPos = new RoomPosition(25,25,this.pos.roomName);
-        let aDir = getCrossDirection(aPos.getDirectionTo(pPos)); // center for reference
-        let aRoomMap = Game.map.describeExits(this.pos.roomName);
 
+        let aRange = pPos.getRangeTo(this.pos);
+        aDmg = this.calculateTowerEffectiveness(aRange,TOWER_POWER_ATTACK);
 
+        let myClosestExits = _.map(myRoomExits, (aE,aKey) =>
+        {
+            let aMin =  _.min(aE, (a) => pPos.getRangeTo(a[0],a[1]));
+            return aMin;
+        });
+        let aClosestExit = _.min(myClosestExits, (a) => pPos.getRangeTo(a[0],a[1]));
+
+        let aPath = PathFinder.search(pPos,new RoomPosition(aClosestExit[0],aClosestExit[1],this.pos.roomName));
+
+        this.room.visual.poly(aPath.path,{lineStyle: 'dashed'});
+
+        Log(LOG_LEVEL.debug,JS(aPath));
+
+        _.each(aPath.path, (aP) =>
+        {
+            let aTickDmg = this.calculateTowerEffectiveness(aP.getRangeTo(this.pos),TOWER_POWER_ATTACK);
+            aDmg = aDmg + aTickDmg - pHealPower;
+            Log(undefined,'DMG: '+aDmg+' aTickDmg: '+aTickDmg);
+        })
+
+        Log(LOG_LEVEL.debug,'CLOSEST: '+JS(aClosestExit)+' RANGE: '+aRange+' DMG: '+aDmg);
         this.room.visual.circle(pPos);
 
-        Log(LOG_LEVEL.debug,'STRUCTURE TOWER: dir - '+JS(aDir)+' this: '+this.pos.roomName);
-        Log(LOG_LEVEL.debug,'STRUCTURE TOWER: roomExits - '+JS(aRoomMap));
-
-        let myCloseExits = myRoomExits[aRoomMap[aDir]]; // this can be undefined if ther is no exit in the searched direction
-        Log(LOG_LEVEL.debug,'STRUCTURE TOWER: close exits - '+JS(myCloseExits));
-
-        let aDerp = [];
-        _.each(myCloseExits,(a) => aDerp.push(new RoomPosition(a[0],a[1],this.pos.roomName)));
-
-        let aClosest = pPos.findClosestByPath(aDerp);
-        Log(LOG_LEVEL.debug,'CLOSEST: '+JS(aClosest));
-        this.room.visual.circle(aClosest);
-
-        let aPath = pPos.findPathTo(aClosest);
-        let aLen = aPath.length;
-        //aPath.path = [];
-        Log(LOG_LEVEL.debug,'CLOSEST: len: '+aLen);
     },'tower');
-
+    return aDmg;
 }
 
 
