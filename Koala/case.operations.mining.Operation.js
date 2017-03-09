@@ -13,7 +13,7 @@ class MiningOperation
         /// we need a drop point
         /// lets drop it near the uprade
         this.aDropPos = new RoomPosition(33,39,'W47N84');
-        //this.aDropPos = new RoomPosition(20,30,'W47N83');
+//        this.aDropPos = new RoomPosition(18,11,'W48N84');
         // let a = _.find(this.mResources, (aR) => aR.energy > 2000 && aR.pos.isEqualTo(this.aDropPos));
         // if (!_.isUndefined(a))
         // {
@@ -40,7 +40,7 @@ class MiningOperation
 
         if (_.isUndefined(aBox))
         {
-            this.log(LOG_LEVEL.error,'hauler has no box near the source '+this.mSource.pos.toString());
+            this.log(LOG_LEVEL.error,'hauler '+this.mHauler.name+' has no box near the source '+this.mSource.pos.toString());
             return;
         }
 
@@ -98,7 +98,10 @@ class MiningOperation
                     aDropBox = _.min(myDropBoxes,(aB) => aB.pos.getRangeTo(this.mHauler));
                 }
 
-                if (!_.isUndefined(aDropBox))
+                // TODO: this is a bit tricky and should be changed
+                // the hauler has to go through the extension room so this will work here - change it when
+                // the hauler have to go all over the place
+                if (!_.isUndefined(aDropBox) && this.mHauler.pos.roomName == aDropBox.pos.roomName)
                 {
                     if (!this.mHauler.pos.isNearTo(aDropBox))
                     {
@@ -114,15 +117,32 @@ class MiningOperation
                 }
                 else
                 {
-                    if (!this.mHauler.pos.isEqualTo(this.aDropPos))
+                    let aStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] < 500000);
+                    if (!_.isUndefined(aStorage))
                     {
-                        let res = this.mHauler.travelTo({pos: this.aDropPos},{range: 0});
-                        this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to droppos '+ErrorString(res));
+                        if (!this.mHauler.pos.isNearTo(aStorage))
+                        {
+                            let res = this.mHauler.travelTo({pos: aStorage.pos},{range: 1});
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to storage '+aStorage.pos.toString()+' res: '+ErrorString(res));
+                        }
+                        else
+                        {
+                            let res = this.mHauler.transfer(aStorage.entity,_.findKey(this.mHauler.carry));
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' transfers to storage '+aStorage.pos.toString()+' res: '+ErrorString(res));
+                        }
                     }
                     else
                     {
-                        let res = this.mHauler.drop(_.findKey(this.mHauler.carry));
-                        this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' drop to droppos '+ErrorString(res));
+                        if (!this.mHauler.pos.isEqualTo(this.aDropPos))
+                        {
+                            let res = this.mHauler.travelTo({pos: this.aDropPos},{range: 0});
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to droppos '+ErrorString(res));
+                        }
+                        else
+                        {
+                            let res = this.mHauler.drop(_.findKey(this.mHauler.carry));
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' drop to droppos '+ErrorString(res));
+                        }
                     }
                 }
             }
@@ -151,7 +171,7 @@ class MiningOperation
             }
 
             let aSourceType = this.mSource.getSourceType();
-            if (aSourceType.type == SOURCE_TYPE.drop || (aSourceType.type == SOURCE_TYPE.box && aSourceType.target.store[RESOURCE_ENERGY] < aSourceType.target.storeCapacity))
+            if (aSourceType.type == SOURCE_TYPE.drop || (aSourceType.type == SOURCE_TYPE.link && (aSourceType.target.energy < aSourceType.target.energyCapacity) )  || (aSourceType.type == SOURCE_TYPE.box && aSourceType.target.store[RESOURCE_ENERGY] < aSourceType.target.storeCapacity))
             {
                 let res = this.mCreep.harvest(this.mSource.entity);
             }
@@ -259,9 +279,10 @@ class MiningOperation
         var aSourceID = this.mSource.id;
         this.mHauler = _.find(myCreeps, (aCreep) => aCreep.memory.target == aSourceID);
 
-        let aBox = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container),(aB) => aB.pos.isNearTo(this.mSource));
-
-        if (!_.isUndefined(this.mHauler) && !_.isUndefined(aBox)) return;
+        let aSourceType = this.mSource.getSourceType();
+        // TODO: this is a bit ugly - the miner will not be spawned when the source has no box - aka drop/link
+        // ther should be no reason to let the hauler still spawn when drop but for now it is not good
+        if (!_.isUndefined(this.mHauler) || aSourceType.type != SOURCE_TYPE.box) return;
 
         var myRoomSpawns = PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn);  // this should be adjusted to find the closest spawn to unscouted rooms
         var aSpawn = _.min(myRoomSpawns, (aProxy) => aProxy.pos.getRangeTo(this.mSource.pos));
@@ -311,7 +332,7 @@ class MiningOperation
                 if (_.isUndefined(aLook))
                 {
                     myPos.push(aPos);
-                    this.log(LOG_LEVEL.error,'LOOK: '+JS(aPos));
+                    //this.log(LOG_LEVEL.error,'LOOK: '+JS(aPos));
                 }
             });
         });
@@ -327,7 +348,7 @@ class MiningOperation
 
     log(pLevel,pMsg)
     {
-        Log(pLevel,'MiningOperation '+this.mSource.toString()+': '+pMsg);
+        Log(pLevel,'MiningOperation '+this.mSource.pos.toString()+': '+pMsg);
     }
 }
 module.exports = MiningOperation;

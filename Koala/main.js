@@ -14,9 +14,10 @@ var Profiler = require('case.admin.Profiler');
 // REQUIRE: design related classes
 _.assign(global,
 {
-    MemoryManager:  require('case.design.MemoryManager'),
-    ProxyCache:     require('case.design.ProxyCache'),
-    PathManager:    require('case.design.PathManager'),
+    MemoryManager:      require('case.design.MemoryManager'),
+    ProxyCacheMapper:   require('case.design.ProxyCacheMapper'),
+    ProxyCache:         require('case.design.ProxyCache'),
+    PathManager:        require('case.design.PathManager'),
 });
 
 
@@ -30,6 +31,7 @@ _.assign(global,
     Mem: new MemoryManager(),
     Pro: new Profiler(),
 });
+
 
 var RespawnOperation = require('case.operations.respawn.Operation');
 var aRespawnOperation = new RespawnOperation();
@@ -48,6 +50,7 @@ _.assign(global,
     ClaimOperation:     require('case.operations.claim.Operation'),
     MiningOperation:    require('case.operations.mining.Operation'),
     LoadingOperation:   require('case.operations.loading.Operation'),
+    LinkOperation:      require('case.operations.link.Operation'),
     Traveler:           require('Traveler'),
 });
 
@@ -100,6 +103,7 @@ PCache.makeCache(SNode.mReset);
 
 module.exports.loop = function ()
 {
+    //return;
     var start = Game.cpu.getUsed();
 
     Pro.profile( () =>
@@ -112,135 +116,205 @@ module.exports.loop = function ()
 
     Pro.profile( () =>
     {
-        let myOperations = [
-            () => [new ResettleOperation()],
-            () =>
-            {
-                let myMiningOps = [];
-                _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.source), (aSource) =>
+        let myOperations  = [
+                () => [new DefenseOperation()],
+                () => [new ResettleOperation()],
+                () =>
                 {
-                    // TODO: fix this for other rooms when you have the haulers for it
-                    if (aSource.isMy)//&& aSource.pos.roomName == 'W47N84')
+                    let myMiningOps = [];
+                    _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.source), (aSource) =>
                     {
-                        myMiningOps.push(new MiningOperation(aSource));
-                    }
-                });
-                return myMiningOps;
-            },
-            () =>
-            {
-                let myLoadingOps = [];
-                // TODO: change the flag to something memory related
-                let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
-                //Log(undefined,JS(myBays));
-                _.each(myBays, (aFlag) =>
+                        // TODO: fix this for other rooms when you have the haulers for it
+                        if (aSource.isMy)//&& aSource.pos.roomName == 'W47N84')
+                        {
+                            myMiningOps.push(new MiningOperation(aSource));
+                        }
+                    });
+                    return myMiningOps;
+                },
+                () =>
                 {
-                    myLoadingOps.push(new LoadingOperation(aFlag.pos));
-                });
-                return myLoadingOps;
-            },
-            () => [new ClaimOperation('Scarlett',['W47N83'])],     ///[','W48N84'] 'W48N84'
-            () => [new DefenseOperation()],
+                    let myLinks = {};
+                    _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.link), (aProxy) => _.set(myLinks,[aProxy.room.name,aProxy.id],aProxy));
 
-        ];
+                    let myLinkOps = [];
+                    _.each(myLinks, (aProxyMap, aRoomName) =>
+                    {
+                        myLinkOps.push(new LinkOperation(PCache.getFriendlyEntityCacheByID(aRoomName),_.map(aProxyMap)));
+                    });
+                    return myLinkOps;
+                },
+                () =>
+                {
+                    let myLoadingOps = [];
+                    // TODO: change the flag to something memory related
+                    let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+                    //Log(undefined,JS(myBays));
+                    _.each(myBays, (aFlag) =>
+                    {
+                        myLoadingOps.push(new LoadingOperation(aFlag.pos));
+                    });
+                    return myLoadingOps;
+                },
+                () => [new ClaimOperation('Scarlett',['W48N84'])],     ///[','W48N84'] 'W48N84'
+                () => [new ClaimOperation('Herbert',['W47N83'])],     ///[','W48N84'] 'W48N84'
+
+            ];
+
         _.each(myOperations, (aCall) =>
         {
-            _.each(aCall(), (aOps) =>
+            //Log(undefined,'------------------------- START ---------------------------');
+            var myCall = undefined;
+            Pro.profile( () =>
             {
-                aOps.processOperation()
+                myCall = aCall();
+            },'herp');
+
+            _.each(myCall, (aOps) =>
+            {
+                Pro.profile( () =>
+                {
+                    aOps.processOperation()
+                },'derp');
             });
+            //Log(undefined,'------------------------- END ---------------------------');
+
         });
     },'operations')
 
 
     PCache.printStats();
     var end = Game.cpu.getUsed();
+    Pro.printRegister();
     Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket+' '+SNode.printStats(false));
 
 
-    //var ROOM_NAME = 'W48N84'; // left
-
-    var ROOM_NAME = 'W47N84';  // home
-    //let aPos = new RoomPosition(8,32,ROOM_NAME)
-    let aPos = new RoomPosition(21,33,ROOM_NAME)
-
-    var aCreep = Game.creeps['harp'];
-    if (_.isUndefined(aCreep) && Game.time > (17888362 + 19955))
-    {
-        _.find(Game.spawns).createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK],'harp');
-    }
-    else if (!_.isUndefined(aCreep) && !aCreep.spawning)
-    {
-        let myHostiles = _.filter(aCreep.room.find(FIND_HOSTILE_CREEPS), (aC) =>
-        {
-            return aC.getActiveBodyparts(ATTACK) > 0;
-        });
-        if (myHostiles.length > 0)
-        {
-            let aHostile = _.min(myHostiles,(aC) => aC.pos.getRangeTo(aCreep));
-            aCreep.moveTo(aHostile,{range: 1, resusePath: 0, ignoreCreeps: true});
-            aCreep.attack(aHostile);
-        }
-        else
-        {
-            if (aCreep.pos.roomName != ROOM_NAME)
-            {
-                let aPos = new RoomPosition(25,25,ROOM_NAME)
-                aCreep.moveTo(aPos,{reusePath: false});
-            }
-            else
-            {
-                if (ROOM_NAME == 'W47N84')
-                {
-                    aCreep.moveTo(aPos,{range: 0, reusePath: 0});
-                }
-                else
-                {
-                    let aSpawn = _.find(aCreep.room.find(FIND_STRUCTURES),(aS) => aS.structureType == STRUCTURE_SPAWN && !aS.my);
-                    if (!_.isUndefined(aSpawn))
-                    {
-                        let res = aCreep.moveTo(aSpawn,{range: 1, resusePath: 0});
-                        Log(LOG_LEVEL.debug,'MOVING RES : '+ErrorString(res));
-
-                        res = aCreep.attack(aSpawn);
-                        Log(LOG_LEVEL.debug,'ATTACK RES : '+ErrorString(res));
-                    }
-                }
-            }
-        }
-    }
-
-    var aCreep = Game.creeps['derp'];
-    if (_.isUndefined(aCreep) && Game.time > (17888362 + 19955))
-    {
-       _.find(Game.spawns).createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK],'derp');
-    }
-    else if (!_.isUndefined(aCreep) && !aCreep.spawning)
-    {
-        if (aCreep.pos.roomName != ROOM_NAME)
-        {
-            aCreep.moveTo(aPos,{reusePath: 0});
-        }
-        else
-        {
-            if (ROOM_NAME == 'W47N84')
-            {
-                aCreep.moveTo(aPos,{range: 0, reusePath: 0});
-            }
-            else
-            {
-                let aSpawn = _.find(aCreep.room.find(FIND_STRUCTURES),(aS) => aS.structureType == STRUCTURE_SPAWN && !aS.my);
-                if (!_.isUndefined(aSpawn))
-                {
-                    let res = aCreep.moveTo(aSpawn,{range: 1, resusePath: 0});
-                    Log(LOG_LEVEL.debug,'MOVING RES : '+ErrorString(res));
-
-                    res = aCreep.dismantle(aSpawn);
-                    Log(LOG_LEVEL.debug,'DISMANTLE RES : '+ErrorString(res));
-                }
-            }
-        }
-    }
+    // var ROOM_NAME = 'W48N84'; // left
+    //
+    // //var ROOM_NAME = 'W47N84';  // home
+    // //let aPos = new RoomPosition(8,32,ROOM_NAME)
+    // let aPos = new RoomPosition(21,33,ROOM_NAME)
+    //
+    // var aCreep = Game.creeps['harp'];
+    // if (_.isUndefined(aCreep))
+    // {
+    //     var aSpawn = Game.spawns['Koala'];
+    //     var aCreepBody = new CreepBody();
+    //
+    //     var aSearch =
+    //     {
+    //         name: ATTACK,
+    //     };
+    //     var aBodyOptions =
+    //     {
+    //         hasRoads: false,
+    //         moveBoost: '',
+    //     };
+    //     var aEnergy = aSpawn.room.energyCapacityAvailable;
+    //     var aBody =
+    //     {
+    //         [HEAL]:
+    //         {
+    //             count: 1,
+    //         }
+    //     };
+    //     var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
+    //
+    //     let res = aSpawn.createCreep(aResult.body,'harp')
+    //     Log(LOG_LEVEL.info,'ATTACK:  createCreep - '+ErrorString(res));
+    // }
+    // else if (!_.isUndefined(aCreep) && !aCreep.spawning)
+    // {
+    //     let myHostiles = _.filter(aCreep.room.find(FIND_HOSTILE_CREEPS), (aC) =>
+    //     {
+    //         return aC.getActiveBodyparts(ATTACK) > 0;
+    //     });
+    //     if (myHostiles.length > 0)
+    //     {
+    //         let aHostile = _.min(myHostiles,(aC) => aC.pos.getRangeTo(aCreep));
+    //         aCreep.moveTo(aHostile,{range: 1, resusePath: 0, ignoreCreeps: true});
+    //         let res = aCreep.attack(aHostile);
+    //         Log(LOG_LEVEL.debug,'ATTACK HOSTILE RES : '+ErrorString(res));
+    //
+    //         if (res != OK)
+    //         {
+    //             if (aCreep.hits < aCreep.hitsMax)
+    //             {
+    //                 res = aCreep.heal(aCreep);
+    //                 Log(LOG_LEVEL.info,aCreep.name+' TIME TO HEAL WHILE HOSTILES ARE AROUND!');
+    //             }
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if (aCreep.pos.roomName != ROOM_NAME)
+    //         {
+    //             let aPos = new RoomPosition(25,25,ROOM_NAME)
+    //             aCreep.moveTo(aPos,{reusePath: false});
+    //         }
+    //         else
+    //         {
+    //             if (ROOM_NAME == 'W47N84')
+    //             {
+    //                 aCreep.moveTo(aPos,{range: 0, reusePath: 0});
+    //             }
+    //             else
+    //             {
+    //                 let aSpawn = _.find(aCreep.room.find(FIND_STRUCTURES),(aS) => aS.structureType == STRUCTURE_SPAWN && !aS.my);
+    //                 if (!_.isUndefined(aSpawn))
+    //                 {
+    //                     let res = aCreep.moveTo(aSpawn,{range: 1, resusePath: 0});
+    //                     Log(LOG_LEVEL.debug,'MOVING RES : '+ErrorString(res));
+    //
+    //                     res = aCreep.attack(aSpawn);
+    //                     Log(LOG_LEVEL.debug,'ATTACK SPAWN RES : '+ErrorString(res));
+    //
+    //                     if (res != OK)
+    //                     {
+    //                         if (aCreep.hits < aCreep.hitsMax)
+    //                         {
+    //                             res = aCreep.heal(aCreep);
+    //                             Log(LOG_LEVEL.info,aCreep.name+' TIME TO HEAL WHILE SPAWN IS AROUND!');
+    //                         }
+    //                     }
+    //                 }
+    //
+    //             }
+    //         }
+    //     }
+    // }
+    // //
+    // var aCreep = Game.creeps['derp'];
+    // if (_.isUndefined(aCreep) && Game.time > (17888362 + 19955))
+    // {
+    //    _.find(Game.spawns).createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK],'derp');
+    // }
+    // else if (!_.isUndefined(aCreep) && !aCreep.spawning)
+    // {
+    //     if (aCreep.pos.roomName != ROOM_NAME)
+    //     {
+    //         aCreep.moveTo(aPos,{reusePath: 0});
+    //     }
+    //     else
+    //     {
+    //         if (ROOM_NAME == 'W47N84')
+    //         {
+    //             aCreep.moveTo(aPos,{range: 0, reusePath: 0});
+    //         }
+    //         else
+    //         {
+    //             let aSpawn = _.find(aCreep.room.find(FIND_STRUCTURES),(aS) => aS.structureType == STRUCTURE_SPAWN && !aS.my);
+    //             if (!_.isUndefined(aSpawn))
+    //             {
+    //                 let res = aCreep.moveTo(aSpawn,{range: 1, resusePath: 0});
+    //                 Log(LOG_LEVEL.debug,'MOVING RES : '+ErrorString(res));
+    //
+    //                 res = aCreep.dismantle(aSpawn);
+    //                 Log(LOG_LEVEL.debug,'DISMANTLE RES : '+ErrorString(res));
+    //             }
+    //         }
+    //     }
+    // }
 
 
 
@@ -249,7 +323,7 @@ module.exports.loop = function ()
 
 
     // ------- TEST ME ----------------
-    //testCreepBody();
+//    testCreepBody();
 
     // _.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.tower), (aT) =>
     // {
@@ -300,13 +374,13 @@ module.exports.loop = function ()
     //
     // _.times(9,(aIndex) =>
     // {
-    //     let aBuild = _.reduce(CONTROLLER_STRUCTURES, (res,aLevel,aKey) =>
-    //     {
-    //         let aCount = aLevel[aIndex];
-    //         if (aCount > 0 && aCount != 2500) _.set(res,aKey,aLevel[aIndex]);
-    //         return res;
-    //     },{});
-    //     Log(LOG_LEVEL.debug,'LEVEL['+aIndex+']: '+JS(aBuild,true));
+        // let myLVL = 5;
+        // let aBuild = _.reduce(CONTROLLER_STRUCTURES, (res,aLevel,aKey) =>
+        // {
+        //     if (aLevel[myLVL] > 0) _.set(res,aKey,aLevel[myLVL]);
+        //     return res;
+        // },{});
+        // Log(LOG_LEVEL.debug,'LEVEL['+myLVL+']: '+JS(aBuild,true));
     // });
 
 };
@@ -317,12 +391,12 @@ module.exports.loop = function ()
 
 testCreepBody = function()
 {
-    var aRoom = _.find(Game.rooms);
+    var aRoom = _.find(Game.rooms,(aR) => aR.name == 'W47N84');
     var aEnergy = RCL_ENERGY(aRoom.controller.level);
     var aCreepBody = new CreepBody();
     var aSearch =
     {
-        name: WORK,
+        name: ATTACK,
         //max:  10,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
     };
     var aBodyOptions =
@@ -332,10 +406,10 @@ testCreepBody = function()
     };
     var aBody =
     {
-        // [HEAL]:
-        // {
-        //     count: () => 1,///getWorkCount(),
-        // },
+        [HEAL]:
+        {
+            count: () => 1,///getWorkCount(),
+        },
     };
 
     var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

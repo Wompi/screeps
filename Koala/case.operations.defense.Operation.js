@@ -20,13 +20,14 @@ class DefenseOperation
             var myInvaders = aTower.room.find(FIND_HOSTILE_CREEPS);
 
 
-            let aCreep = _.find(Game.creeps, (aCreep) => aCreep.hits < aCreep.hitsMax)
-            if (!_.isUndefined(aCreep))
-            {
-                let res = aTower.heal(aCreep);
-                Log(LOG_LEVEL.info,'heal '+ErrorString(res));
-            }
-            else if (myInvaders.length > 0)
+            // let aCreep = _.find(Game.creeps, (aCreep) => aCreep.hits < aCreep.hitsMax)
+            // if (!_.isUndefined(aCreep))
+            // {
+            //     let res = aTower.heal(aCreep);
+            //     Log(LOG_LEVEL.info,'heal '+ErrorString(res));
+            // }
+            //else
+            if (myInvaders.length > 0)
             {
                 var aInvader = myInvaders[0];
                 let myRoomTowers = _.filter(this.mTowers, (aT) => aT.pos.roomName == aInvader.pos.roomName);
@@ -42,12 +43,13 @@ class DefenseOperation
                     }
                 }
 
-
+                // ,"owner":{"username":"Invader"}
                 let myTargets = _.map(aMap, (aDmg,aID) =>
                 {
                     let aH = _.find(myInvaders, (aI) => aI.id == aID);
                     this.log(LOG_LEVEL.debug,'aH: '+JS(aH));
                     if (aH.hits < aDmg) return aH;
+                    if (!_.isUndefined(aH.owner) && aH.owner.username == 'Invader') return aH;
                     return undefined;
                 })
                 myTargets = _.filter(myTargets, (aT) => !_.isUndefined(aT));

@@ -16,7 +16,10 @@ class ProxyCache
         this.mFirstTick = Game.time;
         this.mLastTick = Game.time;
         this.mCacheAge = 0;
-        this.mCacheUpdateDelta = 0
+        this.mCacheUpdateDelta = 0;
+        this.mDerpCacheMapper = {};
+
+//        this._mCacheMapper = new ProxyCacheMapper(this._mCache);
     }
 
     makeCache(pReset)
@@ -44,9 +47,17 @@ class ProxyCache
         this._registerEntity(pRoom);
     }
 
+
+
+
+
     _initEntities()
     {
-        _.each(this._mCache, (aProxy,aID) => aProxy.entity.init(aProxy));
+        _.each(this._mCache, (aProxy,aID) =>
+        {
+            aProxy.entity.init(aProxy)
+            //this._mCacheMapper.map(aProxy);
+        });
     }
 
     _registerEntity(pEntity)
@@ -141,7 +152,11 @@ class ProxyCache
                 {
                     myNewProxies.push(aProxy);
                 }
-                _.each(myNewProxies, (aProxy) => aProxy.entity.init(aProxy));
+                _.each(myNewProxies, (aProxy) =>
+                {
+                    aProxy.entity.init(aProxy);
+                    //this._mCacheMapper.map(aProxy);
+                });
                 // NOTE: the overall update happens after this in updateCache();
             }
         });
@@ -175,6 +190,10 @@ class ProxyCache
         this.mCacheAge = Game.time - this.mFirstTick;
         this.mCacheUpdateDelta = Game.time - this.mLastTick;
 
+        // TODO: remember this - this is ugly and dangerous
+        this.mDerpCacheMapper = {};
+
+
         this._updateChangingEntities();
 
         // NOTE: make sure this comes after the _updateChangingEntities() so the new entities get a fresh update
@@ -191,6 +210,7 @@ class ProxyCache
         {
             Log(LOG_LEVEL.debug,'PROXY CACHE: addEntity - new entity '+pEntity.entityType+' found!');
             aProxy.entity.init(aProxy);
+            //this._mCacheMapper.map(aProxy);
             if (withUpdate) this._updateEntityProxy(aProxy);
         }
     }
@@ -200,8 +220,31 @@ class ProxyCache
     // -  for now we iterate over all to make it simple
     getFriendlyEntityCache(pType)
     {
-        return _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && aProxy.isMy));
+        let result = undefined;
+        Pro.register( () =>
+        {
+            result = _.get(this.mDerpCacheMapper,pType);
+            if (_.isUndefined(result))
+            {
+                result = _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && aProxy.isMy));
+                _.set(this.mDerpCacheMapper,pType,result);
+            }
+            else
+            {
+                //Log(LOG_LEVEL.error,'CACHE '+pType+' reused!');
+            }
+        },'getFriendlyEntityCache()');
+        return result;
     }
+
+    getFriendlyEntityCacheByID(pID)
+    {
+        let aProxy = this._mCache[pID];
+        if (!aProxy.isMy) return undefined;
+        return aProxy;
+    }
+
+
 
     getAllEntityCache(pType)
     {
@@ -226,6 +269,8 @@ class ProxyCache
         Log(LOG_LEVEL.info,'CACHE['+SNode.mNode+']: hostile - '+_.size(myHostile));
         Log(LOG_LEVEL.debug,JS(_.countBy(_.map(myHostile),'entityType')));
 
+        //this._mCacheMapper.printMapperStats();
+        //Log(LOG_LEVEL.debug,JS(this._mCache));
     }
 }
 module.exports = ProxyCache;

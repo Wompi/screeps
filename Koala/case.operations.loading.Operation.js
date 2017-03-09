@@ -12,7 +12,7 @@ class LoadingOperation
 
         this.mStorage = _.find(this.mBay[ENTITY_TYPES.storage]);
         this.mLink = _.find(this.mBay[ENTITY_TYPES.link]);
-        this.mTerminal = _.find(this.mBay[ENTITY_TYPES.terminal]);
+        this.mTerminal = undefined ; //_.find(this.mBay[ENTITY_TYPES.terminal]);
         this.mContainer = _.find(this.mBay[ENTITY_TYPES.container]);
         this.mExtensions = _.map(this.mBay[ENTITY_TYPES.extension]);
         this.mSpawn = _.find(this.mBay[ENTITY_TYPES.spawn]);
@@ -21,10 +21,11 @@ class LoadingOperation
 
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
         this.mConstructionSites = _.map(this.mBay[ENTITY_TYPES.constructionSite]);
-        this.mWalls = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructedWall), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_WALL_HITS);
-        this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_RAMPART_HITS);
+        this.mWalls = [];
+        this.mRamparts =[];
+    //    this.mWalls = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructedWall), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_WALL_HITS);
+    //    this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_RAMPART_HITS);
     }
-
 
     processOperation()
     {
@@ -49,7 +50,8 @@ class LoadingOperation
 
         if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
 
-        let aRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room),(aR) => aR.name == this.mCenter.roomName);
+        let aRoom = PCache.getFriendlyEntityCacheByID(Game.rooms[this.mCenter.roomName].id);
+        //let aRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room),(aR) => aR.name == this.mCenter.roomName);
 
         let aCreepLook = aRoom.lookForAtArea(LOOK_CREEPS,
             this.mCenter.y - 2,
@@ -57,7 +59,7 @@ class LoadingOperation
             this.mCenter.y + 2,
             this.mCenter.x + 2,
             true);
-        this.log(LOG_LEVEL.debug,JS(aCreepLook))
+        //this.log(LOG_LEVEL.debug,JS(aCreepLook))
 
         _.each(aCreepLook, (a) =>
         {
@@ -295,7 +297,9 @@ class LoadingOperation
             this.mTasks = this.mTasks.concat(myTasks);
 
 
-            if (this.mConstructionSites.length > 0)
+
+
+            if (this.mConstructionSites.length > 0 && this.mCreep.getActiveBodyparts(WORK) > 0)
             {
                 let aSite = _.max(this.mConstructionSites,(aS) => aS.progress);
                 let aDir = this.mCenter.getDirectionTo(aSite);
@@ -472,7 +476,7 @@ class LoadingOperation
         {
             let aType = a.structure.structureType;
             let aID = a.structure.id;
-            let aProxy = _.find(PCache.getFriendlyEntityCache(aType), (aProxy) => aProxy.id == aID);
+            let aProxy = PCache.getFriendlyEntityCacheByID(aID);
             if (!_.isUndefined(aProxy))
             {
                 _.set(this.mBay,[aType,aID],aProxy);
@@ -494,7 +498,7 @@ class LoadingOperation
         {
             let aType = ENTITY_TYPES.constructionSite;
             let aID = a.constructionSite.id;
-            let aProxy =_.find(PCache.getFriendlyEntityCache(aType), (aProxy) => aProxy.id == aID);
+            let aProxy = PCache.getFriendlyEntityCacheByID(aID);
             if (!_.isUndefined(aProxy))
             {
                 _.set(this.mBay,[aType,aID],aProxy);

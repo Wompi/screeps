@@ -5,8 +5,8 @@ class ClaimOperation
         this.CLAIM_ROOMS = pRooms;
         this.mCreepName = pName
         this.mCreep = undefined;
+        this.mCreeps = undefined;
         this.isClaim = false;
-
 
         this.mClaimPosition = this.searchClaimRoom();
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
@@ -18,12 +18,14 @@ class ClaimOperation
         let aID = _.isUndefined(this.mClaimPosition) ? undefined : this.mClaimPosition.toString()
         this.log(LOG_LEVEL.error,'processOperation() '+aID);
         this.spawnClaimer();
-        this.doClaiming();
+
+        //_.each(this.mCreeps, (aCreep) =>
+        this.doClaiming(this.mCreep);
     }
 
-    doClaiming()
+    doClaiming(pCreep)
     {
-        if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
+        if (_.isUndefined(pCreep) || pCreep.spawning) return;
 
         if (_.isUndefined(this.mClaimPosition))
         {
@@ -31,24 +33,24 @@ class ClaimOperation
             return;
         }
 
-        if (this.mCreep.getActiveBodyparts(CARRY) > 0 && this.mCreep.carry[RESOURCE_ENERGY] == 0 )
+        if (pCreep.getActiveBodyparts(CARRY) > 0 && pCreep.carry[RESOURCE_ENERGY] == 0 )
         {
             if (this.mResources.length > 0)
             {
-                var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mCreep));
+                var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(pCreep));
                 if (!_.isUndefined(aResource))
                 {
-                    let res = this.mCreep.pickup(aResource.entity);
+                    let res = pCreep.pickup(aResource.entity);
                     //Log(undefined,'RESOURCE:'+ErrorString(res));
                 }
             }
 
 
-            let myStorages = PCache.getFriendlyEntityCache(ENTITY_TYPES.storage);
+            let myStorages = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] > 0);
             let aStorage = undefined;
             if (myStorages.length > 0)
             {
-                aStorage = _.min(myStorages, (aS) => aS.pos.getRangeTo(this.mCreep.pos));
+                aStorage = _.min(myStorages, (aS) => aS.pos.getRangeTo(pCreep.pos));
             }
 
 
@@ -56,21 +58,17 @@ class ClaimOperation
             let aBox = undefined;
             if (myBoxes.length > 0)
             {
-                aBox = _.min(myBoxes, (aS) => aS.pos.getRangeTo(this.mCreep.pos));
+                aBox = _.min(myBoxes, (aS) => aS.pos.getRangeTo(pCreep.pos));
             }
 
-
-            this.log(LOG_LEVEL.debug,'CLAIM: '+JS(aBox))
             let aTarget = undefined
-            if (!_.isUndefined(aStorage))
+            if (!_.isUndefined(aBox))
             {
-                this.log(LOG_LEVEL.debug,'DERP 1: '+JS(aStorage))
-                aTarget = aStorage.entity;
-            }
-            else if (!_.isUndefined(aBox))
-            {
-                this.log(LOG_LEVEL.debug,'DERP 2: '+JS(aBox))
                 aTarget = aBox.entity;
+            }
+            else if (!_.isUndefined(aStorage))
+            {
+                aTarget = aStorage.entity;
             }
             else
             {
@@ -80,13 +78,13 @@ class ClaimOperation
 
             if (!_.isUndefined(aTarget))
             {
-                if (!this.mCreep.pos.isNearTo(aTarget))
+                if (!pCreep.pos.isNearTo(aTarget))
                 {
-                    let res = this.mCreep.travelTo({pos: aTarget.pos});
-                    this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                    let res = pCreep.travelTo({pos: aTarget.pos});
+                    this.log(LOG_LEVEL.debug,pCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
                 }
                 let res = this.mCreep.withdraw(aTarget,RESOURCE_ENERGY);
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' withdraw storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                this.log(LOG_LEVEL.debug,pCreep.name+' withdraw storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
 
                 if (res != OK)
                 {
@@ -95,16 +93,16 @@ class ClaimOperation
             }
         }
 
-        Log(LOG_LEVEL.debug,'CLAIMPOS: '+JS(this.mClaimPosition));
+        //Log(LOG_LEVEL.debug,'CLAIMPOS: '+JS(this.mClaimPosition));
 
-        if (!this.mCreep.pos.isNearTo(this.mClaimPosition))
+        if (!pCreep.pos.isNearTo(this.mClaimPosition))
         {
             let res = this.mCreep.moveTo(this.mClaimPosition);
-            this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to '+this.mClaimPosition.toString()+' res: '+ErrorString(res));
+            this.log(LOG_LEVEL.debug,pCreep.name+' moves to '+this.mClaimPosition.toString()+' res: '+ErrorString(res));
         }
         else
         {
-            let aController = _.find(PCache.getAllEntityCache(ENTITY_TYPES.controller), (aC) => aC.pos.isNearTo(this.mCreep.pos));
+            let aController = _.find(PCache.getAllEntityCache(ENTITY_TYPES.controller), (aC) => aC.pos.isNearTo(pCreep.pos));
 
             if (_.isUndefined(aController))
             {
@@ -114,12 +112,12 @@ class ClaimOperation
             if (!aController.isMy)
             {
                 let res = this.mCreep.claimController(aController.entity);
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' claims '+aController.pos.toString()+' res: '+ErrorString(res));
+                this.log(LOG_LEVEL.debug,pCreep.name+' claims '+aController.pos.toString()+' res: '+ErrorString(res));
             }
             else
             {
                 let res = this.mCreep.upgradeController(aController.entity);
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' upgrades '+aController.pos.toString()+' res: '+ErrorString(res));
+                this.log(LOG_LEVEL.debug,pCreep.name+' upgrades '+aController.pos.toString()+' res: '+ErrorString(res));
             }
         }
     }
@@ -127,15 +125,17 @@ class ClaimOperation
     spawnClaimer()
     {
         var myCreeps = getCreepsForRole(CREEP_ROLE.claimer);
-        this.mCreep = _.find(myCreeps); // TODO: this will not work with multiple claimer
-        if (!_.isUndefined(this.mCreep)) return;
+//        this.mCreeps = myCreeps;
+        this.mCreep = _.find(myCreeps, (aC) => aC.name == this.mCreepName); // TODO: this will not work with multiple claimer
+        if (!_.isUndefined(this.mCreep))
+        {
+            return;
+        }
         if (_.isUndefined(this.mClaimPosition)) return; // INFO: none of our controllers is under 1000 downgrade time
 
         var aSpawn = _.min(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
         {
-            if (!aProxy.my) return Infinity;
-            if (aProxy.pos.roomName != this.mClaimPosition.roomName) return Infinity;
-            return aProxy.pos.getRangeTo(this.mCenter);
+            return aProxy.pos.getRangeTo(this.mClaimPosition);
         });
 
         if (_.isUndefined(aSpawn)) return;
@@ -174,7 +174,7 @@ class ClaimOperation
             }
         }
 
-        if (this.isClaim)
+       if (this.isClaim)
         {
             var aSearch =
             {
@@ -199,6 +199,7 @@ class ClaimOperation
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
         if (aResult.aCost <=  aSpawn.room.energyAvailable)
         {
+            if (!_.isUndefined(aName)) aName = this.mCreepName;
             let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.claimer})
             this.log(LOG_LEVEL.info,'claimer createCreep - '+ErrorString(res));
         }
@@ -241,6 +242,7 @@ class ClaimOperation
 
                 if (!aController.isMy)
                 {
+                    this.isClaim = true;
                     return aController.pos;
                 }
                 else
@@ -252,9 +254,9 @@ class ClaimOperation
 
 
         let aController = _.min(myClaimedControllers, (aC) => aC.ticksToDowngrade);
-        let derp = ((aController.ticksToDowngrade < 1000) ? aController.pos : undefined);
-        this.log(LOG_LEVEL.debug,'DERP: '+derp+' '+JS(aController));
-        return aController;
+        //let derp = ((aController.ticksToDowngrade < 1000) ? aController.pos : undefined);
+        //this.log(LOG_LEVEL.debug,'DERP: '+derp+' '+JS(aController));
+        return aController.pos;
     }
 
 

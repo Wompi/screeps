@@ -4,6 +4,7 @@ class ResettleOperation
     {
         this.mSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
         this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room), (aR) => aR.name == 'W47N84');
+        //this.mController =  undefined ;
         this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) =>  aC.level < 3);
         if (_.isUndefined(this.mController))
         {
@@ -12,7 +13,7 @@ class ResettleOperation
         //this.mController.visualize();
 
 //        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aSource) => aSource.pos.roomName == this.mRoom.name);
-        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aS) => aS.energy > 0);
+        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source),(aS) => aS.energy > 0 && aS.getSourceType().type != SOURCE_TYPE.link);
 
         this.mSourcePoses = _.reduce(this.mSources, (res, aSource) =>
         {
@@ -28,7 +29,7 @@ class ResettleOperation
         },[]);
 
         this.mExtensions =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extension), (aExt) => aExt.energy < aExt.energyCapacity);
-        this.mConstructions = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite), (aSite) => aSite.pos.roomName == this.mRoom.name);
+        this.mConstructions = PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite);
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
 
         this.mContainers = PCache.getFriendlyEntityCache(ENTITY_TYPES.container);
@@ -231,6 +232,7 @@ class ResettleOperation
                         }
                     }
                 }
+
 
 
                 var aRoad = _.find(this.mRoads, (aRoad) =>
@@ -449,16 +451,19 @@ class ResettleOperation
             this.mTasks.push(aBuildTask);
         }
 
-        var myRoadConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_ROAD);
-        if (!_.isUndefined(myRoadConstruction))
+        var myRoadConstructions = _.filter(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_ROAD);
+        if (myRoadConstructions.length > 0)
         {
-            var aRoadBuildTask =
+            _.times(_.max([1,myRoadConstructions.length]), (aIndex) =>
             {
-                priority: 0.16,
-                target: myRoadConstruction,
-                task: 'B',
-            }
-            this.mTasks.push(aRoadBuildTask);
+                var aRoadBuildTask =
+                {
+                    priority: 0.16,
+                    target: myRoadConstructions[aIndex],
+                    task: 'B',
+                }
+                this.mTasks.push(aRoadBuildTask);
+            });
         }
 
         var myContainerConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_CONTAINER);
@@ -509,7 +514,7 @@ class ResettleOperation
         }
         else
         {
-            if (this.mController.ticksToDowngrade < 3300)
+            if (this.mController.ticksToDowngrade < 1000)
             {
                 var aUpgradeTask =
                 {
@@ -541,7 +546,7 @@ class ResettleOperation
     {
         this.myCreeps = getCreepsForRole(CREEP_ROLE.multiTool);
 
-        if (this.myCreeps.length > 10) return;
+        if (this.myCreeps.length > 8) return;
 
         var aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn)); // TODO: this will not work with multiple spawns
 
@@ -559,7 +564,7 @@ class ResettleOperation
         var aSearch =
         {
             name: CARRY,
-            //max: 5,
+            max: 6,
         };
         var aBodyOptions =
         {
