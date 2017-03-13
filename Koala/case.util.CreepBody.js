@@ -20,7 +20,7 @@ class CreepBody
 
     setBodyPart(pBodyPart,pBodyPartOptions)
     {
-        _.set(this._mSearch,pBodyPart,pBodyPartOptions);        
+        _.set(this._mSearch,pBodyPart,pBodyPartOptions);
     }
 
     setOptions(pOptions)
@@ -99,7 +99,7 @@ class CreepBody
         var aResult = [];
         if (aSearchCount > 0)
         {
-            aResult = new Array(aSearchCount).fill(pSearch.name);
+            aResult = _.isUndefined(pSearch.name) ? [] : new Array(aSearchCount).fill(pSearch.name);
             _.each(aBody, (aPart,aPartName) =>
             {
                 aResult = aResult.concat(new Array(aPart.count).fill(aPartName));
@@ -114,7 +114,6 @@ class CreepBody
 
             aResult = aResult.concat(new Array(aMoveCount).fill(MOVE));
         }
-
 
         var aDerp =
         {

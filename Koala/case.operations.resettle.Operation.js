@@ -1,14 +1,15 @@
 class ResettleOperation
 {
-    constructor()
+    constructor(pStopSpawning = false)
     {
+        this.mStopSpawning = pStopSpawning;
         this.mSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
         this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room), (aR) => aR.name == 'W47N84');
         //this.mController =  undefined ;
-        this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) =>  aC.level < 3);
+        this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) => _.isUndefined(aC.reservation) && aC.level < 3);
         if (_.isUndefined(this.mController))
         {
-            this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) =>  aC.pos.roomName == this.mRoom.name);
+            this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aC) => _.isUndefined(aC.reservation) && aC.pos.roomName == this.mRoom.name);
         }
         //this.mController.visualize();
 
@@ -177,7 +178,8 @@ class ResettleOperation
 
 
                 var res = aCreep.travelTo( _.isUndefined(aTarget.pos) ? {pos: aTarget} : aTarget,  _.isUndefined(aTarget.pos) ? {range: 0} : {} );
-                //Log(undefined,'MOVE: '+ErrorString(res));
+                let aMsg = _.isUndefined(aTarget.pos) ? aTarget.toString() : aTarget.pos.toString();
+                Log(undefined,'MOVE: '+aCreep.name+' '+aMsg+' '+ErrorString(res));
 
 
                 var aBla = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(aTarget));
@@ -469,13 +471,20 @@ class ResettleOperation
         var myContainerConstruction = _.find(Game.constructionSites, (aBuild) => aBuild.structureType == STRUCTURE_CONTAINER);
         if (!_.isUndefined(myContainerConstruction))
         {
-            let aBuildTask =
+            _.each(Game.creeps, (aCreep) =>
             {
-                priority: 0.16,
-                target: myContainerConstruction,
-                task: 'B',
-            }
-            this.mTasks.push(aBuildTask);
+                if (aCreep.memory.role == CREEP_ROLE.multiTool)
+                {
+                    let aBuildTask =
+                    {
+                        priority: 0.16,
+                        target: myContainerConstruction,
+                        task: 'B',
+                    }
+                    this.mTasks.push(aBuildTask);
+                }
+            });
+
         }
 
         var aContainer = _.find(this.mContainers, (aBox) => aBox.room.controller.my && aBox.hits < (aBox.hitsMax * 0.75));
@@ -546,6 +555,7 @@ class ResettleOperation
     {
         this.myCreeps = getCreepsForRole(CREEP_ROLE.multiTool);
 
+        if (this.mStopSpawning) return;
         if (this.myCreeps.length > 8) return;
 
         var aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn)); // TODO: this will not work with multiple spawns

@@ -22,7 +22,7 @@ RoomObject.prototype.getEntityEvents = function()
 
 RoomObject.prototype.init = function(pProxy)
 {
-    Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
+    //Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
     pProxy.isMy = isMine(this);
 }
 

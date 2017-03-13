@@ -13,6 +13,11 @@ Source.prototype.getNeededWorkParts = function()
     return _.ceil(this.energyCapacity / HARVEST_POWER / ENERGY_REGEN_TIME);
 }
 
+Source.prototype.hasBox = function()
+{
+    return !_.isUndefined(_.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) => aBox.pos.roomName == this.pos.roomName && aBox.pos.isNearTo(this.pos)));
+}
+
 
 Source.prototype.getSourceType = function()
 {
@@ -21,18 +26,18 @@ Source.prototype.getSourceType = function()
 
     if (!_.isUndefined(aLink))
     {
-        Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': hasLink');
+        ///Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': hasLink');
         return {type:SOURCE_TYPE.link, target: aLink};
     }
     else if (!_.isUndefined(aBox))
     {
-        Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': hasBox');
+        //Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': hasBox');
         return {type:SOURCE_TYPE.box, target: aBox};
     }
 
-    Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': drop source');
+    //Log(LOG_LEVEL.debug,'SOURCE '+this.pos.toString()+': drop source');
     // TODO: the drop target should be one of the possibleMiningPositions
-    return {type:SOURCE_TYPE.drop, target: undefined};
+    return {type:SOURCE_TYPE.drop, target: this};
 }
 
 

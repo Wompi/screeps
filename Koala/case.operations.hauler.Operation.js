@@ -1,19 +1,22 @@
 class HaulerOperation
 {
-    constructor(pRoom)
+    constructor(pStorage)
     {
-        this.mRoom = pRoom;
-        this.mExtensionCreep = undefined;
+        this.mCreep = undefined;
         this.mTasks = [];
+        this.mStorage = pStorage;
+        this.mRoom = pStorage.room;
 
-        this.mContainers = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) => aBox.pos.roomName == this.mRoom.name);
-        this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aStorage) => aStorage.pos.roomName == this.mRoom.name);
-        this.mSources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.source), (aSource) => aSource.pos.roomName == this.mRoom.name);
-        this.mMineral = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.mineral), (aSource) => aSource.pos.roomName == this.mRoom.name);
-
-        this.mTowers = PCache.getFriendlyEntityCache(ENTITY_TYPES.tower);
-
-        this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
+        this.mContainers = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) =>
+        {
+            if (aBox.pos.roomName != this.mRoom.name) return false;
+            let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+            if (myBays.length == 0) return false;
+            let aBay =  _.find(myBays, (aB) => aB.pos.isEqualTo(aBox.pos));
+            return !_.isUndefined(aBay);
+        });
+        this.mExtractor = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => aE.pos.roomName == this.mRoom.name);
+        this.mResources =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.resource), (aR) => aR.pos.roomName == this.mRoom.name);
     }
 
 
@@ -27,73 +30,54 @@ class HaulerOperation
 
     doHauling()
     {
-        if (_.isUndefined(this.mExtensionCreep) || this.mExtensionCreep.spawning) return;
+        if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
 
         let aTask = this.mTasks.shift();
         if (_.isUndefined(aTask))
         {
             // TODO: move to idle pos ...
             this.log(LOG_LEVEL.info,' hauler is idle!');
-            let aPos = new RoomPosition(31,26,this.mExtensionCreep.pos.roomName);
-            if (!this.mExtensionCreep.pos.isEqualTo(aPos))
+            let aPos = new RoomPosition(26,37,this.mCreep.pos.roomName);
+            if (!this.mCreep.pos.isEqualTo(aPos))
             {
-                let res = this.mExtensionCreep.travelTo({pos: aPos},{range: 0});
+                let res = this.mCreep.travelTo({pos: aPos},{range: 0});
             }
             return;
         }
 
 
-
-
-        if (this.mExtensionCreep.carry[RESOURCE_ENERGY] == 0)
+        if (this.mCreep.carry[RESOURCE_ENERGY] == 0)
         {
-            if (!this.mExtensionCreep.pos.isNearTo(aTask.target))
+            if (!this.mCreep.pos.isNearTo(aTask.target))
             {
-                let res = this.mExtensionCreep.travelTo(aTask.target);
+                let res = this.mCreep.travelTo(aTask.target);
             }
         }
         else
         {
-            if (!this.mExtensionCreep.pos.isNearTo(aTask.destination))
+            if (!this.mCreep.pos.isNearTo(aTask.destination))
             {
-                let res = this.mExtensionCreep.travelTo(aTask.destination);
+                let res = this.mCreep.travelTo(aTask.destination);
             }
         }
 
         if (this.mResources.length > 0)
         {
-            var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mExtensionCreep));
+            var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mCreep));
             if (!_.isUndefined(aResource))
             {
-                let res = this.mExtensionCreep.pickup(aResource.entity);
+                let res = this.mCreep.pickup(aResource.entity);
             }
         }
 
-        let res =  this.mExtensionCreep.withdraw(aTask.target,aTask.resource);
+        let res =  this.mCreep.withdraw(aTask.target,aTask.resource);
         this.log(LOG_LEVEL.debug,' withdraw - '+ErrorString(res));
-        res =  this.mExtensionCreep.transfer(aTask.destination,aTask.resource);
+        res =  this.mCreep.transfer(aTask.destination,aTask.resource);
         this.log(LOG_LEVEL.debug,' transfer - '+ErrorString(res));
     }
 
     makeTasks()
     {
-        if (this.mTowers.length > 0)
-        {
-            let aTower = _.find(this.mTowers,(aT) => aT.pos.roomName == this.mExtensionCreep.pos.roomName && aT.energy < aT.energyCapacity);
-            if (!_.isUndefined(aTower))
-            {
-                this.mTasks.push(
-                {
-                    priority: 0,
-                    target: undefined,
-                    destination: aTower.entity,
-                    task: 'T',  // link cleaning
-                    resource: RESOURCE_ENERGY,
-                });
-            }
-        }
-
-
         if (!_.isUndefined(this.mStorage) && this.mContainers.length > 0)
         {
             if (this.mStorage.store[RESOURCE_ENERGY] > 0)
@@ -101,28 +85,20 @@ class HaulerOperation
 
                 var myContainers =  _.filter(this.mContainers, (aBox) =>
                 {
-                    if (_.sum(aBox.store) > aBox.storeCapacity * 0.5) return false;
-
-                    let aSource = _.find(this.mSources, (aSource) => aSource.pos.isNearTo(aBox));
-                    if (!_.isUndefined(aSource)) return false;
-                    let aMineral = _.find(this.mMineral, (aMin) => aMin.pos.isNearTo(aBox));
-                    if (!_.isUndefined(aMineral)) return false;
-
-
-
+                    if (_.sum(aBox.store) > aBox.storeCapacity * 0.75) return false;
                     return true;
                 });
                 var aContainer = undefined;
                 if (myContainers.length > 0)
                 {
-                    aContainer = _.min(myContainers, (aBox) => aBox.pos.getRangeTo(this.mExtensionCreep));
+                    aContainer = _.min(myContainers, (aBox) => aBox.pos.getRangeTo(this.mCreep));
                 }
 
                 if (!_.isUndefined(aContainer))
                 {
                     this.mTasks.push(
                     {
-                        priority: 0.1,
+                        priority: 0,
                         target: this.mStorage.entity,
                         destination: aContainer.entity,
                         task: 'L',  // link cleaning
@@ -139,12 +115,11 @@ class HaulerOperation
     {
         var myCreeps = getCreepsForRole(CREEP_ROLE.extensionHauler);
         var aRoomID = this.mRoom.id;
-        this.mExtensionCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aRoomID);
-        if (!_.isUndefined(this.mExtensionCreep)) return;
+        this.mCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aRoomID);
+        if (!_.isUndefined(this.mCreep)) return;
 
-        var aSpawn = _.find(PCache.getEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
+        var aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
         {
-            if (!aProxy.my) return Infinity;
             if (aProxy.pos.roomName != this.mRoom.name) return Infinity;
             return aProxy.spawning == null;
         });
@@ -170,7 +145,7 @@ class HaulerOperation
         var aSearch =
         {
             name: CARRY,
-            max: 8,
+            max: 20,
         };
         var aBodyOptions =
         {

@@ -45,12 +45,14 @@ class ClaimOperation
                 }
             }
 
+            // TODO: this is very buggy - the claimer should not grab form boxes not near the claim position
+            // right now it can be the claimer moves in the opposite direction to get the nearest box - very bad
 
             let myStorages = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] > 0);
             let aStorage = undefined;
             if (myStorages.length > 0)
             {
-                aStorage = _.min(myStorages, (aS) => aS.pos.getRangeTo(pCreep.pos));
+                aStorage = _.min(myStorages, (aS) => PMan.getCleanPath(aS.pos,pCreep.pos).path.length);
             }
 
 
@@ -58,7 +60,7 @@ class ClaimOperation
             let aBox = undefined;
             if (myBoxes.length > 0)
             {
-                aBox = _.min(myBoxes, (aS) => aS.pos.getRangeTo(pCreep.pos));
+                aBox = _.min(myBoxes, (aS) => PMan.getCleanPath(aS.pos,pCreep.pos).path.length);
             }
 
             let aTarget = undefined
@@ -81,10 +83,10 @@ class ClaimOperation
                 if (!pCreep.pos.isNearTo(aTarget))
                 {
                     let res = pCreep.travelTo({pos: aTarget.pos});
-                    this.log(LOG_LEVEL.debug,pCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                    //this.log(LOG_LEVEL.debug,pCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
                 }
                 let res = this.mCreep.withdraw(aTarget,RESOURCE_ENERGY);
-                this.log(LOG_LEVEL.debug,pCreep.name+' withdraw storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                //this.log(LOG_LEVEL.debug,pCreep.name+' withdraw storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
 
                 if (res != OK)
                 {
@@ -97,8 +99,8 @@ class ClaimOperation
 
         if (!pCreep.pos.isNearTo(this.mClaimPosition))
         {
-            let res = this.mCreep.moveTo(this.mClaimPosition);
-            this.log(LOG_LEVEL.debug,pCreep.name+' moves to '+this.mClaimPosition.toString()+' res: '+ErrorString(res));
+            let res = this.mCreep.travelTo({pos: this.mClaimPosition});
+            //this.log(LOG_LEVEL.debug,pCreep.name+' moves to '+this.mClaimPosition.toString()+' res: '+ErrorString(res));
         }
         else
         {
@@ -109,15 +111,24 @@ class ClaimOperation
                 //aController = PCache.derpRegisterEntity(this.mCreep.room.controller); // TODO: this is just a fallback for not registered controllers - fix this
             }
 
+        //    this.log(LOG_LEVEL.info,'CONTROLLER: '+aController.pos.toString()+JS(aController));
             if (!aController.isMy)
             {
                 let res = this.mCreep.claimController(aController.entity);
-                this.log(LOG_LEVEL.debug,pCreep.name+' claims '+aController.pos.toString()+' res: '+ErrorString(res));
+                if (res == ERR_FULL)
+                {
+                    let res = this.mCreep.reserveController(aController.entity);
+                    //this.log(LOG_LEVEL.debug,pCreep.name+' reserve '+aController.pos.toString()+' res: '+ErrorString(res));
+                }
+                else
+                {
+                    //this.log(LOG_LEVEL.debug,pCreep.name+' claims '+aController.pos.toString()+' res: '+ErrorString(res));
+                }
             }
             else
             {
                 let res = this.mCreep.upgradeController(aController.entity);
-                this.log(LOG_LEVEL.debug,pCreep.name+' upgrades '+aController.pos.toString()+' res: '+ErrorString(res));
+                //this.log(LOG_LEVEL.debug,pCreep.name+' upgrades '+aController.pos.toString()+' res: '+ErrorString(res));
             }
         }
     }
@@ -147,6 +158,19 @@ class ClaimOperation
             if (!_.isUndefined(Game.creeps[aCreepName])) return false;
             return aCreepMem.role == CREEP_ROLE.claimer;
         });
+
+
+        // TODO: here we need a check for the current owned controller - need 2 claim for reservation
+        // let myControllerCount = PCache.getFriendlyEntityCache(ENTITY_TYPES.controller).length;
+        //
+        //
+        // let aController = _.find(PCache.getHostileEntityCache(ENTITY_TYPES.controller), (aC) =>
+        // {
+        //     return (aC.pos.roomName == this.mClaimPosition.roomName
+        //                 && _.isUndefined(aC.reservation)
+        //                         && aC.reservation.username == USER_NAME)
+        // });
+
 
         var aCreepBody = new CreepBody();
 
@@ -218,11 +242,11 @@ class ClaimOperation
 
             //Log(LOG_LEVEL.debug,'NAME: '+JS(aRoom));
 
-            if (_.isUndefined(aRoom))
+            if (_.isUndefined(aRoom) || !aRoom.isValid)
             {
                 this.isClaim = true;
 
-                let aRoom = Game.rooms[aName];
+                // let aRoom = Game.rooms[aName];
                 // if (!_.isUndefined(aRoom))
                 // {
                 //     PCache.derpRegisterEntity(aRoom);
@@ -237,10 +261,12 @@ class ClaimOperation
 
                 if (_.isUndefined(aController))
                 {
+                    // TODO: search the memory for a controller that might be reserved but is not visible anymore
+
                     //aController = PCache.derpRegisterEntity(aRoom.controller); // TODO: this is just a fallback for not registered controllers - fix this
                 }
 
-                if (!aController.isMy)
+                if (!aController.isMy || (!_.isUndefined(aController.reservation) && aController.reservation.username == USER_NAME))
                 {
                     this.isClaim = true;
                     return aController.pos;

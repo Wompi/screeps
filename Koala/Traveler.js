@@ -126,11 +126,12 @@ class Traveler {
         };
         return PathFinder.search(origin.pos, { pos: destination.pos, range: options.range }, {
             maxOps: options.maxOps,
-            plainCost: options.ignoreRoads ? 1 : 2,
+            plainCost:  _.isUndefined(options.plainCost) ? (options.ignoreRoads ? 1 : 2) : options.plainCost,
             roomCallback: callback,
             swampCost: options.ignoreRoads ? 5 : 10,
         });
     }
+
     travelTo(creep, destination, options = {}) {
         // register hostile rooms entered
         if (creep.room.controller) {
@@ -260,7 +261,7 @@ class Traveler {
                 matrix.set(structure.pos.x, structure.pos.y, 0xff);
             }
         }
-        for (let site of room.find(FIND_CONSTRUCTION_SITES)) {
+        for (let site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
             if (site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_ROAD) {
                 continue;
             }

@@ -135,6 +135,15 @@ Creep.prototype.getRepairTarget = function()
 	);
 }
 
+Creep.prototype.init = function(pProxy)
+{
+    //Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
+    pProxy.isMy = this.my;
+	pProxy.bodySize = _.size(this.body);
+	pProxy.spawnTime = this.bodySize * CREEP_SPAWN_TIME;
+}
+
+
 
 Creep.prototype.hasRole = function(pRole)
 {
@@ -161,14 +170,30 @@ extend = function()
 {
     Object.defineProperties(Creep.prototype,
     {
-        'isMy':
-        {
-            configurable: true,
-            get: function()
-            {
-                return this.my;              // a creep has ownership
-            },
-        }
+		'bodySize':
+		{
+			configurable: true,
+			get: function()
+			{
+				return _.size(this.body);
+			},
+		},
+		'spawnTime':
+		{
+			configurable: true,
+			get: function()
+			{
+				return this.bodySize * CREEP_SPAWN_TIME;
+			},
+		},
+		'cost':
+		{
+			configurable: true,
+			get: function()
+			{
+				return _.reduce(this.body, (result,aType) => { return result += BODYPART_COST[aType.type]; },0);
+			},
+		}
     });
 };
 extend();

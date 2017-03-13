@@ -67,6 +67,14 @@ _.assign(global,
         playerRoom: 'PlayerRoom',
     },
 
+    ROAD_TYPE:
+    {
+        end: 'endRoad',
+        cross: 'crossRoad',
+        normal: 'normalRoad',
+        single: 'singleRoad',
+    },
+
     INVALID_ACTION:
     {
         delete: 'delete',
@@ -106,6 +114,7 @@ _.assign(global,
         builderHauler: 'builder hauler',
         upgrader: 'upgrader',
         claimer: 'claimer',
+        reserver: 'reserver',
     },
 
     USER_NAME: 'Casegard',
@@ -144,6 +153,8 @@ _.assign(global,
     SWAMP: 'swamp',
 
     COLOR: {
+        white: '#FFFFFF',
+        black: '#000000',
         red: '#FF0000',
         green: '#00FF00',
         blue: '#0000FF',

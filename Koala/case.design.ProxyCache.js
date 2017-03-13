@@ -47,10 +47,6 @@ class ProxyCache
         this._registerEntity(pRoom);
     }
 
-
-
-
-
     _initEntities()
     {
         _.each(this._mCache, (aProxy,aID) =>
@@ -86,7 +82,11 @@ class ProxyCache
                 let res = target[name];
                 if (_.isUndefined(res))
                 {
-                    res = target['entity'][name];
+                    if (!_.isUndefined(target['entity']))
+                    {
+                        res = target['entity'][name];
+                    }
+                    else return undefined;
                 }
                 return res;
             },
@@ -108,6 +108,10 @@ class ProxyCache
             pProxy.lastUpdate = Game.time;
             pProxy.entity = aEntity;
             pProxy.isValid = true;
+            if (myEvents.hasOwnProperty('onUpdate'))
+            {
+                pProxy.entity.getEntityEvents().onUpdate(pProxy);
+            }
         }
         else
         {
@@ -119,6 +123,10 @@ class ProxyCache
                 if (res == INVALID_ACTION.delete)
                 {
                     this._removeEntityProxy(pProxy);
+                }
+                else if (res == INVALID_ACTION.save)
+                {
+                    // do something....
                 }
             }
             pProxy.isValid = false;
@@ -168,6 +176,11 @@ class ProxyCache
             {
                 this.addEntity(aDrop,false);
             });
+            _.each(aRoom.find(FIND_HOSTILE_CREEPS), (aCreep) =>
+            {
+                this.addEntity(aCreep,false);
+            });
+
         });
 
 
@@ -183,6 +196,19 @@ class ProxyCache
         })
     }
 
+    _updateSavedEntities()
+    {
+        _.each(Memory.reservations, (aR,aID) =>
+        {
+            if (_.isUndefined(this._mCache[aID]))
+            {
+                let derp = aR;
+                Log(LOG_LEVEL.debug,'MEMORY UPDATE: '+JS(derp));
+            }
+        });
+    }
+
+
     // -------------------------------- PUBLIC FUNCTIONS ----------------------------------------
 
     updateCache()
@@ -193,7 +219,7 @@ class ProxyCache
         // TODO: remember this - this is ugly and dangerous
         this.mDerpCacheMapper = {};
 
-
+        this._updateSavedEntities();
         this._updateChangingEntities();
 
         // NOTE: make sure this comes after the _updateChangingEntities() so the new entities get a fresh update
@@ -253,8 +279,21 @@ class ProxyCache
 
     getHostileEntityCache(pType)
     {
-        return _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && !aProxy.isMy));
-    }
+        let result = undefined;
+        Pro.register( () =>
+        {
+            result = _.get(this.mDerpCacheMapper,pType);
+            if (_.isUndefined(result))
+            {
+                result = _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && !aProxy.isMy));
+                _.set(this.mDerpCacheMapper,pType,result);
+            }
+            else
+            {
+                //Log(LOG_LEVEL.error,'CACHE '+pType+' reused!');
+            }
+        },'getHostileEntityCache()');
+        return result;    }
 
 
     printStats()
@@ -267,10 +306,18 @@ class ProxyCache
 
         let myHostile = _.filter(this._mCache, (aProxy) => !aProxy.isMy);
         Log(LOG_LEVEL.info,'CACHE['+SNode.mNode+']: hostile - '+_.size(myHostile));
-        Log(LOG_LEVEL.debug,JS(_.countBy(_.map(myHostile),'entityType')));
+
+        let aDerp = _.countBy(_.map(myHostile),'entityType');
+        if (!_.isEmpty(aDerp))
+        {
+            Log(LOG_LEVEL.debug,JS(aDerp));
+        }
 
         //this._mCacheMapper.printMapperStats();
         //Log(LOG_LEVEL.debug,JS(this._mCache));
+        let aH = '';
+        _.each(this.getHostileEntityCache(ENTITY_TYPES.creep), (aC) => aH = aH+' '+aC.owner.username+' '+aC.pos.toString()+' ,');
+        if (!_.isEmpty(aH) ) Log(LOG_LEVEL.error,'ENEMYS: '+aH);
     }
 }
 module.exports = ProxyCache;

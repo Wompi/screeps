@@ -31,6 +31,7 @@ ConstructionSite.prototype.getEntityEvents = function()
                 return INVALID_ACTION.none;
             }
 
+
             let myLook = aRoom.lookForAt(LOOK_STRUCTURES, pProxy.pos.x, pProxy.pos.y);
 
             Log(LOG_LEVEL.debug,'ConstructionSite: getEntityEvents().onInvalid() - '+JS(myLook));
@@ -53,5 +54,6 @@ ConstructionSite.prototype.getEntityEvents = function()
 ConstructionSite.prototype.init = function(pProxy)
 {
     Log(LOG_LEVEL.debug,'ConstructionSite: default init - '+this.entityType);
+    pProxy.structureType = this.structureType;
     pProxy.isMy = this.my;
 }

@@ -63,6 +63,79 @@ class Market
         Log(LOG_LEVEL.debug,aTable);
     }
 
+
+    printSellMarketReport()
+    {
+        var ROOM_NAME = 'W47N84';
+
+        var aReport = [];
+        var aHeader = ['ID','TYPE','ROOM','RANGE','PRICE','AMOUNT','COST','CREDITS TO PAY','DERP'];
+        for (var aID in Memory.sellMarket)
+        {
+            var aRoom = Memory.sellMarket[aID].roomName;
+            var aAmount = Memory.sellMarket[aID].amount;
+            var aPrice = Memory.sellMarket[aID].price;
+            var aType = Memory.sellMarket[aID].resourceType;
+            var aCost = Game.market.calcTransactionCost(aAmount,ROOM_NAME,aRoom);
+            var aRange = Game.map.getRoomLinearDistance(ROOM_NAME,aRoom,true);
+            var aMargin = (aAmount * aPrice);
+
+            var derp = aMargin / (aAmount + aCost);
+
+            aReport[aReport.length] = [aID,aType,aRoom,aRange,aPrice,aAmount,aCost,aMargin.toFixed(2),derp.toFixed(3)];
+
+
+
+            //logERROR('ID: '+aID+'\tTYPE: '+aType+'\tROOM: '+aRoom+'\tRANGE: '+aRange+'\tPRICE: '+aPrice+'\tAMOUNT: '+aAmount+'\tCOST: '+aCost+'\tCREDITS: '+aMargin.toFixed(2)+'\tDERP: '+derp.toFixed(2));
+        }
+
+        //Log(LOG_LEVEL.debug,JS(aReport));
+
+        aReport = _.sortBy(aReport, (aSet) => aSet[8]);
+
+        var aTable = this.table(aHeader,aReport);
+        Log(LOG_LEVEL.debug,aTable);
+    }
+
+
+
+
+
+    fetchSell(pResourceType)
+    {
+        var myOrders = Game.market.getAllOrders(
+        {
+            type: ORDER_SELL,
+            resourceType: pResourceType,
+        });
+        delete Memory.sellMarket;
+
+        if (myOrders.length == 0)
+        {
+            Log(LOG_LEVEL.error,'No market orders in range!');
+            return;
+        }
+        else
+        {
+            Log(LOG_LEVEL.debug,'ORDERS: length - '+myOrders.length);
+        }
+
+        if (_.isUndefined(Memory.sellMarket))
+        {
+            Memory.sellMarket = {};
+        }
+
+        for (var aOrder of myOrders)
+        {
+            Memory.sellMarket[aOrder.id] = aOrder;
+        }
+
+        Log(LOG_LEVEL.debug,'Ready .. check Memory.market');
+
+        this.printSellMarketReport();
+    }
+
+
     fetch(pIndex)
     {
         var myResourceTypes =

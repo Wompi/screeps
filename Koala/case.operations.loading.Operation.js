@@ -36,16 +36,6 @@ class LoadingOperation
         this.log(LOG_LEVEL.debug,JS(aCount)+' walls: '+this.mWalls.length);
 
 
-
-        // derp test
-        // let a = [1,2,3,4,5,6,7,8];
-        // _.each(a, (b) =>
-        // {
-        //     let c = ((b+1) % 2 + b) % 8;
-        //     this.log(undefined,b+' '+c);
-        // });
-
-
         this.spawnLoader();
 
         if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
@@ -146,6 +136,7 @@ class LoadingOperation
         if (_.sum(this.mCreep.carry) == 0)
         {
             let res = this.mCreep.withdraw(aTask.target,aTask.resource);
+
             this.log(LOG_LEVEL.debug,' withdraw - '+ErrorString(res));
         }
         else
@@ -236,7 +227,7 @@ class LoadingOperation
             aTarget = this.mContainer;
         }
 
-        if (!_.isUndefined(aTarget))
+        if (!_.isUndefined(aTarget) && aTarget.store[RESOURCE_ENERGY] > 0)
         {
             if (!_.isUndefined(this.mSpawn))
             {
@@ -438,14 +429,14 @@ class LoadingOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyCapacityAvailable;
+        var aEnergy = aSpawn.room.energyAvailable;
         var hasSites = !_.isUndefined(this.mBay[ENTITY_TYPES.constructionSite]);
         var hasWalls = this.mWalls.length > 0;
         var aBody =
         {
             [WORK]:
             {
-                count: (hasSites || hasWalls)  ? 4 : 0,
+                count: ((hasSites || hasWalls) && _.gte(aEnergy,300)) ? 2 : 0,
             }
         };
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

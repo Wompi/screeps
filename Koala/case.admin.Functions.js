@@ -163,7 +163,8 @@ var mod =
         let result = false;
         if (!_.isUndefined(aController))
         {
-            result = aController.my // if it has a controller return the ownership
+            // if it has a controller return the ownership
+            result = aController.my || (!_.isUndefined(aController.reservation) && aController.reservation.username == USER_NAME);
         }
         return result;
     },

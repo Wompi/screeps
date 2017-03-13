@@ -9,10 +9,14 @@ class MiningOperation
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
         this.mTowers = PCache.getFriendlyEntityCache(ENTITY_TYPES.tower);
 
+        //this.mStorage =  _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] < 500000);
+        this.mStorage =  _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => _.sum(aS.store) < aS.storeCapacity);
+
+
         // TODO: super iffy - change this ASAP
         /// we need a drop point
         /// lets drop it near the uprade
-        this.aDropPos = new RoomPosition(33,39,'W47N84');
+        this.aDropPos = new RoomPosition(41,34,'W47N84');
 //        this.aDropPos = new RoomPosition(18,11,'W48N84');
         // let a = _.find(this.mResources, (aR) => aR.energy > 2000 && aR.pos.isEqualTo(this.aDropPos));
         // if (!_.isUndefined(a))
@@ -25,11 +29,19 @@ class MiningOperation
     processOperation()
     {
         Log(LOG_LEVEL.error,'MiningOperation '+this.mSource.pos.toString()+': processOperation() type: '+this.mSource.getSourceType().type);
-        this.spawnMiner();
         this.spawnHauler();
+        this.spawnMiner();
         this.makeTasks();
-        this.doMining();
-        this.doHauling();
+
+        Pro.register( () =>
+        {
+            this.doMining();
+        },'MiningOperation doMining');
+
+        Pro.register( () =>
+        {
+            this.doHauling();
+        },'MiningOperation doHauling');
     }
 
     doHauling()
@@ -46,10 +58,10 @@ class MiningOperation
 
         if (this.mResources.length > 0 && this.aDropPos.getRangeTo(this.mHauler) > 2)
         {
-            var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mCreep));
+            var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mHauler));
             if (!_.isUndefined(aResource))
             {
-                let res = this.mCreep.pickup(aResource.entity);
+                let res = this.mHauler.pickup(aResource.entity);
                 //Log(undefined,'RESOURCE:'+ErrorString(res));
             }
         }
@@ -64,7 +76,7 @@ class MiningOperation
 
             if (!this.mHauler.pos.isNearTo(aBox))
             {
-                let res = this.mHauler.travelTo(aBox);
+                let res = this.mHauler.travelTo(aBox, {plainCost: 5});
                 this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to box '+ErrorString(res));
             }
 
@@ -73,23 +85,28 @@ class MiningOperation
         }
         else
         {
-            let aTower = _.find(this.mTowers,(aT) => aT.pos.roomName == this.mHauler.pos.roomName && aT.energy < aT.energyCapacity);
+            let aTower = _.find(this.mTowers,(aT) =>
+            {
+                let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+                let aBay = _.find(myBays, (aB) => aB.pos.isNearTo(aT.pos));
+                if (!_.isUndefined(aBay)) return false;
+                return aT.pos.roomName == this.mHauler.pos.roomName && aT.energy < aT.energyCapacity
+            });
             if (!_.isUndefined(aTower))
             {
                 if (!this.mHauler.pos.isNearTo(aTower))
                 {
-                    let res = this.mHauler.travelTo(aTower.entity);
+                    let res = this.mHauler.travelTo(aTower.entity,{plainCost: 5});
                 }
                 let res = this.mHauler.transfer(aTower.entity,RESOURCE_ENERGY);
                 this.log(LOG_LEVEL.debug,'hauler '+this.mHauler.name+' transfer tower '+aTower.pos.toString());
             }
             else
             {
-                let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
-
                 let myDropBoxes = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aB) =>
                 {
-                    let aBay = _.find(myBays,(aS) => aS.pos.isEqualTo(aB) && _.sum(aB.store) < aB.storeCapacity*0.75);
+                    let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
+                    let aBay = _.find(myBays,(aS) => aS.pos.isEqualTo(aB) && _.sum(aB.store) < aB.storeCapacity*0.30);
                     return !_.isUndefined(aBay);
                 });
                 let aDropBox = undefined;
@@ -105,7 +122,7 @@ class MiningOperation
                 {
                     if (!this.mHauler.pos.isNearTo(aDropBox))
                     {
-                        let res = this.mHauler.travelTo({pos: aDropBox.pos},{range: 1});
+                        let res = this.mHauler.travelTo({pos: aDropBox.pos},{range: 1, plainCost: 5});
                         this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to dropbox '+ErrorString(res));
                     }
                     else
@@ -117,25 +134,24 @@ class MiningOperation
                 }
                 else
                 {
-                    let aStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] < 500000);
-                    if (!_.isUndefined(aStorage))
+                    if (!_.isUndefined(this.mStorage))
                     {
-                        if (!this.mHauler.pos.isNearTo(aStorage))
+                        if (!this.mHauler.pos.isNearTo(this.mStorage))
                         {
-                            let res = this.mHauler.travelTo({pos: aStorage.pos},{range: 1});
-                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to storage '+aStorage.pos.toString()+' res: '+ErrorString(res));
+                            let res = this.mHauler.travelTo({pos: this.mStorage.pos},{range: 1, plainCost: 5});
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to storage '+this.mStorage.pos.toString()+' res: '+ErrorString(res));
                         }
                         else
                         {
-                            let res = this.mHauler.transfer(aStorage.entity,_.findKey(this.mHauler.carry));
-                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' transfers to storage '+aStorage.pos.toString()+' res: '+ErrorString(res));
+                            let res = this.mHauler.transfer(this.mStorage .entity,_.findKey(this.mHauler.carry));
+                            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' transfers to storage '+this.mStorage.pos.toString()+' res: '+ErrorString(res));
                         }
                     }
                     else
                     {
                         if (!this.mHauler.pos.isEqualTo(this.aDropPos))
                         {
-                            let res = this.mHauler.travelTo({pos: this.aDropPos},{range: 0});
+                            let res = this.mHauler.travelTo({pos: this.aDropPos},{range: 0, plainCost: 5});
                             this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to droppos '+ErrorString(res));
                         }
                         else
@@ -156,7 +172,15 @@ class MiningOperation
 
         if (!this.mCreep.pos.isNearTo(this.mSource))
         {
-            this.mCreep.travelTo(this.mSource);
+            let aType = this.mSource.getSourceType();
+            if (aType.type == SOURCE_TYPE.box)
+            {
+                this.mCreep.travelTo(aType.target, {range: 0});
+            }
+            else
+            {
+                this.mCreep.travelTo(this.mSource);
+            }
         }
         else
         {
@@ -178,14 +202,46 @@ class MiningOperation
 
             if (!_.isUndefined(aSourceType.target))
             {
-                if (aSourceType.type == SOURCE_TYPE.link)
+                if (aSourceType.type == SOURCE_TYPE.link && this.mCreep.getActiveBodyparts(CARRY) > 0)
                 {
                     if (!this.mCreep.pos.isNearTo(aSourceType.target))
                     {
-                        let res = this.mCreep.travelTo(aSourceType.target);
+                        let res = this.mCreep.travelTo(aSourceType.target,
+                            {
+                                plainCost: 0, //2,
+                                swampCost: 0, ///5,
+                                maxOps: 20000,
+                                roomCallback: function(roomName)
+                                {
+                                    let room = Game.rooms[roomName];
+                                    // In this example `room` will always exist, but since PathFinder
+                                    // supports searches which span multiple rooms you should be careful!
+                                    if (!room) return;
+                                    let costs = new PathFinder.CostMatrix;
+
+                                    room.find(FIND_STRUCTURES).forEach(function(structure)
+                                    {
+                                        if (structure.structureType === STRUCTURE_ROAD)
+                                        {
+                                            // TODO: the miner creep had some trouble to reach the source when he was near the source and -
+                                            // it toggled between positions because the road lead him to do this - so I try to set the roads to a higher value
+                                            // and the creep will hopefully use the spot near the source that has no road
+                                            costs.set(structure.pos.x, structure.pos.y, 100);
+                                        }
+                                        else if (structure.structureType !== STRUCTURE_CONTAINER && (structure.structureType !== STRUCTURE_RAMPART || !structure.my))
+                                        {
+                                            // Can't walk through non-walkable buildings
+                                            costs.set(structure.pos.x, structure.pos.y, COSTMATRIX_BLOCK_VALUE);
+                                        }
+                                    });
+                                    //Visualizer.visualizeCostMatrix(costs,room);
+                                    return costs;
+                                }
+
+                            });
                     }
                 }
-                else if (aSourceType.type == SOURCE_TYPE.box)
+                else if (aSourceType.type == SOURCE_TYPE.box || this.mSource.hasBox())
                 {
                     if (!this.mCreep.pos.isEqualTo(aSourceType.target))
                     {
@@ -205,6 +261,7 @@ class MiningOperation
                 }
             }
         }
+
     }
 
     makeTasks()
@@ -293,11 +350,26 @@ class MiningOperation
             return aCreepMem.target == aSourceID && aCreepMem.role == CREEP_ROLE.miningHauler;
         });
 
+        // TODO: do it
+        // calculate the path length between source and storage and do the math for it
+        let aPathLen = 0;
+        if (!_.isUndefined(this.mStorage))
+        {
+            let aPath = PMan.getCleanPath(this.mSource.pos,this.mStorage.pos,undefined);
+            aPathLen = aPath.path.length;
+        }
+        else
+        {
+            let aPath = PMan.getCleanPath(this.mSource.pos,this.aDropPos,undefined);
+            aPathLen = aPath.path.length;
+        }
+        //Log(undefined,'drop len: '+aPathLen);
+
         var aCreepBody = new CreepBody();
         var aSearch =
         {
             name: CARRY,
-            //max: 1,
+            max: aPathLen == 0 ? 16 : _.ceil((aPathLen * 2 * 10)/50),  // lets test this: 2 times len for travel back and forth times 10 for a normal source harvest
         };
         var aBodyOptions =
         {
@@ -313,7 +385,7 @@ class MiningOperation
 
         if (aResult.aCost <=  aSpawn.room.energyAvailable)
         {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.miningHauler, target: aSourceID})
+            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.miningHauler, target: aSourceID, pathLen: aPathLen})
             this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
         }
     }
@@ -341,7 +413,7 @@ class MiningOperation
 
         if (!this.mHauler.pos.isEqualTo(aPos))
         {
-            let res = this.mHauler.travelTo({pos: aPos}, {range: 0});
+            let res = this.mHauler.travelTo({pos: aPos}, {range: 0, plainCost: 5});
             this.log(LOG_LEVEL.info,'hauler '+this.mHauler.name+' moves to idle pos '+ErrorString(res));
         }
     }
