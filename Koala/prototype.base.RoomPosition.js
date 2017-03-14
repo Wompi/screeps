@@ -36,21 +36,6 @@ RoomPosition.prototype.adjacentPositions = function(pRange)
     return aArea;
 }
 
-/**
- * Overload: this is the same as in the server - but without all the checks
- *  - not sure if this is faster but it looks cleaner to me
- *  - TODO: check this again something is wrong with it
- *
- */
-// RoomPosition.prototype.getRangeTo = function(pPos)
-// {
-//     if (!_.isUndefined(pPos.pos))
-//     {
-//         pPos = pPos.pos;
-//     }
-//     return Math.max([Math.abs(this.x - pPos.x), Math.abs(this.y - pPos.y)]);
-// }
-
 
 RoomPosition.prototype.inBoundPositions = function(pRange)
 {
@@ -109,7 +94,6 @@ RoomPosition.prototype.init = function(pProxy)
     Log(LOG_LEVEL.debug,'RoomPosition: default init - '+this.entityType);
 }
 
-
 extend = function()
 {
     Object.defineProperties(RoomPosition.prototype,
@@ -129,7 +113,31 @@ extend = function()
             {
                 return this.toString(false);
             },
-        }
+        },
+        'wpos':
+        {
+            configurable: true,
+        	enumerable: false,
+            get: function () {
+        		if(!this._wpos)
+        			this._wpos = WorldPosition.fromRoomPosition(this);
+        		return this._wpos;
+            },
+        },
+        'rIndex':
+        {
+            configurable: true,
+        	enumerable: false,
+            get: function () {
+        		if(!this._rIndex)
+                {
+                    // let aX = aIndex % 49;
+                    // let aY = (aIndex - aX) / 49;
+        			this._rIndex = (this.y * 49) + this.x
+                }
+        		return this._rIndex;
+            },
+        },
     });
 };
 extend();

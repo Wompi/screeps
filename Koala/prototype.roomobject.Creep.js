@@ -57,33 +57,29 @@ Creep.prototype.getTarget = function(selector, validator=_.identity, chooser=_.f
  *
  *	TODO: not sure how it works with partial boosting if this is a thing someday
  */
-// Creep.prototype.getUsedCarryParts = function()
-// {
-// 	return _.ceil(_.sum(this.carry)/(CARRY_CAPACITY * _.get(BOOSTS,[CARRY,_.find(_.pluck(_.filter(this.body,(i) => i.type == CARRY && !!i.boost),'boost')),'capacity'],1)));
-// }
+Creep.prototype.getUsedCarryParts = function()
+{
+	return _.ceil(_.sum(this.carry)/(CARRY_CAPACITY * _.get(BOOSTS,[CARRY,_.find(_.pluck(_.filter(this.body,(i) => i.type == CARRY && !!i.boost),'boost')),'capacity'],1)));
+}
 
-Creep.prototype.getUsedCarryParts = function() {
-	var i, cap, part, body = this.body;
-	var amount = _.sum(this.carry);
-	var count=0;
-	for(i = body.length-1; i>=0; i--) {
-		var {hits,boost,type} = body[i];
-		if(hits <= 0 || amount <= 0)
-			break;
-		if(type !== CARRY)
-			continue;
-		if(!boost)
-			cap = CARRY_CAPACITY;
-		else
-			cap = CARRY_CAPACITY * BOOSTS[CARRY][boost];
-		amount -= cap;
-		count++;
-	}
-	return count;
+
+Creep.prototype._transfer = Creep.prototype.transfer;
+Creep.prototype.transfer = function(pTarget, pResourceType, pAmount = undefined)
+{
+	Log(LOG_LEVEL.debug,'CREEP: overloaded transfer - '+pResourceType);
+	return this._transfer(pTarget,pResourceType,pAmount);
 }
 
 
 
+
+/**
+ * pType - HARVEST_MINERAL_POWER, HARVEST_POWER
+ */
+Creep.prototype.getHarvestPower = function(pType)
+{
+	return (this.getActiveBodyparts(WORK) * pType * _.get(BOOSTS,[WORK,_.find(_.pluck(_.filter(this.body,(i) => i.type == WORK && !!i.boost),'boost')),'harvest'],1));
+}
 
 Creep.prototype.getFatigueCost = function()
 {

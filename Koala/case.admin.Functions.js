@@ -168,5 +168,15 @@ var mod =
         }
         return result;
     },
+    getRoomPostionFromIndex: (pIndex,pRoomName) =>
+    {
+        if (pIndex < 0) return undefined;
+        if (pIndex > 2500) return undefined;
+        if (_.isUndefined(pRoomName) || _.isEmpty(pRoomName)) return undefined;
+        
+        let aX = pIndex % 49;
+        let aY = (pIndex - aX) / 49;
+        return new RoomPosition(aX,aY,pRoomName);
+    },
 };
 module.exports = mod;

@@ -59,6 +59,7 @@ class DefenseOperation
                     this.log(LOG_LEVEL.debug,'myTargets: '+JS(myTargets));
 
                     let aTarget = _.min(myTargets,'hits');
+                    //let aTarget = _.min(myTargets,(aT) => aT.pos.getRangeTo(aTower));
 
                     this.log(LOG_LEVEL.debug,'aTarget: '+JS(aTarget));
                     Log(LOG_LEVEL.info,'TOWER DMG: '+JS(aMap));
@@ -73,21 +74,14 @@ class DefenseOperation
                 {
                     this.log(LOG_LEVEL.info, 'TARGETS HAVE TO MUCH HITPOINTS! - danger?');
                 }
-                // aInvader = _.min(myInvaders, (aCreep) =>
-                // {
-                //     if ( aCreep.getActiveBodyparts(ATTACK) == 0) return Infinity;
-                //     return aCreep.pos.getRangeTo(aTower);
-                // });
-                //
-                // if ( (aInvader.pos.x < 46 && aInvader.pos.x > 4 ) && (aInvader.pos.y < 46 && aInvader.pos.y > 4 ))
-                // {
-                //     var res = aTower.attack(aInvader);
-                //     Log(undefined, 'ATTACK: '+ErrorString(res));
-                // }
-                // else
-                // {
-                //     Log(LOG_LEVEL.info,'Invader: '+aInvader.pos.toString()+' is near the edge NO SHOOTING!');
-                // }
+            }
+            else
+            {
+                let aCreep = _.find(Game.creeps, (aCreep) => aCreep.hits < aCreep.hitsMax)
+                if (!_.isUndefined(aCreep))
+                {
+                    let res = aTower.heal(aCreep);
+                }
             }
         });
     }

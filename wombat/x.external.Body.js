@@ -39,3 +39,23 @@ class Body extends Array
 		return _.sortBy(this, p => _.indexOf([TOUGH,MOVE,WORK,CARRY,ATTACK,RANGED_ATTACK,HEAL,CLAIM],p));
 	}
 }
+
+Creep.prototype.getUsedCarryParts = function() {
+	var i, cap, part, body = this.body;
+	var amount = _.sum(this.carry);
+	var count=0;
+	for(i = body.length-1; i>=0; i--) {
+		var {hits,boost,type} = body[i];
+		if(hits <= 0 || amount <= 0)
+			break;
+		if(type !== CARRY)
+			continue;
+		if(!boost)
+			cap = CARRY_CAPACITY;
+		else
+			cap = CARRY_CAPACITY * BOOSTS[CARRY][boost];
+		amount -= cap;
+		count++;
+	}
+	return count;
+}

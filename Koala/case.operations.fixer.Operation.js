@@ -37,7 +37,12 @@ class FixerOperation
             this.log(LOG_LEVEL.debig,'FIXER adjusts target position '+JS(this.mCreep.memory.target));
         }
 
-        var myRepair = this.findRepairObject(this.mCreep,this.mCreep.room);
+        var myRepair = undefined;
+        Pro.profile( () =>
+        {
+            myRepair = this.findRepairObject(this.mCreep,this.mCreep.room);
+        },'roads old find');
+
         if (!_.isUndefined(myRepair) && myRepair.emergency)
         {
             this.mCreep.say('Oh boy!');
@@ -144,8 +149,8 @@ class FixerOperation
 
         var myFixables = _.filter(myStructuresInRange,(a) =>
         {
-            if (a.structure.structureType == STRUCTURE_WALL && a.structure.hits > DEFAULT_WALL_HITS) return false;
-            if (a.structure.structureType == STRUCTURE_RAMPART && a.structure.hits > DEFAULT_RAMPART_HITS) return false;
+            if (a.structure.structureType == STRUCTURE_WALL /*&& a.structure.hits > DEFAULT_WALL_HITS*/) return false;
+            if (a.structure.structureType == STRUCTURE_RAMPART /*&& a.structure.hits > DEFAULT_RAMPART_HITS*/) return false;
             return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER * pCreep.getActiveBodyparts(WORK));
             //return (a.structure.hitsMax - a.structure.hits) >= (REPAIR_POWER);
         });
@@ -204,7 +209,7 @@ class FixerOperation
         var aSearch =
         {
             name: WORK,
-            max: 3,
+            max: 4,
         };
         var aBodyOptions =
         {
@@ -217,7 +222,7 @@ class FixerOperation
         {
             [CARRY]:
             {
-                count: 3,
+                count: 4,
             }
         };
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

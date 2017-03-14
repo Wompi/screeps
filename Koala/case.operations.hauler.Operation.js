@@ -15,7 +15,6 @@ class HaulerOperation
             let aBay =  _.find(myBays, (aB) => aB.pos.isEqualTo(aBox.pos));
             return !_.isUndefined(aBay);
         });
-        this.mExtractor = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => aE.pos.roomName == this.mRoom.name);
         this.mResources =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.resource), (aR) => aR.pos.roomName == this.mRoom.name);
     }
 
@@ -46,7 +45,7 @@ class HaulerOperation
         }
 
 
-        if (this.mCreep.carry[RESOURCE_ENERGY] == 0)
+        if (_.sum(this.mCreep.carry) == 0)
         {
             if (!this.mCreep.pos.isNearTo(aTask.target))
             {
@@ -70,10 +69,11 @@ class HaulerOperation
             }
         }
 
-        let res =  this.mCreep.withdraw(aTask.target,aTask.resource);
-        this.log(LOG_LEVEL.debug,' withdraw - '+ErrorString(res));
-        res =  this.mCreep.transfer(aTask.destination,aTask.resource);
+
+        let res =  this.mCreep.transfer(aTask.destination,_.findKey(this.mCreep.carry));
         this.log(LOG_LEVEL.debug,' transfer - '+ErrorString(res));
+        res =  this.mCreep.withdraw(aTask.target,aTask.resource);
+        this.log(LOG_LEVEL.debug,' withdraw - '+ErrorString(res));
     }
 
     makeTasks()
@@ -98,7 +98,7 @@ class HaulerOperation
                 {
                     this.mTasks.push(
                     {
-                        priority: 0,
+                        priority: 0.1,
                         target: this.mStorage.entity,
                         destination: aContainer.entity,
                         task: 'L',  // link cleaning
@@ -153,7 +153,7 @@ class HaulerOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyCapacityAvailable;
+        var aEnergy = aSpawn.room.energyAvailable;
         var aBody =
         {
             [WORK]:

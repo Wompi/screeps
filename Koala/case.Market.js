@@ -27,7 +27,7 @@ class Market
     deal(pRoomName,pID,pAmount)
     {
         var result = Game.market.deal(pID,pAmount,pRoomName);
-        Log(LOG_LEVEL.debug,'Deal closed ... '+ErrorSting(result));
+        Log(LOG_LEVEL.debug,'Deal closed ... '+ErrorString(result));
     }
 
     printMarketReport()
@@ -80,7 +80,9 @@ class Market
             var aRange = Game.map.getRoomLinearDistance(ROOM_NAME,aRoom,true);
             var aMargin = (aAmount * aPrice);
 
-            var derp = aMargin / (aAmount + aCost);
+            //var derp = aMargin / (aAmount + aCost);
+            var derp = aCost/aAmount * aPrice
+
 
             aReport[aReport.length] = [aID,aType,aRoom,aRange,aPrice,aAmount,aCost,aMargin.toFixed(2),derp.toFixed(3)];
 
@@ -96,6 +98,7 @@ class Market
         var aTable = this.table(aHeader,aReport);
         Log(LOG_LEVEL.debug,aTable);
     }
+
 
 
 
@@ -136,34 +139,14 @@ class Market
     }
 
 
-    fetch(pIndex)
+    fetch(pResourceType)
     {
-        var myResourceTypes =
-        [
-            RESOURCE_ENERGY,
-            RESOURCE_ZYNTHIUM,
-            RESOURCE_UTRIUM,
-            RESOURCE_OXYGEN,
-            RESOURCE_HYDROGEN,
-            RESOURCE_KEANIUM,
-            'UH',
-        ]
-
-        if (_.isUndefined(pIndex) || pIndex > (myResourceTypes.length-1))
-        {
-            Log(LOG_LEVEL.debug,'RESOURCES: '+JSON.stringify(myResourceTypes));
-            return;
-        }
-
-        var aResourceType = myResourceTypes[pIndex];
-        delete Memory.market;
-
-
         var myOrders = Game.market.getAllOrders(
         {
             type: ORDER_BUY,
-            resourceType: aResourceType,
+            resourceType: pResourceType,
         });
+        delete Memory.market;
 
 
         if (myOrders.length == 0)

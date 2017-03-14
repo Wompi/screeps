@@ -105,6 +105,8 @@ class MiningOperation
             {
                 let myDropBoxes = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aB) =>
                 {
+                    let aExtractor = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => _.isUndefined(aE.miningBox) && aE.miningBox.pos.isEqualTo(aB.pos));
+                    if (!_.isUndefined(aExtractor)) return false;
                     let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
                     let aBay = _.find(myBays,(aS) => aS.pos.isEqualTo(aB) && _.sum(aB.store) < aB.storeCapacity*0.30);
                     return !_.isUndefined(aBay);
@@ -198,6 +200,12 @@ class MiningOperation
             if (aSourceType.type == SOURCE_TYPE.drop || (aSourceType.type == SOURCE_TYPE.link && (aSourceType.target.energy < aSourceType.target.energyCapacity) )  || (aSourceType.type == SOURCE_TYPE.box && aSourceType.target.store[RESOURCE_ENERGY] < aSourceType.target.storeCapacity))
             {
                 let res = this.mCreep.harvest(this.mSource.entity);
+            }
+            else if (this.mSource.hasBox() && this.mCreep.getActiveBodyparts(CARRY) > 0)
+            {
+                let res = this.mCreep.repair(aSourceType.target.entity);
+                this.log(LOG_LEVEL.debug,this.mCreep.name+' repair local box '+aSourceType.target.pos.toString()+' res: '+ErrorString(res));
+
             }
 
             if (!_.isUndefined(aSourceType.target))
@@ -312,12 +320,24 @@ class MiningOperation
             moveBoost: '',
         };
 
+
+        let aCarryCount = 0;
+        let aController = PCache.getFriendlyEntityCacheByID(this.mSource.room.controller.id);
+        if (this.mSource.getSourceType().type == SOURCE_TYPE.link)
+        {
+            aCarryCount = 1;
+        }
+        else if (aController.isReserved())
+        {
+            aCarryCount = 1;
+        }
+
         var aEnergy = aSpawn.room.energyCapacityAvailable;
         var aBody =
         {
             [CARRY]:
             {
-                count: (this.mSource.getSourceType().type == SOURCE_TYPE.link ? 1 : 0),
+                count: aCarryCount,
             }
         };
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

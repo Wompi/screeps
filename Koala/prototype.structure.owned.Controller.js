@@ -18,6 +18,12 @@ StructureController.prototype.visualize = function()
     });
 }
 
+StructureController.prototype.isReserved = function()
+{
+    return (!_.isUndefined(this.reservation) && this.reservation.username == USER_NAME);
+}
+
+
 StructureController.prototype.getEntityEvents = function()
 {
     return {
