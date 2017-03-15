@@ -21,6 +21,7 @@ _.assign(global,
     RoadManager:        require('case.design.RoadManager'),
     WorldPosition:      require('case.design.WorldPosition'),
     ReactionManager:    require('case.design.ReactionManager'),
+    Operation:          require('case.design.Operation'),
 });
 
 
@@ -59,6 +60,7 @@ _.assign(global,
     HaulerOperation:    require('case.operations.hauler.Operation'),
     MineralOperation:   require('case.operations.mineral.Operation'),
     MineralHaulerOperation: require('case.operations.hauler.mineral.Operation'),
+    ReactionsHaulerOperation: require('case.operations.hauler.reactions.Operation'),
     Traveler:           require('Traveler'),
     Market:             require('case.Market'),
 });
@@ -131,6 +133,7 @@ module.exports.loop = function ()
     {
         let myOperations  = [
                 () => [new DefenseOperation()],
+                () => [new ReactionsHaulerOperation(Game.rooms['W47N84'])],
                 () =>
                 {
                     let myLoadingOps = [];
@@ -286,8 +289,16 @@ module.exports.loop = function ()
 
     //PMan.newTest();
 
+    let aSum = ReactMan.getMineralStorage();
+    // aSum['O'] = 3000;
+    // aSum['OH'] = 3000;
+    // aSum['LH'] = 3000;
+    // aSum['LO'] = 3000;
+    let myReactions = ReactMan.getPossibleReactions(aSum);
+    Log(LOG_LEVEL.debug,'REACTIONS: '+JS(myReactions));
 
-
+    let myResult =  ReactMan.getAttributesForReactions(myReactions);
+    Log(LOG_LEVEL.debug,'ATTRIBUTES: '+JS(myResult));
 
 
     PCache.printStats();

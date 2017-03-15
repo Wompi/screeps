@@ -110,8 +110,8 @@ class ReserveOperation
     getBody()
     {
         var aCreepBody = new CreepBody();
-
-        var aEnergy = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        let aEnergy = aSpawn.room.energyCapacityAvailable;
         var aSearch = {};
         var aBodyOptions = { hasRoads: false, moveBoost: '',};
         var aBody = { [CLAIM]: { count: 2,}}

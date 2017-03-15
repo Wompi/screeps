@@ -30,8 +30,6 @@ class MineralOperation
             }
         }
 
-        this.log(LOG_LEVEL.debug, 'DEEEEERRRRRP '+this.mExtractor.isReady())
-
         if (!this.mExtractor.isReady())
         {
             this.mCreep.memory.role = CREEP_ROLE.upgrader;

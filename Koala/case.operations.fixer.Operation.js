@@ -177,7 +177,6 @@ class FixerOperation
         this.mCreep = _.find(myCreeps); // TODO: this will not work with multiple fixers
         if (!_.isUndefined(this.mCreep)) return;
 
-
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
         {
             if (_.isUndefined(aCreepMem.target)) return false;
@@ -191,16 +190,42 @@ class FixerOperation
             aTarget = Memory.creeps[aName].target;
         }
 
-        this.log(LOG_LEVEL.debug,'reuse name: '+aName+' target: '+JS(aTarget));
-
-        var aSpawn = _.min(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
+        let aBody = this.getBody();
+        let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
         {
-            if (!aProxy.my) return Infinity;
-            return aProxy.pos.getRangeTo(new RoomPosition(aTarget.x,aTarget.y,aTarget.roomName));
-        });
+            return  aS.room.energyAvailable >= aBody.aCost;
+        })
 
-        this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
+        if (mySpawns.length > 0)
+        {
+            // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
+            // the distance to the labs or something - or the storage <- this it probably is
+            let aPos = new RoomPosition(aTarget.x,aTarget.y,aTarget.roomName);
+            let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(aPos.wpos));
 
+            if (!_.isUndefined(aSpawn))
+            {
+                if (aSpawn.spawning)
+                {
+                    this.log(LOG_LEVEL.debug,'possible spawn is bussy - '+aSpawn.name+' '+aSpawn.pos.toString());
+                    return;
+                }
+                this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
+                this.log(LOG_LEVEL.debug,'possible name - '+aName);
+
+                // TODO: consider a path approach here
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.fixer, target: aTarget})
+                this.log(LOG_LEVEL.info,'fixer createCreep - '+ErrorString(res));
+            }
+        }
+        else
+        {
+            this.log(LOG_LEVEL.debug,'no spawn room has enough energy - needed: '+aBody.aCost);
+        }
+    }
+
+    getBody()
+    {
         var aCreepBody = new CreepBody();
 
         // TODO: the cary parts should be adjusted to the current task - so if the task is heavy un/loading
@@ -217,7 +242,8 @@ class FixerOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyCapacityAvailable;
+        var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        let aEnergy = aSpawn.room.energyCapacityAvailable;
         var aBody =
         {
             [CARRY]:
@@ -228,12 +254,7 @@ class FixerOperation
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
-
-        if (aResult.aCost <=  aSpawn.room.energyAvailable)
-        {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.fixer, target: aTarget})
-            this.log(LOG_LEVEL.info,'fixer createCreep - '+ErrorString(res));
-        }
+        return aResult;
 
     }
 

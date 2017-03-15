@@ -77,13 +77,6 @@ class UpgraderOperation
         if (_.isUndefined(this.mStorage))return;
         if (this.mStorage.store[RESOURCE_ENERGY] < 150000) return;
 
-        var aSpawn = _.min(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
-        {
-            if (!aProxy.my) return Infinity;
-            return aProxy.pos.getRangeTo(this.mController);
-        });
-        this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
-
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
         {
             if (!_.isUndefined(Game.creeps[aCreepName])) return false;
@@ -94,13 +87,50 @@ class UpgraderOperation
             aName = this.mUpgraderName;
         }
 
-        this.log(LOG_LEVEL.debug,'reuse name: '+aName);
+        let aBody = this.getBody();
+        let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
+        {
+            return  aS.room.energyAvailable >= aBody.aCost;
+        })
 
+        if (mySpawns.length > 0)
+        {
+            // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
+            // the distance to the labs or something - or the storage <- this it probably is
+            let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(this.mController.pos.wpos));
+
+            if (!_.isUndefined(aSpawn))
+            {
+                if (aSpawn.spawning)
+                {
+                    this.log(LOG_LEVEL.debug,'possible spawn is bussy - '+aSpawn.name+' '+aSpawn.pos.toString());
+                    return;
+                }
+                this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
+                this.log(LOG_LEVEL.debug,'possible name - '+aName);
+
+                // TODO: consider a path approach here
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.upgrader})
+                this.log(LOG_LEVEL.info,'upgrader createCreep - '+ErrorString(res));
+            }
+        }
+        else
+        {
+            this.log(LOG_LEVEL.debug,'no spawn room has enough energy - needed: '+aBody.aCost);
+        }
+    }
+
+    getBody()
+    {
         var aCreepBody = new CreepBody();
 
         // TODO: the cary parts should be adjusted to the current task - so if the task is heavy un/loading
         //       to the terminal/storage it should have more parts otherwise just normal 1
         //
+        var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        let aEnergy = aSpawn.room.energyCapacityAvailable;
+
+
         var aSearch =
         {
             name: WORK,
@@ -112,7 +142,6 @@ class UpgraderOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyCapacityAvailable;
         var aBody =
         {
             [CARRY]:
@@ -123,12 +152,7 @@ class UpgraderOperation
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
-
-        if (aResult.aCost <=  aSpawn.room.energyAvailable)
-        {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.upgrader})
-            this.log(LOG_LEVEL.info,'upgrader createCreep - '+ErrorString(res));
-        }
+        return aResult;
     }
 
     moveUpdaterFromRoad(pCreep)

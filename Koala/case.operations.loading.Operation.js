@@ -25,6 +25,9 @@ class LoadingOperation
         this.mRamparts =[];
         this.mWalls = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructedWall), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_WALL_HITS);
         this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_RAMPART_HITS);
+
+        this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aLab) => aLab.pos.isNearTo(this.mCenter));
+
     }
 
     processOperation()
@@ -58,7 +61,7 @@ class LoadingOperation
                 _.set(this.mBay,[ENTITY_TYPES.creep,a.creep.name],Game.creeps[a.creep.name]);
             }
         })
-        this.mVisitors = _.find(this.mBay[ENTITY_TYPES.creep]);
+        this.mVisitors = _.find(this.mBay[ENTITY_TYPES.creep], (a) => a.memory.role == CREEP_ROLE.reactionHauler);
 
 
         this.makeTasks();
@@ -68,6 +71,34 @@ class LoadingOperation
     doLoading()
     {
         if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
+
+        if (!_.any(this.mCreep.body, i => !!i.boost))
+        {
+            let aPartCount = this.mCreep.getActiveBodyparts(WORK);
+            let aLab = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aL) =>
+            {
+                // this.log(undefined,'D1');
+                if (!aL.pos.isNearTo(this.mCreep)) return false;
+                // this.log(undefined,'D2');
+                if (_.isUndefined(aL.mineralType)) return false;
+                // this.log(undefined,'D3');
+                if (aL.mineralType != 'LH') return false;
+                // this.log(undefined,'D4');
+
+                if (aL.energy < (aPartCount * 20)) return false;
+                // this.log(undefined,'D5');
+
+                if (aL.mineralAmount < (aPartCount * 30 )) return false;
+                // this.log(undefined,'D6');
+                return true;
+            })
+            if (!_.isUndefined(aLab))
+            {
+                let res = aLab.boostCreep(this.mCreep);
+                // this.log(undefined,'DERP: '+ErrorString(res));
+            }
+        }
+
 
         if (!this.mCreep.pos.isNearTo(this.mCenter))
         {
@@ -207,19 +238,24 @@ class LoadingOperation
             }
             if (_.sum(this.mCreep.carry) == 0)
             {
-                let res = this.mCreep.withdraw(aTarget.entity,RESOURCE_ENERGY);
+                if (_.isUndefined(aTask) || aTask.task != 'F')
+                {
+                    let res = this.mCreep.withdraw(aTarget.entity,RESOURCE_ENERGY);
+                }
             }
-
-
 
             let aJob = _.min(myFortress, (aW) => aW.hits);
             aJob.room.visual.circle(aJob.pos.x,aJob.pos.y,{fill: COLOR.red});
-            if (aJob.pos.inRangeTo(this.mCreep,3))
+            if (aJob.pos.inRangeTo(this.mCreep,3) && (_.isUndefined(aTask) || aTask.task != 'C'))
             {
                 let res = this.mCreep.repair(aJob.entity);
             }
 
-            if (_.isUndefined(aTask))
+            if (!_.isUndefined(this.mVisitors))
+            {
+                this.mCreep.move(TOP_LEFT);
+            }
+            else if (_.isUndefined(aTask))
             {
                 this.mCreep.move(aDirection);
             }
@@ -260,6 +296,38 @@ class LoadingOperation
         }
 
 
+        if (this.mLabs.length > 0)
+        {
+            _.each(this.mLabs, (aL) =>
+            {
+                if (aL.mineralType == 'LH')
+                {
+                    let aTarget = undefined;
+                    if (!_.isUndefined(this.mStorage))
+                    {
+                        aTarget = this.mStorage;
+                    }
+                    else if (!_.isUndefined(this.mContainer))
+                    {
+                        aTarget = this.mContainer;
+                    }
+                    if (!_.isUndefined(aTarget) && aL.energy < 300)
+                    {
+                        let aDir = this.mCenter.getDirectionTo(aL);
+                        this.mTasks.push(
+                        {
+                            priority: 1,
+                            target: aTarget.entity,
+                            destination: aL.entity,
+                            task: 'F',  // fill extension
+                            resource: RESOURCE_ENERGY,
+                            direction: (aDir % 2 + aDir),
+                        });
+                    }
+                }
+            })
+        }
+
 
         let aTarget = undefined;
         if (!_.isUndefined(this.mStorage))
@@ -270,6 +338,29 @@ class LoadingOperation
         {
             aTarget = this.mContainer;
         }
+
+        if (!_.isUndefined(aTarget) && !_.isUndefined(this.mTerminal) && !_.isUndefined(this.mStorage))
+        {
+            let aMineralStore = this.mTerminal.getMineralStore();
+            if (!_.isUndefined(this.mMineral))
+            {
+                delete aMineralStore[this.mMineral.mineralType];
+            }
+            if (!_.isEmpty(aMineralStore))
+            {
+                let aDir = this.mCenter.getDirectionTo(this.mStorage);
+                this.mTasks.push(
+                {
+                    priority: 1,
+                    target: this.mTerminal.entity,
+                    destination: this.mStorage.entity,
+                    task: 'F',  // fill extension
+                    resource: _.findKey(aMineralStore),
+                    direction: (aDir % 2 + aDir),
+                });
+            }
+        }
+
 
         if (!_.isUndefined(aTarget) && aTarget.store[RESOURCE_ENERGY] > 0)
         {
@@ -399,15 +490,6 @@ class LoadingOperation
         this.mCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aCenterID);
         if (!_.isUndefined(this.mCreep)) return;
 
-        var aSpawn = _.min(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
-        {
-            if (!aProxy.my) return Infinity;
-            if (aProxy.pos.roomName != this.mCenter.roomName) return Infinity;
-            return aProxy.pos.getRangeTo(this.mCenter);
-        });
-
-        this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
-
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
         {
             if (_.isUndefined(aCreepMem.target)) return false;
@@ -415,8 +497,42 @@ class LoadingOperation
             return aCreepMem.target == aCenterID && aCreepMem.role == CREEP_ROLE.bayLoader;
         });
 
-        this.log(LOG_LEVEL.debug,'reuse name: '+aName);
 
+        let aBody = this.getBody();
+        let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
+        {
+            return  aS.room.energyAvailable >= aBody.aCost;
+        })
+
+        if (mySpawns.length > 0)
+        {
+            // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
+            // the distance to the labs or something - or the storage <- this it probably is
+            let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(this.mCenter.wpos));
+
+            if (!_.isUndefined(aSpawn))
+            {
+                if (aSpawn.spawning)
+                {
+                    this.log(LOG_LEVEL.debug,'possible spawn is bussy - '+aSpawn.name+' '+aSpawn.pos.toString());
+                    return;
+                }
+                this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
+                this.log(LOG_LEVEL.debug,'possible name - '+aName);
+
+                // TODO: consider a path approach here
+               let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.bayLoader, target: aCenterID})
+               this.log(LOG_LEVEL.info,'createCreep - '+ErrorString(res));
+            }
+        }
+        else
+        {
+            this.log(LOG_LEVEL.debug,'no spawn room has enough energy - needed: '+aBody.aCost);
+        }
+    }
+
+    getBody()
+    {
         var aCreepBody = new CreepBody();
 
         // TODO: the cary parts should be adjusted to the current task - so if the task is heavy un/loading
@@ -433,7 +549,8 @@ class LoadingOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyAvailable;
+        var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        let aEnergy = aSpawn.room.energyCapacityAvailable;
         var hasSites = !_.isUndefined(this.mBay[ENTITY_TYPES.constructionSite]);
         var hasWalls = this.mWalls.length > 0;
         var aBody =
@@ -446,12 +563,9 @@ class LoadingOperation
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
-        if (aResult.aCost <=  aSpawn.room.energyAvailable)
-        {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.bayLoader, target: aCenterID})
-            this.log(LOG_LEVEL.info,'miner createCreep - '+ErrorString(res));
-        }
+        return aResult;
     }
+
 
     initBay()
     {

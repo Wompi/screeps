@@ -27,6 +27,7 @@ _.assign(global,
         terminal: 'terminal',
         constructedWall: 'constructedWall',
         rampart: 'rampart',
+        lab: 'lab',
     },
 
     LOG_LEVEL:
@@ -115,6 +116,7 @@ _.assign(global,
         upgrader: 'upgrader',
         claimer: 'claimer',
         reserver: 'reserver',
+        reactionHauler: 'reaction hauler',
     },
 
     USER_NAME: 'Casegard',

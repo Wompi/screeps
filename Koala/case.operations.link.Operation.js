@@ -1,7 +1,8 @@
-class LinkOperation
+class LinkOperation extends Operation
 {
     constructor(pRoom,pLinks)
     {
+        super('LinkOperation');
         this.mRoom = pRoom;
         this.mLinks = pLinks;
 
@@ -41,9 +42,9 @@ class LinkOperation
         });
     }
 
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'LinkOperation: '+this.mRoom.name+': '+pMsg);
-    }
+    // log(pLevel,pMsg)
+    // {
+    //     Log(pLevel,'LinkOperation: '+this.mRoom.name+': '+pMsg);
+    // }
 }
 module.exports = LinkOperation;

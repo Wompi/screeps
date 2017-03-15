@@ -63,14 +63,6 @@ class MineralHaulerOperation
 
         if (!_.isUndefined(this.mCreep)) return;
 
-        var aSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aProxy) =>
-        {
-            if (aProxy.pos.roomName != this.mRoom.name) return Infinity;
-            return aProxy.spawning == null;
-        });
-
-        if (_.isUndefined(aSpawn)) return;
-
         this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
 
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
@@ -80,8 +72,41 @@ class MineralHaulerOperation
             return aCreepMem.target == aRoomID && aCreepMem.role == CREEP_ROLE.mineralHauler;
         });
 
-        this.log(LOG_LEVEL.debug,'reuse name: '+aName);
+        let aBody = this.getBody();
+        let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
+        {
+            return  aS.room.energyAvailable >= aBody.aCost;
+        })
 
+        if (mySpawns.length > 0)
+        {
+            // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
+            // the distance to the labs or something - or the storage <- this it probably is
+            let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(this.mStorage.pos.wpos));
+
+            if (!_.isUndefined(aSpawn))
+            {
+                if (aSpawn.spawning)
+                {
+                    this.log(LOG_LEVEL.debug,'possible spawn is bussy - '+aSpawn.name+' '+aSpawn.pos.toString());
+                    return;
+                }
+                this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
+                this.log(LOG_LEVEL.debug,'possible name - '+aName);
+
+                // TODO: consider a path approach here
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.mineralHauler, target: aRoomID})
+                this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
+            }
+        }
+        else
+        {
+            this.log(LOG_LEVEL.debug,'no spawn room has enough energy - needed: '+aBody.aCost);
+        }
+    }
+
+    getBody()
+    {
         var aCreepBody = new CreepBody();
 
         // TODO: the carry parts should be adjusted to the current task - so if the task is heavy un/loading
@@ -98,16 +123,13 @@ class MineralHaulerOperation
             moveBoost: '',
         };
 
-        var aEnergy = aSpawn.room.energyCapacityAvailable;
+        var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
+        let aEnergy = aSpawn.room.energyCapacityAvailable;
         var aBody ={};
         var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
-        if (aResult.aCost <=  aSpawn.room.energyAvailable)
-        {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.mineralHauler, target: aRoomID})
-            this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
-        }
+        return aResult;
     }
 
     log(pLevel,pMsg)

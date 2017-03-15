@@ -1,7 +1,8 @@
-class BuilderOperation
+class BuilderOperation extends Operation
 {
     constructor(pCount)
     {
+        super('BuilderOperation');
         this.mConstructions = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite), (aC) =>
         {
             let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
@@ -38,6 +39,7 @@ class BuilderOperation
             return;
         }
 
+        // TODO: oppotunity grab from a near recource  - make this somehow global accessable to all builders/creeps
         if (this.mResources.length > 0)
         {
             var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(this.mCreep));
@@ -47,6 +49,21 @@ class BuilderOperation
                 //Log(undefined,'RESOURCE:'+ErrorString(res));
             }
         }
+
+        // TODO: oppotunity grab from a near box - make this somehow global accessable to all builders/creeps
+        let aNearBox = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aB) =>
+        {
+            if (aB.pos.roomName != this.mCreep.pos.roomName) return false;
+            if (!aB.pos.isNearTo(this.mCreep)) return false;
+            if (aB.store[RESOURCE_ENERGY] > 199) return false;
+            return true;
+        });
+
+        if (!_.isUndefined(aNearBox))
+        {
+            let res = this.mCreep.withdraw(aNearBox.entity,RESOURCE_ENERGY);
+        }
+
 
         if (this.mStorages.length > 0 && _.sum(this.mCreep.carry) == 0)
         {
