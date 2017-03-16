@@ -1,7 +1,8 @@
-class RespawnOperation
+class RespawnOperation extends Operation
 {
     constructor()
     {
+        super('RespawnOperation');
     }
 
     processOperation()

@@ -1,7 +1,8 @@
-class ResettleOperation
+class ResettleOperation extends Operation
 {
     constructor(pStopSpawning = false)
     {
+        super('ResettleOperation');
         this.mStopSpawning = pStopSpawning;
         this.mSpawn = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn));
         this.mRoom = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.room), (aR) => aR.name == 'W47N84');
@@ -630,7 +631,7 @@ class ResettleOperation
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
         if (aResult.aCost <=  aSpawn.room.energyAvailable)
         {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.multiTool})
+            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.multiTool, spawn: aSpawn.pos.wpos.serialize()})
             this.log(LOG_LEVEL.info,'multiTool createCreep - '+ErrorString(res));
         }
     }
@@ -677,11 +678,6 @@ class ResettleOperation
                 this.log(LOG_LEVEL.info,'move from road '+pCreep.name+' '+aPos.toString()+' '+ErrorString(res));
             }
         }
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'ResettleOperation: '+pMsg);
     }
 }
 module.exports = ResettleOperation;

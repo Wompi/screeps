@@ -1,7 +1,8 @@
-class DefenseOperation
+class DefenseOperation extends Operation
 {
     constructor()
     {
+        super('DefenseOperation');
         this.mTowers = PCache.getFriendlyEntityCache(ENTITY_TYPES.tower);
     }
 
@@ -103,11 +104,6 @@ class DefenseOperation
             var y = _.max([0,pTower.pos.y-aRange]);
             pTower.room.visual.rect(x, y, _.min([aRange*2,49-x]), _.min([aRange*2,49-y]),aStyle);
         });
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'DefenseOperation: '+pMsg);
     }
 }
 module.exports = DefenseOperation;

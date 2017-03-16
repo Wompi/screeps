@@ -21,6 +21,7 @@ _.assign(global,
     RoadManager:        require('case.design.RoadManager'),
     WorldPosition:      require('case.design.WorldPosition'),
     ReactionManager:    require('case.design.ReactionManager'),
+    SpawnManager:       require('case.design.SpawnManager'),
     Operation:          require('case.design.Operation'),
 });
 
@@ -46,23 +47,24 @@ var ServerNode = require('case.admin.ServerNode');  // needs Log and Constants
 // REQUIRE: operation related classes
 _.assign(global,
 {
-    ResettleOperation:  require('case.operations.resettle.Operation'),
-    ResettleVisual:     require('case.operations.resettle.Visual'),
-    DefenseOperation:   require('case.operations.defense.Operation'),
-    ClaimOperation:     require('case.operations.claim.Operation'),
-    MiningOperation:    require('case.operations.mining.Operation'),
-    LoadingOperation:   require('case.operations.loading.Operation'),
-    LinkOperation:      require('case.operations.link.Operation'),
-    FixerOperation:     require('case.operations.fixer.Operation'),
-    ReserveOperation:   require('case.operations.reserve.Operation'),
-    UpgraderOperation:  require('case.operations.upgrader.Operation'),
-    BuilderOperation:   require('case.operations.builder.Operation'),
-    HaulerOperation:    require('case.operations.hauler.Operation'),
-    MineralOperation:   require('case.operations.mineral.Operation'),
-    MineralHaulerOperation: require('case.operations.hauler.mineral.Operation'),
-    ReactionsHaulerOperation: require('case.operations.hauler.reactions.Operation'),
-    Traveler:           require('Traveler'),
-    Market:             require('case.Market'),
+    ResettleOperation:          require('case.operations.resettle.Operation'),
+    ResettleVisual:             require('case.operations.resettle.Visual'),
+    DefenseOperation:           require('case.operations.defense.Operation'),
+    ClaimOperation:             require('case.operations.claim.Operation'),
+    MiningOperation:            require('case.operations.mining.Operation'),
+    LoadingOperation:           require('case.operations.loading.Operation'),
+    LinkOperation:              require('case.operations.link.Operation'),
+    FixerOperation:             require('case.operations.fixer.Operation'),
+    ReserveOperation:           require('case.operations.reserve.Operation'),
+    UpgraderOperation:          require('case.operations.upgrader.Operation'),
+    BuilderOperation:           require('case.operations.builder.Operation'),
+    HaulerOperation:            require('case.operations.hauler.Operation'),
+    MineralOperation:           require('case.operations.mineral.Operation'),
+    MineralHaulerOperation:     require('case.operations.hauler.mineral.Operation'),
+    ReactionsHaulerOperation:   require('case.operations.hauler.reactions.Operation'),
+    DefenseRemoteOperation:     require('case.operations.defense.remote.Operation'),
+    Traveler:                   require('Traveler'),
+    Market:                     require('case.Market'),
 });
 
 // REQUIRE: prototype class extensions - they don't need to be named
@@ -111,6 +113,7 @@ _.assign(global,
     RMan: new RoadManager(),
     M: new Market(),
     ReactMan: new ReactionManager(),
+    SpawnMan: new SpawnManager(),
 });
 
 PCache.makeCache(SNode.mReset);
@@ -132,6 +135,7 @@ module.exports.loop = function ()
     Pro.register( () =>
     {
         let myOperations  = [
+                () => [new DefenseRemoteOperation('W46N83')],
                 () => [new DefenseOperation()],
                 () => [new ReactionsHaulerOperation(Game.rooms['W47N84'])],
                 () =>
@@ -227,9 +231,7 @@ module.exports.loop = function ()
                         });
                     });
                     return myMineralOps;
-                }
-
-
+                },
             ];
 
         myOperations = myOperations.reverse();
@@ -240,14 +242,14 @@ module.exports.loop = function ()
             Pro.register( () =>
             {
                 myCall = aCall();
-            },'Call'+aIndex);
+            },'Call');
 
             _.each(myCall, (aOps) =>
             {
                 Pro.register( () =>
                 {
                     aOps.processOperation()
-                },'Operation '+aIndex);
+                },'Operation '+aOps.getName());
             });
             //Log(undefined,'------------------------- END ---------------------------');
 
@@ -303,12 +305,20 @@ module.exports.loop = function ()
 
     PCache.printStats();
     var end = Game.cpu.getUsed();
-//    Pro.printRegister();
+
+    // Pro.register( () =>
+    // {
+    //     M.fetchNextResource();
+    //     M.printOrderMap();
+    //
+    // },'market fetch');
+
+    Pro.printRegister();
     Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket+' '+SNode.printStats(false));
 
 
-
     // ------- TEST ME ----------------
+    //PMan.newTest();
 };
 
 

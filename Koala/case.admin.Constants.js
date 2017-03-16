@@ -117,6 +117,7 @@ _.assign(global,
         claimer: 'claimer',
         reserver: 'reserver',
         reactionHauler: 'reaction hauler',
+        remoteDefender: 'remote defender',
     },
 
     USER_NAME: 'Casegard',

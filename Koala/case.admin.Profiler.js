@@ -27,10 +27,19 @@ class Profiler
 
     printRegister()
     {
-        _.each(this.mTags, (aT,aKey) =>
+        let aList = _.map(this.mTags, (aT,aKey) =>
         {
-            Log(LOG_LEVEL.profile,'sum '+aKey+' -> '+this.mCounts[aKey]+' -> '+aT.toFixed(4));
-        })
+            return {cpu: aT, tag: aKey};
+        });
+
+        aList = _.sortByOrder(aList,'cpu','asc');
+
+        _.each(aList, (a) =>
+        {
+            Log(LOG_LEVEL.profile,this.mCounts[a.tag]+'\t-> '+a.cpu.toFixed(4)+' ('+(a.cpu/this.mCounts[a.tag]).toFixed(3)+') <- sum '+a.tag);
+        });
+
+
         this.cleanRegister();
     }
 

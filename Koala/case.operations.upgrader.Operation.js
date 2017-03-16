@@ -1,7 +1,8 @@
-class UpgraderOperation
+class UpgraderOperation extends Operation
 {
     constructor(pRoomName,pUpgraderName)
     {
+        super('UpgraderOperation');
         this.mUpgraderName = pUpgraderName;
         this.mRoomName = pRoomName;
         this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aController) => aController.pos.roomName == this.mRoomName);
@@ -110,7 +111,7 @@ class UpgraderOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.upgrader})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.upgrader, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'upgrader createCreep - '+ErrorString(res));
             }
         }
@@ -198,11 +199,6 @@ class UpgraderOperation
                 this.log(LOG_LEVEL.debug,'move from road '+pCreep.name+' '+aPos.toString()+' '+ErrorString(res));
             }
         }
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'UpgraderOperation '+this.mRoomName+': '+pMsg);
     }
 }
 module.exports = UpgraderOperation;

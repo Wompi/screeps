@@ -270,14 +270,9 @@ class BuilderOperation extends Operation
 
         if (aResult.aCost <=  aSpawn.room.energyAvailable)
         {
-            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.builderHauler})
+            let res = aSpawn.createCreep(aResult.body,aName,{role: CREEP_ROLE.builderHauler, spawn: aSpawn.pos.wpos.serialize()})
             this.log(LOG_LEVEL.info,'builder createCreep - '+ErrorString(res));
         }
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'BuilderOperation: '+pMsg);
     }
 }
 module.exports = BuilderOperation;

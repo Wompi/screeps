@@ -1,7 +1,8 @@
-class ReserveOperation
+class ReserveOperation extends Operation
 {
     constructor(pNames,pRoom)
     {
+        super('ReserveOperation');
         this.RESERVE_ROOM = pRoom[0];
         this.mCreepNames = pNames
         this.mCreeps = undefined;
@@ -97,7 +98,7 @@ class ReserveOperation
 
                 // TODO: consider a path approach here
                 let aRange = PMan.getCleanPath(aSpawn.pos,this.mReservePosition).path.length;
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.reserver, travelRange: aRange});
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.reserver, travelRange: aRange, spawn: aSpawn.pos.wpos.serialize()});
                 this.log(LOG_LEVEL.info,'reserver createCreep - '+ErrorString(res));
             }
         }
@@ -124,11 +125,6 @@ class ReserveOperation
     searchReserveRoom()
     {
         return new RoomPosition(35,23,this.RESERVE_ROOM);
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'ReserveOperation: '+pMsg);
     }
 }
 module.exports = ReserveOperation;

@@ -18,6 +18,7 @@ class ProxyCache
         this.mCacheAge = 0;
         this.mCacheUpdateDelta = 0;
         this.mDerpCacheMapper = {};
+        this.mHostileDerpCacheMapper = {};
 
 //        this._mCacheMapper = new ProxyCacheMapper(this._mCache);
     }
@@ -208,6 +209,26 @@ class ProxyCache
         });
     }
 
+    _mapEntities()
+    {
+        this.mDerpCacheMapper = {};
+        this.mHostileDerpCacheMapper = {};
+
+        _.each(this._mCache, (aProxy,aID) =>
+        {
+            if (aProxy.isMy)
+            {
+                let aList = Mem.getEnsured(this.mDerpCacheMapper, aProxy.entityType,[]);
+                aList.push(aProxy);
+            }
+            else if (!aProxy.isMy)
+            {
+                let aList = Mem.getEnsured(this.mHostileDerpCacheMapper, aProxy.entityType,[]);
+                aList.push(aProxy);
+            }
+        });
+
+    }
 
     // -------------------------------- PUBLIC FUNCTIONS ----------------------------------------
 
@@ -217,13 +238,14 @@ class ProxyCache
         this.mCacheUpdateDelta = Game.time - this.mLastTick;
 
         // TODO: remember this - this is ugly and dangerous
-        this.mDerpCacheMapper = {};
 
         this._updateSavedEntities();
         this._updateChangingEntities();
 
         // NOTE: make sure this comes after the _updateChangingEntities() so the new entities get a fresh update
+        this._mapEntities();
         _.each(this._mCache, (aProxy,aID) => this._updateEntityProxy(aProxy));
+
 
         this.mLastTick = Game.time;
     }
@@ -249,16 +271,7 @@ class ProxyCache
         let result = undefined;
         Pro.register( () =>
         {
-            result = _.get(this.mDerpCacheMapper,pType);
-            if (_.isUndefined(result))
-            {
-                result = _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && aProxy.isMy));
-                _.set(this.mDerpCacheMapper,pType,result);
-            }
-            else
-            {
-                //Log(LOG_LEVEL.error,'CACHE '+pType+' reused!');
-            }
+            result = _.get(this.mDerpCacheMapper,pType,[]);
         },'getFriendlyEntityCache()');
         return result;
     }
@@ -270,8 +283,6 @@ class ProxyCache
         return aProxy;
     }
 
-
-
     getAllEntityCache(pType)
     {
         return _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType));
@@ -282,16 +293,7 @@ class ProxyCache
         let result = undefined;
         Pro.register( () =>
         {
-            result = _.get(this.mDerpCacheMapper,pType);
-            if (_.isUndefined(result))
-            {
-                result = _.map(_.filter(this._mCache, (aProxy) => aProxy.entityType == pType && !aProxy.isMy));
-                _.set(this.mDerpCacheMapper,pType,result);
-            }
-            else
-            {
-                //Log(LOG_LEVEL.error,'CACHE '+pType+' reused!');
-            }
+            result = _.get(this.mHostileDerpCacheMapper,pType,[]);
         },'getHostileEntityCache()');
         return result;    }
 

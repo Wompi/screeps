@@ -1,7 +1,8 @@
-class ClaimOperation
+class ClaimOperation extends Operation
 {
     constructor(pName,pRooms)
     {
+        super('ClaimOperation');
         this.CLAIM_ROOMS = pRooms;
         this.mCreepName = pName
         this.mCreep = undefined;
@@ -37,7 +38,7 @@ class ClaimOperation
         {
             if (this.mResources.length > 0)
             {
-                var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(pCreep));
+                var aResource = _.find(this.mResources, (aDrop) => aDrop.pos.isNearTo(pCreep) && aDrop.resourceType == RESOURCE_ENERGY);
                 if (!_.isUndefined(aResource))
                 {
                     let res = pCreep.pickup(aResource.entity);
@@ -60,7 +61,7 @@ class ClaimOperation
             let aBox = undefined;
             if (myBoxes.length > 0)
             {
-                aBox = _.min(myBoxes, (aS) => PMan.getCleanPath(aS.pos,pCreep.pos).path.length);
+                aBox = _.min(myBoxes, (aS) =>  aS.pos.wpos.getRangeTo(pCreep.pos.wpos));  /// PMan.getCleanPath(aS.pos,pCreep.pos).path.length);
             }
 
             let aTarget = undefined
@@ -175,7 +176,7 @@ class ClaimOperation
 
                 // TODO: consider a path approach here
                 if (!_.isUndefined(aName)) aName = this.mCreepName;
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.claimer})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.claimer, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'claimer createCreep - '+ErrorString(res));
             }
         }
@@ -294,12 +295,6 @@ class ClaimOperation
         //let derp = ((aController.ticksToDowngrade < 1000) ? aController.pos : undefined);
         //this.log(LOG_LEVEL.debug,'DERP: '+derp+' '+JS(aController));
         return aController.pos;
-    }
-
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'ClaimOperation: '+pMsg);
     }
 }
 module.exports = ClaimOperation;

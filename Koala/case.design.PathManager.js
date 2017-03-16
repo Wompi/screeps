@@ -159,20 +159,20 @@ class PathManager
 
         let a = this.derpTest(aSP,aSTP,COLOR.yellow);           // spawn -> storage
         let b = this.derpTest(aSP,aSNP,COLOR.blue,a.path);      // spawn -> source near
-        // let c = this.derpTest(aSP,aSFP,COLOR.red,a.path);       // spawn -> source far
-        // let d = this.derpTest(aMP,aSTP,COLOR.green,a.path);       // mineral -> storage
-        //
-        // let e = this.derpTest(aSP,bSNP,COLOR.blue,c.path);       // spawn -> room W48N83 source near
-        // let f = this.derpTest(aSP,bCP,COLOR.yellow,e.path);       // spawn -> room W48N83 controller
-        //
-        // let g = this.derpTest(aSP,cSNP,COLOR.blue,e.path);       // spawn -> room W48N84 source near
-        // let h = this.derpTest(aSP,cSFP,COLOR.red,g.path);       // spawn -> room W48N84 source far
-        // let i = this.derpTest(aSP,cCP,COLOR.yellow,g.path);       // spawn -> room W48N84 controller
-        //
-        // let j = this.derpTest(aSP,dSNP,COLOR.blue,a.path);       // spawn -> room W47N83 source near
-        // let k = this.derpTest(aSP,dCP,COLOR.yellow,j.path);       // spawn -> room W47N83 controller
-        // let l = this.derpTest(aSP,dSFP,COLOR.red,j.path);       // spawn -> room W47N83 source far
-        //
+        let c = this.derpTest(aSP,aSFP,COLOR.red,a.path);       // spawn -> source far
+        let d = this.derpTest(aMP,aSTP,COLOR.green,a.path);       // mineral -> storage
+
+        let e = this.derpTest(aSP,bSNP,COLOR.blue,c.path);       // spawn -> room W48N83 source near
+        let f = this.derpTest(aSP,bCP,COLOR.yellow,e.path);       // spawn -> room W48N83 controller
+
+        let g = this.derpTest(aSP,cSNP,COLOR.blue,e.path);       // spawn -> room W48N84 source near
+        let h = this.derpTest(aSP,cSFP,COLOR.red,g.path);       // spawn -> room W48N84 source far
+        let i = this.derpTest(aSP,cCP,COLOR.yellow,g.path);       // spawn -> room W48N84 controller
+
+        let j = this.derpTest(aSP,dSNP,COLOR.blue,a.path);       // spawn -> room W47N83 source near
+        let k = this.derpTest(aSP,dCP,COLOR.yellow,j.path);       // spawn -> room W47N83 controller
+        let l = this.derpTest(aSP,dSFP,COLOR.red,j.path);       // spawn -> room W47N83 source far
+        
         let m = this.derpTest(aSP,eSNP,COLOR.blue,b.path);       // spawn -> room W47N83 source near
         let n = this.derpTest(aSP,eCP,COLOR.yellow,m.path);       // spawn -> room W47N83 controller
         let o = this.derpTest(aSP,eSFP,COLOR.red,n.path);       // spawn -> room W47N83 source far
@@ -209,8 +209,9 @@ class PathManager
         // let c = this.derpTest(aPOS,dPOS, COLOR.red,a.path);
 
 
-        let d = this.derpTest(aPOS,ePOS);
-        let e = this.derpTest(aPOS,fPOS, COLOR.blue,d.path);
+        let d = this.derpTest(aPOS,jPOS);
+        let e = this.derpTest(aPOS,kPOS, COLOR.blue,d.path);
+        let f = this.derpTest(aPOS,lPOS, COLOR.blue,d.path);
 
         // let g = this.derpTest(aPOS,hPOS, COLOR.blue,e.path);
         // let h = this.derpTest(aPOS,iPOS, COLOR.red,g.path);

@@ -1,7 +1,8 @@
-class HaulerOperation
+class HaulerOperation extends Operation
 {
     constructor(pStorage)
     {
+        super('HaulerOperation');
         this.mCreep = undefined;
         this.mTasks = [];
         this.mStorage = pStorage;
@@ -17,7 +18,6 @@ class HaulerOperation
         });
         this.mResources =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.resource), (aR) => aR.pos.roomName == this.mRoom.name);
     }
-
 
     processOperation()
     {
@@ -148,7 +148,7 @@ class HaulerOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.extensionHauler, target: aRoomID})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.extensionHauler, target: aRoomID, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
             }
         }
@@ -191,9 +191,5 @@ class HaulerOperation
         return aResult;
     }
 
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'HaulerOperation '+this.mRoom.name+' : '+pMsg);
-    }
 }
 module.exports = HaulerOperation;

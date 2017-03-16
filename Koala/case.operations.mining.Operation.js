@@ -1,7 +1,8 @@
-class MiningOperation
+class MiningOperation extends Operation
 {
     constructor(pSource)
     {
+        super('MiningOperation');
         this.mSource = pSource;
         this.mTasks = [];
         this.mCreep = undefined;
@@ -9,8 +10,14 @@ class MiningOperation
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
         this.mTowers = PCache.getFriendlyEntityCache(ENTITY_TYPES.tower);
 
-        //this.mStorage =  _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] < 500000);
-        this.mStorage =  _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => _.sum(aS.store) < aS.storeCapacity);
+        let myStorages =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] < 500000);
+        this.mStorage = undefined;
+        if (myStorages.length > 0)
+        {
+            this.mStorage = _.min(myStorages, (aS) => aS.pos.wpos.getRangeTo(this.mSource.pos.wpos));
+        }
+
+        //this.mStorage =  _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => _.sum(aS.store) < aS.storeCapacity);
 
 
         // TODO: super iffy - change this ASAP
@@ -109,7 +116,7 @@ class MiningOperation
                 let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
                 let myDropBoxes = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aB) =>
                 {
-                    let aExtractor = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => _.isUndefined(aE.miningBox) && aE.miningBox.pos.isEqualTo(aB.pos));
+                    let aExtractor = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => !_.isUndefined(aE.miningBox) && aE.miningBox.pos.isEqualTo(aB.pos));
                     if (!_.isUndefined(aExtractor)) return false;
                     let aMultiplier = hasStorage ? 0.30 : 0.8;
                     let aBay = _.find(myBays,(aS) => aS.pos.isEqualTo(aB) && _.sum(aB.store) < aB.storeCapacity*aMultiplier);
@@ -120,6 +127,9 @@ class MiningOperation
                 {
                     aDropBox = _.min(myDropBoxes,(aB) => aB.pos.getRangeTo(this.mHauler));
                 }
+
+
+
 
                 // TODO: this is a bit tricky and should be changed
                 // the hauler has to go through the extension room so this will work here - change it when
@@ -331,7 +341,7 @@ class MiningOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.miner, target: aSourceID})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.miner, target: aSourceID, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'miner createCreep - '+ErrorString(res));
             }
         }
@@ -434,7 +444,7 @@ class MiningOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.miningHauler, target: aSourceID, pathLen: aPathLen})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.miningHauler, target: aSourceID, pathLen: aPathLen, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
             }
         }
@@ -502,11 +512,6 @@ class MiningOperation
             let res = this.mHauler.travelTo({pos: aPos}, {range: 0, plainCost: 5});
             this.log(LOG_LEVEL.info,'hauler '+this.mHauler.name+' moves to idle pos '+ErrorString(res));
         }
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'MiningOperation '+this.mSource.pos.toString()+': '+pMsg);
     }
 }
 module.exports = MiningOperation;

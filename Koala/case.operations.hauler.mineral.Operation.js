@@ -1,7 +1,8 @@
-class MineralHaulerOperation
+class MineralHaulerOperation extends Operation
 {
     constructor(pRoom)
     {
+        super('MineralHaulerOperation');
         this.mRoom = pRoom;
         this.mCreep = undefined;
         this.mExtractor = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => aE.pos.roomName == this.mRoom.name);
@@ -63,8 +64,6 @@ class MineralHaulerOperation
 
         if (!_.isUndefined(this.mCreep)) return;
 
-        this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name);
-
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
         {
             if (_.isUndefined(aCreepMem.target)) return false;
@@ -95,7 +94,7 @@ class MineralHaulerOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.mineralHauler, target: aRoomID})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.mineralHauler, target: aRoomID, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'hauler createCreep - '+ErrorString(res));
             }
         }
@@ -130,11 +129,6 @@ class MineralHaulerOperation
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
         return aResult;
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'MineralHaulerOperation: '+pMsg);
     }
 }
 module.exports = MineralHaulerOperation;

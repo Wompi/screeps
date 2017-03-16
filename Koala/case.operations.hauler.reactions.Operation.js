@@ -1,7 +1,8 @@
-class ReactionsHaulerOperation
+class ReactionsHaulerOperation extends Operation
 {
     constructor(pRoom)
     {
+        super('ReactionsHaulerOperation');
         this.mRoom = pRoom;
         this.mCreep = undefined;
         this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aL) => aL.pos.roomName == this.mRoom.name);
@@ -35,7 +36,7 @@ class ReactionsHaulerOperation
 
         if ((L1.mineralAmount > 100 && L2.mineralAmount > 100)
                 || _.isUndefined(this.mStorage.store['L']) || this.mStorage.store['L'] < 50
-                || _.isUndefined(this.mStorage.store['H']) || this.mStorage.store['H'] < 50  
+                || _.isUndefined(this.mStorage.store['H']) || this.mStorage.store['H'] < 50
                 )
         {
             // TODO: move to a proper idle position;
@@ -128,7 +129,7 @@ class ReactionsHaulerOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.reactionHauler, target: aRoomID});
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.reactionHauler, target: aRoomID, spawn: aSpawn.pos.wpos.serialize()});
                 this.log(LOG_LEVEL.info,'reserver createCreep - '+ErrorString(res));
             }
         }
@@ -156,11 +157,6 @@ class ReactionsHaulerOperation
 
         this.log(LOG_LEVEL.debug,'body: '+JS(aResult));
         return aResult;
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'ReactionsHaulerOperation: '+pMsg);
     }
 }
 module.exports = ReactionsHaulerOperation;

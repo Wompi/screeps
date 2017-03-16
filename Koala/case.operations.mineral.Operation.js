@@ -1,7 +1,8 @@
-class MineralOperation
+class MineralOperation extends Operation
 {
     constructor(pCount,pExtractor)
     {
+        super('MineralOperation');
         this.mExtractor = pExtractor;
         this.mRoom = this.mExtractor.room;
         this.mCreep = undefined;
@@ -37,7 +38,11 @@ class MineralOperation
             // because a upgrader can not handle minerals nad will dropp it on dead then the other upgrader
             // pick it up again and again
             let aBox = this.mExtractor.miningBox;
-            let res = this.mCreep.transfer(aBox.entity,_.findKey(this.mCreep.carry));
+            if (!_.isUndefined(aBox))
+            {
+                let res = this.mCreep.transfer(aBox.entity,_.findKey(this.mCreep.carry));
+            }
+            this.log(LOG_LEVEL.debug,'extractor not ready! '+this.mExtractor.pos.toString());
             return;
         }
 
@@ -97,11 +102,6 @@ class MineralOperation
             aCreep.memory.role = CREEP_ROLE.mineral;
             return;
         }
-    }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'MineralOperation: '+pMsg);
     }
 }
 module.exports = MineralOperation;

@@ -1,7 +1,8 @@
-class FixerOperation
+class FixerOperation extends Operation
 {
     constructor()
     {
+        super('FixerOperation');
         this.mCreep = undefined;
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
     }
@@ -16,6 +17,48 @@ class FixerOperation
     doFixing()
     {
         if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
+
+
+        if (!_.any(this.mCreep.body, i => !!i.boost))
+        {
+            let aPartCount = this.mCreep.getActiveBodyparts(WORK);
+            let aLab = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aL) =>
+            {
+                // this.log(undefined,'D1');
+                if (!aL.pos.isNearTo(this.mCreep)) return false;
+                // this.log(undefined,'D2');
+                if (_.isUndefined(aL.mineralType)) return false;
+                // this.log(undefined,'D3');
+                if (aL.mineralType != 'LH') return false;
+                // this.log(undefined,'D4');
+
+                if (aL.energy < (aPartCount * 20)) return false;
+                // this.log(undefined,'D5');
+
+                if (aL.mineralAmount < (aPartCount * 30 )) return false;
+                // this.log(undefined,'D6');
+                return true;
+            })
+            if (!_.isUndefined(aLab))
+            {
+                let res = aLab.boostCreep(this.mCreep);
+                // this.log(undefined,'DERP: '+ErrorString(res));
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         if (this.mResources.length > 0)
         {
@@ -214,7 +257,7 @@ class FixerOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.fixer, target: aTarget})
+                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.fixer, target: aTarget, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'fixer createCreep - '+ErrorString(res));
             }
         }
@@ -281,7 +324,8 @@ class FixerOperation
                     {   x: 24,   y: 48, roomName:"W47N84", next:  i++, },
 
                     {   x: 22,   y:  1, roomName:"W47N83", next:  i++, },
-                    {   x: 19,   y: 33, roomName:"W47N83", next:  i++, },
+                    {   x: 24,   y: 34, roomName:"W47N83", next:  i++, },
+                    {   x: 25,   y: 21, roomName:"W47N83", next:  i++, },
                     {   x: 19,   y: 14, roomName:"W47N83", next:  i++, },
                     {   x:  7,   y: 26, roomName:"W47N83", next:  i++, },
                     {   x: 22,   y:  1, roomName:"W47N83", next:  i++, },
@@ -300,11 +344,5 @@ class FixerOperation
 
                 ];
     }
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'FixerOperation: '+pMsg);
-    }
-
 }
 module.exports = FixerOperation;

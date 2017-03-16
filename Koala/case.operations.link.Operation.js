@@ -41,10 +41,5 @@ class LinkOperation extends Operation
             })
         });
     }
-
-    // log(pLevel,pMsg)
-    // {
-    //     Log(pLevel,'LinkOperation: '+this.mRoom.name+': '+pMsg);
-    // }
 }
 module.exports = LinkOperation;

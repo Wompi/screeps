@@ -1,7 +1,8 @@
-class LoadingOperation
+class LoadingOperation extends Operation
 {
     constructor(pCenterPos)
     {
+        super('LoadingOperation');
         this.mCenter = pCenterPos;
         this.mCreep = undefined;
         this.mBay = {};
@@ -21,10 +22,8 @@ class LoadingOperation
 
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
         this.mConstructionSites = _.map(this.mBay[ENTITY_TYPES.constructionSite]);
-        this.mWalls = [];
-        this.mRamparts =[];
         this.mWalls = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructedWall), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_WALL_HITS);
-        this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_RAMPART_HITS);
+        this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3));
 
         this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aLab) => aLab.pos.isNearTo(this.mCenter));
 
@@ -32,7 +31,7 @@ class LoadingOperation
 
     processOperation()
     {
-        this.log(LOG_LEVEL.error,'processOperation()')
+        this.log(LOG_LEVEL.error,'processOperation() '+this.mCenter.toString())
 
         var aCount = {}
         _.each(this.mBay,(aValue,aKey) => aCount[aKey] = _.size(aValue));
@@ -488,6 +487,7 @@ class LoadingOperation
         var myCreeps = getCreepsForRole(CREEP_ROLE.bayLoader);
         var aCenterID = this.mCenter.id;
         this.mCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aCenterID);
+
         if (!_.isUndefined(this.mCreep)) return;
 
         var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
@@ -497,19 +497,18 @@ class LoadingOperation
             return aCreepMem.target == aCenterID && aCreepMem.role == CREEP_ROLE.bayLoader;
         });
 
-
         let aBody = this.getBody();
         let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
         {
             return  aS.room.energyAvailable >= aBody.aCost;
         })
-
+        this.log(undefined,JS(mySpawns));
         if (mySpawns.length > 0)
         {
             // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
             // the distance to the labs or something - or the storage <- this it probably is
             let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(this.mCenter.wpos));
-
+            
             if (!_.isUndefined(aSpawn))
             {
                 if (aSpawn.spawning)
@@ -521,7 +520,7 @@ class LoadingOperation
                 this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-               let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.bayLoader, target: aCenterID})
+               let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.bayLoader, target: aCenterID, spawn: aSpawn.pos.wpos.serialize()})
                this.log(LOG_LEVEL.info,'createCreep - '+ErrorString(res));
             }
         }
@@ -552,7 +551,7 @@ class LoadingOperation
         var aSpawn = _.max(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) => aS.room.energyCapacityAvailable);
         let aEnergy = aSpawn.room.energyCapacityAvailable;
         var hasSites = !_.isUndefined(this.mBay[ENTITY_TYPES.constructionSite]);
-        var hasWalls = this.mWalls.length > 0;
+        var hasWalls = this.mWalls.length > 0 || _.filter(this.mRamparts, (aR) => aR.hits < DEFAULT_RAMPART_HITS).length > 0;
         var aBody =
         {
             [WORK]:
@@ -613,14 +612,6 @@ class LoadingOperation
                 _.set(this.mBay,[aType,aID],aProxy);
             }
         })
-    }
-
-
-
-
-    log(pLevel,pMsg)
-    {
-        Log(pLevel,'LoadingOperation '+this.mCenter.toString()+': '+pMsg);
     }
 }
 module.exports = LoadingOperation;
