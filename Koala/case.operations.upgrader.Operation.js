@@ -8,7 +8,7 @@ class UpgraderOperation extends Operation
         this.mController = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.controller), (aController) => aController.pos.roomName == this.mRoomName);
         this.mCreep = undefined;
         this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aStorage) => aStorage.pos.roomName == this.mRoomName);
-        this.mResources =  PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
+        this.mResources =  _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.resource),(aR) => aR.resourceType == RESOURCE_ENERGY);
 
         this.mConstructions = PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite);
     }
@@ -46,7 +46,7 @@ class UpgraderOperation extends Operation
 
         if (_.sum(this.mCreep.carry) == 0)
         {
-            if (!this.mCreep.pos.isNearTo(this.mStorage))
+            if (!this.mCreep.pos.isNearTo(this.myStorages))
             {
                 let res = this.mCreep.travelTo(this.mStorage.entity);
             }
@@ -135,7 +135,7 @@ class UpgraderOperation extends Operation
         var aSearch =
         {
             name: WORK,
-            max: 10,
+            max: 20,       // TODO: if only 1 spawn 10 is the somewhat better value
         };
         var aBodyOptions =
         {

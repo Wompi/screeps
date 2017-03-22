@@ -132,7 +132,20 @@ class Traveler {
         });
     }
 
-    travelTo(creep, destination, options = {}) {
+    travelTo(creep, destination, options = {})
+    {
+        let res = undefined;
+        Pro.register( () =>
+        {
+            res = this._travelTo(creep,destination,options);
+        }, '-------------- TRAVEL TO --------------------');
+        return res;
+    }
+
+
+
+
+    _travelTo(creep, destination, options = {}) {
         // register hostile rooms entered
         if (creep.room.controller) {
             if (creep.room.controller.owner && !creep.room.controller.my) {

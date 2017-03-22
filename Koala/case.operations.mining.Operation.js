@@ -77,7 +77,10 @@ class MiningOperation extends Operation
         {
             if (_.isUndefined(this.mCreep) || !this.mCreep.pos.isEqualTo(aBox.pos))
             {
-                this.moveHaulerToIdlePosition(aBox);
+                //if (this.mHauler.pos.inRangeTo(aBox,3))
+                {
+                    this.moveHaulerToIdlePosition(aBox);
+                }
                 return;
             }
 
@@ -86,18 +89,22 @@ class MiningOperation extends Operation
                 let res = this.mHauler.travelTo(aBox, {plainCost: 5});
                 this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' move to box '+ErrorString(res));
             }
-
-            let res = this.mHauler.withdraw(aBox.entity,_.findKey(aBox.store));
-            this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' grab from box '+ErrorString(res));
+            else
+            {
+                let res = this.mHauler.withdraw(aBox.entity,_.findKey(aBox.store));
+                this.log(LOG_LEVEL.debug,' hauler '+this.mHauler.name+' grab from box '+ErrorString(res));
+            }
         }
         else
         {
             let aTower = _.find(this.mTowers,(aT) =>
             {
+                if ( aT.pos.roomName != this.mHauler.pos.roomName ) return false;
+                if (aT.energy == aT.energyCapacity) return false;
                 let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
                 let aBay = _.find(myBays, (aB) => aB.pos.isNearTo(aT.pos));
                 if (!_.isUndefined(aBay)) return false;
-                return aT.pos.roomName == this.mHauler.pos.roomName && aT.energy < aT.energyCapacity
+                return true;
             });
             if (!_.isUndefined(aTower))
             {
@@ -105,8 +112,11 @@ class MiningOperation extends Operation
                 {
                     let res = this.mHauler.travelTo(aTower.entity,{plainCost: 5});
                 }
-                let res = this.mHauler.transfer(aTower.entity,RESOURCE_ENERGY);
-                this.log(LOG_LEVEL.debug,'hauler '+this.mHauler.name+' transfer tower '+aTower.pos.toString());
+                else
+                {
+                    let res = this.mHauler.transfer(aTower.entity,RESOURCE_ENERGY);
+                    this.log(LOG_LEVEL.debug,'hauler '+this.mHauler.name+' transfer tower '+aTower.pos.toString());
+                }
             }
             else
             {
@@ -211,16 +221,32 @@ class MiningOperation extends Operation
             }
 
             let aSourceType = this.mSource.getSourceType();
-            if (aSourceType.type == SOURCE_TYPE.drop || (aSourceType.type == SOURCE_TYPE.link && (aSourceType.target.energy < aSourceType.target.energyCapacity) )  || (aSourceType.type == SOURCE_TYPE.box && aSourceType.target.store[RESOURCE_ENERGY] < aSourceType.target.storeCapacity))
+            if (
+                    aSourceType.type == SOURCE_TYPE.drop
+                    ||
+                    (
+                        aSourceType.type == SOURCE_TYPE.link
+                        &&
+                        (aSourceType.target.energy < aSourceType.target.energyCapacity)
+                    )
+                    ||
+                    (
+                        aSourceType.type == SOURCE_TYPE.box
+                        &&
+                        aSourceType.target.store[RESOURCE_ENERGY] < aSourceType.target.storeCapacity
+                    )
+                )
             {
                 let res = this.mCreep.harvest(this.mSource.entity);
             }
             else if (this.mSource.hasBox() && this.mCreep.getActiveBodyparts(CARRY) > 0)
             {
-                this.mCreep.withdraw(aSourceType.target.entity, RESOURCE_ENERGY);
-                let res = this.mCreep.repair(aSourceType.target.entity);
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' repair local box '+aSourceType.target.pos.toString()+' res: '+ErrorString(res));
-
+                if (aSourceType.target.hits < aSourceType.target.hitsMax)
+                {
+                    this.mCreep.withdraw(aSourceType.target.entity, RESOURCE_ENERGY);
+                    let res = this.mCreep.repair(aSourceType.target.entity);
+                    this.log(LOG_LEVEL.debug,this.mCreep.name+' repair local box '+aSourceType.target.pos.toString()+' res: '+ErrorString(res));
+                }
             }
 
             if (!_.isUndefined(aSourceType.target))
@@ -316,7 +342,7 @@ class MiningOperation extends Operation
         let aBody = this.getMinerBody();
         let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
         {
-            return  aS.room.energyAvailable >= aBody.aCost;
+            return  !aS.spawning && aS.room.energyAvailable >= aBody.aCost;
         })
 
         if (mySpawns.length > 0)

@@ -325,12 +325,16 @@ class FixerOperation extends Operation
 
                     {   x: 22,   y:  1, roomName:"W47N83", next:  i++, },
                     {   x: 24,   y: 34, roomName:"W47N83", next:  i++, },
+                    {   x: 20,   y: 34, roomName:"W47N83", next:  i++, },
+                    {   x:  7,   y: 43, roomName:"W47N83", next:  i++, },
                     {   x: 25,   y: 21, roomName:"W47N83", next:  i++, },
                     {   x: 19,   y: 14, roomName:"W47N83", next:  i++, },
                     {   x:  7,   y: 26, roomName:"W47N83", next:  i++, },
                     {   x: 22,   y:  1, roomName:"W47N83", next:  i++, },
 
                     {   x: 16,   y:  3, roomName:"W47N84", next:  i++, },
+                    {   x: 24,   y: 14, roomName:"W47N84", next:  i++, },
+                    {   x: 27,   y: 11, roomName:"W47N84", next:  i++, },
                     {   x:  1,   y: 38, roomName:"W47N84", next:  i++, },
 
                     {   x: 48,   y: 36, roomName:"W48N84", next:  i++, },

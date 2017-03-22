@@ -239,12 +239,23 @@ class ProxyCache
 
         // TODO: remember this - this is ugly and dangerous
 
-        this._updateSavedEntities();
-        this._updateChangingEntities();
+        Pro.register( () =>
+        {
+            this._updateSavedEntities();
+            this._updateChangingEntities();
+        },'---------------------------------------- update save/changing entities');
 
         // NOTE: make sure this comes after the _updateChangingEntities() so the new entities get a fresh update
-        this._mapEntities();
-        _.each(this._mCache, (aProxy,aID) => this._updateEntityProxy(aProxy));
+        Pro.register( () =>
+        {
+            this._mapEntities();
+        },'---------------------------------------- update mapentities');
+
+
+        Pro.register( () =>
+        {
+            _.each(this._mCache, (aProxy,aID) => this._updateEntityProxy(aProxy));
+        },'---------------------------------------- update update all');
 
 
         this.mLastTick = Game.time;

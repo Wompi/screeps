@@ -14,7 +14,7 @@ class BuilderOperation extends Operation
         this.mCreep = undefined;
         this.mHauler = undefined;
         this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
-        this.mStorages = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] > 0);
+        this.mStorages = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.store[RESOURCE_ENERGY] > 50000);
     }
 
     processOperation()
@@ -64,17 +64,42 @@ class BuilderOperation extends Operation
             let res = this.mCreep.withdraw(aNearBox.entity,RESOURCE_ENERGY);
         }
 
-
         if (this.mStorages.length > 0 && _.sum(this.mCreep.carry) == 0)
         {
             // TODO: change this to WorldPosition
-            let aTarget = _.min(this.mStorages, (aS) => PMan.getCleanPath(this.mCreep.pos,aS.pos).path.length);
-            let res = this.mCreep.travelTo(aTarget);
-            this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
-            if (this.mCreep.pos.isNearTo(aTarget))
+        //    let aTarget = _.min(this.mStorages, (aS) => aS.pos.wpos.getRangeTo(this.mCreep.pos.wpos));
+
+            /// TODO: save this somehow
+            let aTarget =  _.min(this.mStorages, (aStorage) =>
             {
-                let res = this.mCreep.withdraw(aTarget.entity,RESOURCE_ENERGY);
-                this.log(LOG_LEVEL.debug,this.mCreep.name+' grabs from storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                let aPath =  PMan.getCleanPath(this.mCreep.pos,aStorage.pos,undefined);
+                // let len = aPath.path.length;
+                //
+                //  let aRoomPath = {}
+                //  _.each(aPath.path, (aPathPos) =>
+                //  {
+                //      let a = _.get(aRoomPath,aPathPos.roomName,[]);
+                //      a.push(aPathPos);
+                //      _.set(aRoomPath,aPathPos.roomName, a);
+                //  });
+                //
+                //  _.each(aRoomPath, (aP,aName) =>
+                //  {
+                //      new RoomVisual(aName).poly(aP,{lineStyle: 'dashed' , stroke: COLOR.yellow, opacity: 1});
+                //      new RoomVisual(aName).text(aP.length+'('+len+')',_.last(aP));
+                //  });
+                return aPath.path.length;
+            });
+            if (!_.isUndefined(aTarget))
+            {
+
+                let res = this.mCreep.travelTo(aTarget);
+                this.log(LOG_LEVEL.debug,this.mCreep.name+' moves to storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                if (this.mCreep.pos.isNearTo(aTarget))
+                {
+                    let res = this.mCreep.withdraw(aTarget.entity,RESOURCE_ENERGY);
+                    this.log(LOG_LEVEL.debug,this.mCreep.name+' grabs from storage '+aTarget.pos.toString()+' res: '+ErrorString(res));
+                }
             }
         }
         else if (!this.mCreep.pos.inRangeTo(aSite,3))

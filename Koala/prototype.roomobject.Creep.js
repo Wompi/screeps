@@ -131,12 +131,32 @@ Creep.prototype.getRepairTarget = function()
 	);
 }
 
+
+Creep.prototype.getEntityEvents = function()
+{
+    return {
+        currentEntity: () => Game.getObjectById(this.id),
+		onUpdate: (pProxy) =>
+		{
+			if (!pProxy.isMy)
+			{
+				pProxy.ticksToLive = this.ticksToLive;
+			}
+		},
+        onInvalid: (pLastUpdate,pProxy) => INVALID_ACTION.delete,
+    };
+}
+
+
+
+
 Creep.prototype.init = function(pProxy)
 {
     //Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
     pProxy.isMy = this.my;
 	pProxy.bodySize = _.size(this.body);
 	pProxy.spawnTime = this.bodySize * CREEP_SPAWN_TIME;
+	pProxy.ticksToLive = this.ticksToLive;
 }
 
 

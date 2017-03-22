@@ -14,7 +14,7 @@ class Market
                                 //RESOURCE_ENERGY,
                             //    RESOURCE_OXYGEN,
                             //    RESOURCE_UTRIUM,
-                            //    RESOURCE_LEMERGIUM,
+                                RESOURCE_LEMERGIUM,
                             //    RESOURCE_KEANIUM,
                             //    RESOURCE_ZYNTHIUM,
                                 //RESOURCE_CATALYST,
@@ -49,55 +49,119 @@ class Market
 
     printOrderMap()
     {
-        _.each(this.mOrderMap, (aCount,aKey) =>
-        {
-            Log(LOG_LEVEL.debug,'R: '+aKey+' -> '+aCount);
-        })
+        // _.each(this.mOrderMap, (aCount,aKey) =>
+        // {
+        //     Log(LOG_LEVEL.debug,'R: '+aKey+' -> '+aCount);
+        // })
 
         _.each(this.mOrderBuyMap, (aList,aKey) =>
         {
-            let aTest = aList;//_.take(_.sortByOrder(aList,'price','desc'),3);
-            Log(LOG_LEVEL.debug,'O: '+aKey+' -> '+aList.length);
-
-            var aReport = [];
-            var aHeader = ['ID','TYPE','ROOM','RANGE','PRICE','AMOUNT','COST','CREDITS','DERP'];
-
-            _.each(aTest, (aO) =>
+            if (RESOURCE_HYDROGEN == aKey)
             {
-                var aID = aO.id;
-                var aRoom = aO.roomName;
-                var aAmount = aO.amount;
-                var aPrice = aO.price;
-                var aType = aO.resourceType;
-                var aCost = Game.market.calcTransactionCost(aAmount,'W47N84',aRoom);
-                var aRange = Game.map.getRoomLinearDistance('W47N84',aRoom,true);
-                var aMargin = (aAmount * aPrice);
+                let aTest = aList;//_.take(_.sortByOrder(aList,'price','desc'),3);
+                //Log(LOG_LEVEL.debug,'O: '+aKey+' -> '+aList.length);
 
-                var derp = aMargin / (aAmount + aCost);
-                //Log(LOG_LEVEL.debug,'T: '+aO.type+' '+aO.resourceType+' '+aO.amount+' '+aO.price);
+                var aReport = [];
+                var aHeader = ['ID','TYPE','ROOM','RANGE','PRICE','AMOUNT','COST','CREDITS','DERP'];
 
-                aReport[aReport.length] = [aID,aType,aRoom,aRange,aPrice,aAmount,aCost,aMargin.toFixed(2),derp.toFixed(3)];
-            });
-            aReport = _.sortByOrder(aReport, (aSet) => aSet[8],'desc');
-
-            aReport = _.take(aReport,3);
-
-            let aTerminal = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.terminal), (aT) => !_.isUndefined(aT.store[aKey]));
-
-            _.each(aReport, (aR) =>
-            {
-                if (!_.isUndefined(aTerminal))
+                _.each(aTest, (aO) =>
                 {
-                    let aSellRoomName = aTerminal.pos.roomName;
-                    let aSellAmount = _.min([aTerminal.store[aKey],1]);
-                    let aCommand =  `Game.market.deal(${aR[0]},${aSellAmount},${aSellRoomName})`;
-                    let aBtn = makeButton(_.uniqueId('btn_'),undefined,'SELL',aCommand);
-                    aR.push(aBtn);
-                }
-            });
-            var aTable = this.table(aHeader,aReport);
-            Log(LOG_LEVEL.debug,aTable);
+                    var aID = aO.id;
+                    var aRoom = aO.roomName;
+                    var aAmount = aO.amount;
+                    var aPrice = aO.price;
+                    var aType = aO.resourceType;
+                    var aCost = Game.market.calcTransactionCost(aAmount,'W47N84',aRoom);
+                    var aRange = Game.map.getRoomLinearDistance('W47N84',aRoom,true);
+                    var aMargin = (aAmount * aPrice);
 
+                    var derp = aMargin / (aAmount + aCost);
+                    //Log(LOG_LEVEL.debug,'T: '+aO.type+' '+aO.resourceType+' '+aO.amount+' '+aO.price);
+
+                    if (aAmount > 0)
+                    {
+                        aReport[aReport.length] = [aID,aType,aRoom,aRange,aPrice,aAmount,aCost,aMargin.toFixed(2),derp.toFixed(3)];
+                    }
+                });
+
+                aReport = _.sortByOrder(aReport, (aSet) => aSet[8],'desc');
+
+                aReport = _.take(aReport,3);
+
+                let aTerminal = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.terminal), (aT) => !_.isUndefined(aT.store[aKey]));
+
+                _.each(aReport, (aR) =>
+                {
+                    if (!_.isUndefined(aTerminal))
+                    {
+                        let aSellRoomName = aTerminal.pos.roomName;
+                        let aSellAmount = _.min([aTerminal.store[aKey],aR[5]]);
+                        let aCommand =  `Game.market.deal('${aR[0]}',${aSellAmount},'${aSellRoomName}')`;
+                        //Log(LOG_LEVEL.debug,aCommand)
+                        let aBtn = makeButton(_.uniqueId('btn_sell_'),undefined,'SELL',aCommand);
+                        aR.push(aBtn);
+                        aR.push(aSellAmount);
+                    }
+                });
+                var aTable = this.table(aHeader,aReport);
+                Log(LOG_LEVEL.debug,aTable);
+            }
+        })
+
+
+        _.each(this.mOrderSellMap, (aList,aKey) =>
+        {
+
+            if (RESOURCE_LEMERGIUM == aKey)
+            {
+                let aTest = aList;//_.take(_.sortByOrder(aList,'price','desc'),3);
+                //Log(LOG_LEVEL.debug,'O: '+aKey+' -> '+aList.length);
+
+                var aReport = [];
+                var aHeader = ['ID','TYPE','ROOM','RANGE','PRICE','AMOUNT','COST','CREDITS','DERP'];
+
+                _.each(aTest, (aO) =>
+                {
+                    var aID = aO.id;
+                    var aRoom = aO.roomName;
+                    var aAmount = aO.amount;
+                    var aPrice = aO.price;
+                    var aType = aO.resourceType;
+                    var aCost = Game.market.calcTransactionCost(aAmount,'W47N84',aRoom);
+                    var aRange = Game.map.getRoomLinearDistance('W47N84',aRoom,true);
+                    var aMargin = (aAmount * aPrice);
+
+                    var derp =  aCost/aAmount * aPrice
+                    //Log(LOG_LEVEL.debug,'T: '+aO.type+' '+aO.resourceType+' '+aO.amount+' '+aO.price);
+
+                    if (aAmount > 0)
+                    {
+                        aReport[aReport.length] = [aID,aType,aRoom,aRange,aPrice,aAmount,aCost,aMargin.toFixed(2),derp.toFixed(3)];
+                    }
+                });
+
+                aReport = _.sortByOrder(aReport, (aSet) => aSet[8],'asc');
+
+                aReport = _.take(aReport,3);
+
+                //let aTerminal = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.terminal), (aT) => !_.isUndefined(aT.store[aKey]));
+
+                _.each(aReport, (aR) =>
+                {
+                    //if (!_.isUndefined(aTerminal))
+                    {
+                        let aSellRoomName = 'W47N84';
+                        let aSellAmount = aR[5];
+                        let aCommand =  `Game.market.deal('${aR[0]}',${aSellAmount},'${aSellRoomName}')`;
+                        //Log(LOG_LEVEL.debug,aCommand)
+                        let aBtn = makeButton(_.uniqueId('btn_buy_'),undefined,'BUY',aCommand);
+                        aR.push(aBtn);
+                        aR.push(aSellAmount);
+                    }
+                });
+                var aTable = this.table(aHeader,aReport);
+                Log(LOG_LEVEL.debug,aTable);
+            }
         })
 
 

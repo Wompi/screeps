@@ -44,13 +44,27 @@ class DefenseRemoteOperation extends Operation
             }
             else
             {
-                this.mCreep.travelTo(this.mCreep.room.controller, {range: 3});
-
-                if (this.mCreep.pos.inRangeTo(this.mCreep.room.controller,3))
-                {
-                    this.moveCreepFromRoad(this.mCreep);
-                }
                 this.doHeal();
+
+                let myCreeps = _.filter(Game.creeps,(aC) => aC.pos.roomName == this.mCreep.pos.roomName && aC.hits < aC.hitsMax);
+                if (myCreeps.length > 0)
+                {
+                    let aCreep = _.min(myCreeps, (aC) => aC.pos.getRangeTo(this.mCreep));
+                    if (!this.mCreep.pos.isNearTo(aCreep))
+                    {
+                        let res = this.mCreep.travelTo(aCreep);
+                    }
+                    this.mCreep.heal(aCreep);
+                }
+                else
+                {
+                    this.mCreep.travelTo(this.mCreep.room.controller, {range: 3});
+
+                    if (this.mCreep.pos.inRangeTo(this.mCreep.room.controller,3))
+                    {
+                        this.moveCreepFromRoad(this.mCreep);
+                    }
+                }
             }
         }
     }
@@ -203,7 +217,7 @@ class DefenseRemoteOperation extends Operation
         {
             [ATTACK]:
             {
-                count: 4
+                count: 5,
             },
             [HEAL]:
             {

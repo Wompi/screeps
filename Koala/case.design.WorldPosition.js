@@ -89,6 +89,7 @@ class WorldPosition
 	/** @returns String - name of the room this point belongs to */
 	getRoomName()
     {
+		// NOTE: change 50 -> 49
 		let [x,y] = [Math.floor(this.x / 50), Math.floor(this.y / 50)]
 		var result = "";
 		result += (x < 0 ? "W" + String(~x) : "E" + String(x));
@@ -183,8 +184,8 @@ class WorldPosition
 		if(!_.inRange(y, 0, 50)) throw new RangeError('y value ' + y + ' not in range');
 		if(roomName == 'sim') throw new RangeError('Sim room does not have world position');
 		let [name,h,wx,v,wy] = roomName.match(/^([WE])([0-9]+)([NS])([0-9]+)$/);
-		if(h == 'W') x = ~x;
-		if(v == 'N') y = ~y;
+		if(h == 'W') wx = ~wx;
+		if(v == 'N') wy = ~wy;
 		return new WorldPosition( (50*wx)+x, (50*wy)+y );
 	}
 

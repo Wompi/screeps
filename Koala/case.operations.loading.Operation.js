@@ -99,6 +99,7 @@ class LoadingOperation extends Operation
         }
 
 
+
         if (!this.mCreep.pos.isNearTo(this.mCenter))
         {
             let res = this.mCreep.travelTo({pos: this.mCenter});
@@ -295,6 +296,25 @@ class LoadingOperation extends Operation
         }
 
 
+        if (!_.isUndefined(this.mLink) && !_.isUndefined(this.mContainer) &&  (_.sum(this.mContainer.store)+ this.mCreep.carry[RESOURCE_ENERGY]) < (this.mContainer.storeCapacity))
+        {
+            let aStatus = this.mLink.getStatus();
+            if (aStatus.status != FILL_STATUS.isEmpty)
+            {
+                let aDir = this.mCenter.getDirectionTo(this.mLink.pos);
+                this.mTasks.push(
+                {
+                    priority: 0,
+                    target: this.mLink.entity,
+                    destination: this.mContainer.entity,
+                    task: 'L',  // link cleaning
+                    resource: RESOURCE_ENERGY,
+                    direction: (aDir % 2 + aDir),
+                });
+            }
+        }
+
+
         if (this.mLabs.length > 0)
         {
             _.each(this.mLabs, (aL) =>
@@ -462,7 +482,7 @@ class LoadingOperation extends Operation
 
                     let aType = this.mMineral.mineralType;
                     if ((_.isUndefined(this.mTerminal.store[aType]) || this.mTerminal.store[aType] < 30000)
-                            && !_.isUndefined(this.mStorage.store[aType]) && this.mStorage.store[aType] > 0)
+                            && !_.isUndefined(this.mStorage.store[aType]) && this.mStorage.store[aType] > 3000)
                     {
                         let aDir = this.mCenter.getDirectionTo(this.mTerminal);
                         this.mTasks.push(
@@ -508,7 +528,7 @@ class LoadingOperation extends Operation
             // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later
             // the distance to the labs or something - or the storage <- this it probably is
             let aSpawn = _.min(mySpawns, (aS) => aS.pos.wpos.getRangeTo(this.mCenter.wpos));
-            
+
             if (!_.isUndefined(aSpawn))
             {
                 if (aSpawn.spawning)

@@ -132,11 +132,23 @@ module.exports.loop = function ()
 
 
 
+
     Pro.register( () =>
     {
         let myOperations  = [
                 () => [new DefenseRemoteOperation('W46N83')],
                 () => [new DefenseOperation()],
+                () =>
+                {
+                    let myMineralHaulerOps = [];
+                    let myExtractors = PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor);
+                    let aCount = 0;
+                    _.each(myExtractors, (aE) =>
+                    {
+                        myMineralHaulerOps.push(new MineralHaulerOperation(PCache.getFriendlyEntityCacheByID(aE.room.id)));
+                    });
+                    return myMineralHaulerOps;
+                },
                 () => [new ReactionsHaulerOperation(Game.rooms['W47N84'])],
                 () =>
                 {
@@ -160,17 +172,6 @@ module.exports.loop = function ()
                         //myHaulerOps.push(new HaulerOperation(aS));
                     });
                     return myHaulerOps;
-                },
-                () =>
-                {
-                    let myMineralHaulerOps = [];
-                    let myExtractors = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => aE.isReady());
-                    let aCount = 0;
-                    _.each(myExtractors, (aE) =>
-                    {
-                        myMineralHaulerOps.push(new MineralHaulerOperation(PCache.getFriendlyEntityCacheByID(aE.room.id)));
-                    });
-                    return myMineralHaulerOps;
                 },
                 () => [new FixerOperation()],
                 () =>
@@ -205,13 +206,15 @@ module.exports.loop = function ()
                 () => [new UpgraderOperation('W47N84','U1')],
                 () => [new UpgraderOperation('W47N84','U2')],
                 () => [new UpgraderOperation('W47N84','U3')],
-                () => [new UpgraderOperation('W47N84','U4')],
-                () => [new UpgraderOperation('W47N84','U5')],
+                () => [new UpgraderOperation('W47N83','U4')],
+                () => [new UpgraderOperation('W47N83','U5')],
+                () => [new UpgraderOperation('W47N83','U6')],
                 () => [new BuilderOperation(0)],
                 () => [new BuilderOperation(1)],
                 () => [new BuilderOperation(2)],
                 () => [new BuilderOperation(3)],
                 () => [new BuilderOperation(4)],
+                () => [new BuilderOperation(5)],
                 () =>
                 {
                     let myMineralOps = [];
@@ -234,6 +237,8 @@ module.exports.loop = function ()
                 },
             ];
 
+
+
         myOperations = myOperations.reverse();
         _.each(myOperations, (aCall,aIndex) =>
         {
@@ -255,39 +260,6 @@ module.exports.loop = function ()
 
         });
     },'operations all')
-
-    let aCount = 0
-    let aCost = 0;
-    let myLive = [];
-    _.each(Game.creeps,(aC) =>
-    {
-        if (!aC.spawning)
-        {
-            myLive.push({
-                live: aC.ticksToLive,
-                spawn: aC.spawnTime,
-                tick: Game.time + aC.ticksToLive - (aC.getActiveBodyparts(CLAIM) ? CREEP_CLAIM_LIFE_TIME : CREEP_LIFE_TIME),
-                energy: aC.cost,
-            });
-            aCount = aCount + aC.spawnTime;
-            aCost = aCost + aC.cost;
-        }
-    });
-    myLive = _.sortBy(myLive,'tick');
-    let myDelta = []
-    let myOFF = []
-    _.each(myLive, (aS,i) =>
-    {
-        if (i > 0)
-        {
-            let a = myLive[i].tick - myLive[i-1].tick;
-            myDelta.push(a);
-            myOFF.push(a-aS.spawn);
-        }
-    })
-    Log(LOG_LEVEL.debug,'CREEPS: current all spawntime - '+aCount+' cost - '+aCost+' live: '+JS(myLive));
-    Log(LOG_LEVEL.debug,'DELTA: '+myDelta)
-    Log(LOG_LEVEL.debug,'OFF: '+myOFF);
 
     //PMan.newTest();
 
@@ -313,7 +285,12 @@ module.exports.loop = function ()
     //
     // },'market fetch');
 
-    Pro.printRegister();
+    //SpawnMan.makeStats();
+    //SpawnMan.printStats();
+
+    PMan.visualizePathFlags();
+
+    //Pro.printRegister();
     Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket+' '+SNode.printStats(false));
 
 

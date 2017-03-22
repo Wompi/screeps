@@ -22,7 +22,9 @@ class MineralHaulerOperation extends Operation
 
         let aBox = this.mExtractor.miningBox;
 
-        if (!_.sum(aBox.store) == 0 && !this.mExtractor.isReady() && _.sum(this.mCreep.carry) == 0)
+        //let aBox = Game.getObjectById('58be89d328c63a1e760f4582');
+
+        if (_.sum(aBox.store) == 0 && !this.mExtractor.isReady() && _.sum(this.mCreep.carry) == 0)
         {
             // TODO: find a way to handle idle state - maybe change him to a extension hauler -  but this is not ready yet
             // fo now we go to a idle pos
@@ -42,6 +44,7 @@ class MineralHaulerOperation extends Operation
                 let res = this.mCreep.travelTo(aBox);
             }
             let res = this.mCreep.withdraw(aBox.entity,_.findKey(aBox.store));
+            //let res = this.mCreep.withdraw(aBox,'H');
         }
         else if (!_.isUndefined(this.mStorage))
         {
@@ -114,7 +117,7 @@ class MineralHaulerOperation extends Operation
         var aSearch =
         {
             name: CARRY,
-            max: 6,
+            max: 10,
         };
         var aBodyOptions =
         {

@@ -20,6 +20,8 @@ class PathManager
 
 
 
+
+
     getPath(pos1,pos2)
     {
         var myPath = PathFinder.search(pos1,{ pos:pos2, range:1 },
@@ -131,6 +133,21 @@ class PathManager
         return myPath;
     }
 
+    visualizePathFlags()
+    {
+        let aStartFlag = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.pathFindingSTART);
+        if (_.isUndefined(aStartFlag)) return;
+
+        let myEndFlags = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.pathFindingEND);
+        if (myEndFlags.length == 0) return;
+
+        _.each(myEndFlags, (aF,i) =>
+        {
+            let a = this.derpTest(aStartFlag.pos,aF.pos,COLOR.yellow);
+        });
+    }
+
+
     newTest()
     {
         let aSP = new RoomPosition(24,36,'W47N84'); // spawn pos
@@ -172,7 +189,7 @@ class PathManager
         let j = this.derpTest(aSP,dSNP,COLOR.blue,a.path);       // spawn -> room W47N83 source near
         let k = this.derpTest(aSP,dCP,COLOR.yellow,j.path);       // spawn -> room W47N83 controller
         let l = this.derpTest(aSP,dSFP,COLOR.red,j.path);       // spawn -> room W47N83 source far
-        
+
         let m = this.derpTest(aSP,eSNP,COLOR.blue,b.path);       // spawn -> room W47N83 source near
         let n = this.derpTest(aSP,eCP,COLOR.yellow,m.path);       // spawn -> room W47N83 controller
         let o = this.derpTest(aSP,eSFP,COLOR.red,n.path);       // spawn -> room W47N83 source far

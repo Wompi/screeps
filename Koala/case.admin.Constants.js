@@ -90,6 +90,16 @@ _.assign(global,
             color: COLOR_CYAN,
             secondaryColor: COLOR_CYAN,
         },
+        pathFindingEND:
+        {
+            color: COLOR_YELLOW,
+            secondaryColor: COLOR_RED,
+        },
+        pathFindingSTART:
+        {
+            color: COLOR_YELLOW,
+            secondaryColor: COLOR_YELLOW,
+        },
     },
 
     FILL_STATUS:
