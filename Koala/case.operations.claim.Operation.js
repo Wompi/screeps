@@ -134,6 +134,8 @@ class ClaimOperation extends Operation
         }
     }
 
+
+
     spawnClaimer()
     {
         var myCreeps = getCreepsForRole(CREEP_ROLE.claimer);

@@ -3,9 +3,9 @@ class BuilderOperation extends Operation
     constructor(pCount)
     {
         super('BuilderOperation');
+        let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
         this.mConstructions = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructionSite), (aC) =>
         {
-            let myBays = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.extensionBay);
             let aBay = _.find(myBays, (aB) => aB.pos.inRangeTo(aC,3));
             if (!_.isUndefined(aBay)) return false;
             return true;
@@ -72,7 +72,9 @@ class BuilderOperation extends Operation
             /// TODO: save this somehow
             let aTarget =  _.min(this.mStorages, (aStorage) =>
             {
-                let aPath =  PMan.getCleanPath(this.mCreep.pos,aStorage.pos,undefined);
+                return aStorage.pos.wpos.getRangeTo(this.mCreep.pos.wpos);
+                //let aPath =  PMan.getCleanPath(this.mCreep.pos,aStorage.pos,undefined);
+
                 // let len = aPath.path.length;
                 //
                 //  let aRoomPath = {}
@@ -88,7 +90,7 @@ class BuilderOperation extends Operation
                 //      new RoomVisual(aName).poly(aP,{lineStyle: 'dashed' , stroke: COLOR.yellow, opacity: 1});
                 //      new RoomVisual(aName).text(aP.length+'('+len+')',_.last(aP));
                 //  });
-                return aPath.path.length;
+                //return aPath.path.length;
             });
             if (!_.isUndefined(aTarget))
             {

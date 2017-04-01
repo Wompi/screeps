@@ -138,14 +138,17 @@ class PathManager
         let aStartFlag = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.pathFindingSTART);
         if (_.isUndefined(aStartFlag)) return;
 
+        Log(undefined,'START');
         let myEndFlags = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.flag),FLAG_TYPE.pathFindingEND);
         if (myEndFlags.length == 0) return;
+        Log(undefined,'end');
 
         _.each(myEndFlags, (aF,i) =>
         {
             let a = this.derpTest(aStartFlag.pos,aF.pos,COLOR.yellow);
         });
     }
+
 
 
     newTest()

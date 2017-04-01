@@ -2,7 +2,12 @@ class ReactionManager
 {
     constructor()
     {
+        this.mRoomMap =
+        {
+            'W47N84': 'KHO2',
+        };
 
+        this.mComponentTable  = this.getComponentsMap();
     }
 
     getMineralStorage()
@@ -63,6 +68,75 @@ class ReactionManager
         });
         return _.uniq(result);
     }
+
+
+    getExportComponents(pRoomName)
+    {
+        let result = [];
+
+        _.each(this.mRoomMap, (aReaction, aImportRoom) =>
+        {
+            let aComponentMap = this.getComponentsForReaction(aReaction,aImportRoom);
+            if (!_.isUndefined(aComponentMap.components))
+            {
+                // Log(undefined,'derp - '+JS(aComponentMap.components));
+                let aExport = aComponentMap.components[pRoomName];
+                // Log(undefined,'aExport - '+JS(aExport));
+                if (!_.isUndefined(aExport))
+                {
+                    result = result.concat(aExport);
+                }
+            }
+        });
+        return result;
+    }
+
+
+    getComponentsForReaction(pReaction, pRoomName)
+    {
+        let result = {};
+        result.components = {};
+
+        let myComoponents = this.mComponentTable[pReaction];
+        let myStorages = PCache.getFriendlyEntityCache(ENTITY_TYPES.storage);
+
+        _.each(myStorages, (aStore) =>
+        {
+            if(aStore.pos.roomName != pRoomName)
+            {
+                _.each(myComoponents, (aComponent) =>
+                {
+                    if (!_.isUndefined(aStore.store[aComponent]))
+                    {
+                        if (_.isUndefined(result.components[aStore.pos.roomName]))
+                        {
+                            result.components[aStore.pos.roomName] = [];
+                        }
+                        result.components[aStore.pos.roomName].push(aComponent);
+                    }
+                });
+            }
+        });
+
+        result.reaction = pReaction;
+
+        return result;
+    }
+
+
+    getComponentsMap()
+    {
+        let result = {};
+        _.each(REACTIONS, (aMap,aCompA) =>
+        {
+            _.each(aMap, (aReaction,aCompB) =>
+            {
+                result[aReaction] = [aCompA,aCompB];
+            });
+        });
+        return result;
+    }
+
 
     getAttributesForReactions(pReactions)
     {

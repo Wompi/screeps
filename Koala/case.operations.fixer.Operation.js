@@ -1,10 +1,11 @@
 class FixerOperation extends Operation
 {
-    constructor()
+    constructor(pName)
     {
         super('FixerOperation');
+        this.mFixerName = pName;
         this.mCreep = undefined;
-        this.mResources = PCache.getFriendlyEntityCache(ENTITY_TYPES.resource);
+        this.mResources = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.resource), (aDrop) => aDrop.resourceType == RESOURCE_ENERGY);
     }
 
     processOperation()
@@ -217,20 +218,13 @@ class FixerOperation extends Operation
     spawnFixer()
     {
         var myCreeps = getCreepsForRole(CREEP_ROLE.fixer);
-        this.mCreep = _.find(myCreeps); // TODO: this will not work with multiple fixers
+        this.mCreep = _.find(myCreeps, (aCreep) => aCreep.name == this.mFixerName); // TODO: this will not work with multiple fixers
         if (!_.isUndefined(this.mCreep)) return;
 
-        var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
-        {
-            if (_.isUndefined(aCreepMem.target)) return false;
-            if (!_.isUndefined(Game.creeps[aCreepName])) return false;
-            return aCreepMem.role == CREEP_ROLE.fixer;
-        });
-
         var aTarget = this.getNodes()[0];
-        if (!_.isUndefined(aName))
+        if (!_.isUndefined(Memory.creeps[this.mFixerName]))
         {
-            aTarget = Memory.creeps[aName].target;
+            aTarget = Memory.creeps[this.mFixerName].target;
         }
 
         let aBody = this.getBody();
@@ -254,10 +248,9 @@ class FixerOperation extends Operation
                     return;
                 }
                 this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
-                this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.fixer, target: aTarget, spawn: aSpawn.pos.wpos.serialize()})
+                let res = aSpawn.createCreep(aBody.body,this.mFixerName,{role: CREEP_ROLE.fixer, target: aTarget, spawn: aSpawn.pos.wpos.serialize()})
                 this.log(LOG_LEVEL.info,'fixer createCreep - '+ErrorString(res));
             }
         }
@@ -310,6 +303,7 @@ class FixerOperation extends Operation
 
 
                     {   x: 43,   y:  1, roomName:"W47N83", next:  i++, },
+                    {   x: 45,   y: 10, roomName:"W47N83", next:  i++, },
                     {   x: 48,   y:  6, roomName:"W47N83", next:  i++, },
 
                     {   x:  1,   y:  8, roomName:"W46N83", next:  i++, },
@@ -341,7 +335,13 @@ class FixerOperation extends Operation
                     {   x: 40,   y: 48, roomName:"W48N84", next:  i++, },
                     {   x:  4,   y: 38, roomName:"W48N84", next:  i++, },
                     {   x: 22,   y: 32, roomName:"W48N84", next:  i++, },
-                    {   x: 17,   y: 10, roomName:"W48N84", next:  i++, },
+                    {   x:  4,   y: 24, roomName:"W48N84", next:  i++, },
+                    {   x: 12,   y: 15, roomName:"W48N84", next:  i++, },
+                    {   x:  8,   y:  9, roomName:"W48N84", next:  i++, },
+                    {   x: 18,   y: 10, roomName:"W48N84", next:  i++, },
+                    {   x: 36,   y: 22, roomName:"W48N84", next:  i++, },
+                    {   x: 26,   y: 21, roomName:"W48N84", next:  i++, },
+                    {   x: 22,   y: 32, roomName:"W48N84", next:  i++, },
                     {   x: 48,   y: 36, roomName:"W48N84", next:  i++, },
 
                     {   x: 22,   y: 34, roomName:"W47N84", next:  0, },

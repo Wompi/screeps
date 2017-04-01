@@ -7,6 +7,11 @@ class MineralHaulerOperation extends Operation
         this.mCreep = undefined;
         this.mExtractor = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.extractor), (aE) => aE.pos.roomName == this.mRoom.name);
         this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aE) => aE.pos.roomName == this.mRoom.name);
+        this.mContainer = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) =>
+        {
+            if (aBox.pos.roomName != this.mRoom.name) return false;
+            return _.sum(aBox.getMineralStore()) > 0;
+        });
     }
 
     processOperation()
@@ -26,15 +31,22 @@ class MineralHaulerOperation extends Operation
 
         if (_.sum(aBox.store) == 0 && !this.mExtractor.isReady() && _.sum(this.mCreep.carry) == 0)
         {
-            // TODO: find a way to handle idle state - maybe change him to a extension hauler -  but this is not ready yet
-            // fo now we go to a idle pos
-            // hmm what to do
-            let aPos = new RoomPosition(28,37,'W47N84');
-            if (!this.mCreep.pos.isEqualTo())
+            if (!_.isUndefined(this.mContainer))
             {
-                this.mCreep.travelTo({pos: aPos},{range: 0});
+                aBox = this.mContainer;
             }
-            return;
+            else
+            {
+                // TODO: find a way to handle idle state - maybe change him to a extension hauler -  but this is not ready yet
+                // fo now we go to a idle pos
+                // hmm what to do
+                let aPos = new RoomPosition(28,37,'W47N84');
+                if (!this.mCreep.pos.isEqualTo())
+                {
+                    this.mCreep.travelTo({pos: aPos},{range: 0});
+                }
+                return;
+            }
         }
 
         if (_.sum(this.mCreep.carry) == 0)
@@ -43,8 +55,15 @@ class MineralHaulerOperation extends Operation
             {
                 let res = this.mCreep.travelTo(aBox);
             }
-            let res = this.mCreep.withdraw(aBox.entity,_.findKey(aBox.store));
-            //let res = this.mCreep.withdraw(aBox,'H');
+
+            if (!_.isUndefined(this.mContainer) && aBox.pos.isEqualTo(this.mContainer))
+            {
+                let res = this.mCreep.withdraw(aBox.entity,_.findKey(aBox.getMineralStore()));
+            }
+            else
+            {
+                let res = this.mCreep.withdraw(aBox.entity,_.findKey(aBox.store));
+            }
         }
         else if (!_.isUndefined(this.mStorage))
         {
@@ -117,7 +136,7 @@ class MineralHaulerOperation extends Operation
         var aSearch =
         {
             name: CARRY,
-            max: 10,
+            max: 16,
         };
         var aBodyOptions =
         {

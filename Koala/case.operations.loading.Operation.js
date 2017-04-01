@@ -25,7 +25,7 @@ class LoadingOperation extends Operation
         this.mWalls = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.constructedWall), (aWall) => aWall.pos.inRangeTo(this.mCenter,3) && aWall.hits < DEFAULT_WALL_HITS);
         this.mRamparts = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.rampart), (aWall) => aWall.pos.inRangeTo(this.mCenter,3));
 
-        this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aLab) => aLab.pos.isNearTo(this.mCenter));
+        this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aLab) => aLab.pos.inRangeTo(this.mCenter,2));
 
     }
 
@@ -61,7 +61,6 @@ class LoadingOperation extends Operation
             }
         })
         this.mVisitors = _.find(this.mBay[ENTITY_TYPES.creep], (a) => a.memory.role == CREEP_ROLE.reactionHauler);
-
 
         this.makeTasks();
         this.doLoading();
@@ -164,7 +163,7 @@ class LoadingOperation extends Operation
             {
                 let res = this.mCreep.withdraw(aTask.target,aTask.resource);
 
-                this.log(LOG_LEVEL.debug,' withdraw - '+ErrorString(res));
+                this.log(LOG_LEVEL.debug,' withdraw - '+aTask.resource+' '+ErrorString(res));
             }
             else
             {
@@ -319,8 +318,10 @@ class LoadingOperation extends Operation
         {
             _.each(this.mLabs, (aL) =>
             {
-                if (aL.mineralType == 'LH')
+                this.log(undefined,'aLtype = '+aL.mineralType);
+                if (aL.mineralType == 'LH' || aL.mineralType == 'KHO2')
                 {
+                    this.log(undefined,'aLtype inner = '+aL.mineralType);
                     let aTarget = undefined;
                     if (!_.isUndefined(this.mStorage))
                     {
@@ -330,8 +331,10 @@ class LoadingOperation extends Operation
                     {
                         aTarget = this.mContainer;
                     }
-                    if (!_.isUndefined(aTarget) && aL.energy < 300)
+                    if (!_.isUndefined(aTarget) && aL.energy < 1000)
                     {
+
+                        this.log(undefined,'aLtype load = '+aL.mineralType);
                         let aDir = this.mCenter.getDirectionTo(aL);
                         this.mTasks.push(
                         {
@@ -360,6 +363,7 @@ class LoadingOperation extends Operation
 
         if (!_.isUndefined(aTarget) && !_.isUndefined(this.mTerminal) && !_.isUndefined(this.mStorage))
         {
+
             let aMineralStore = this.mTerminal.getMineralStore();
             if (!_.isUndefined(this.mMineral))
             {
@@ -367,16 +371,25 @@ class LoadingOperation extends Operation
             }
             if (!_.isEmpty(aMineralStore))
             {
-                let aDir = this.mCenter.getDirectionTo(this.mStorage);
-                this.mTasks.push(
+                let aExport = ReactMan.getExportComponents(this.mStorage.pos.roomName)
+                let aKey = _.findKey(aMineralStore);
+
+                let aTest = _.find(aExport, (a) => a == aKey);
+                //this.log(undefined,'TEST: aTest='+aTest+' '+aKey+' '+aExport);
+
+                if (_.isUndefined(aTest))
                 {
-                    priority: 1,
-                    target: this.mTerminal.entity,
-                    destination: this.mStorage.entity,
-                    task: 'F',  // fill extension
-                    resource: _.findKey(aMineralStore),
-                    direction: (aDir % 2 + aDir),
-                });
+                    let aDir = this.mCenter.getDirectionTo(this.mStorage);
+                    this.mTasks.push(
+                    {
+                        priority: 1,
+                        target: this.mTerminal.entity,
+                        destination: this.mStorage.entity,
+                        task: 'F',  // fill extension
+                        resource: aKey,
+                        direction: (aDir % 2 + aDir),
+                    });
+                }
             }
         }
 
@@ -477,11 +490,37 @@ class LoadingOperation extends Operation
                 }
 
 
+                let aExport = ReactMan.getExportComponents(this.mStorage.pos.roomName)
+                if (aExport.length > 0)
+                {
+                    _.each(aExport, (aComponent) =>
+                    {
+                        if (!_.isUndefined(this.mStorage.store[aComponent]))
+                        {
+                            if (this.mStorage.store[aComponent] > this.mCreep.carryCapacity)
+                            {
+                                let aDir = this.mCenter.getDirectionTo(this.mTerminal);
+                                this.mTasks.push(
+                                {
+                                    priority: 1,
+                                    target: aTarget.entity,
+                                    destination: this.mTerminal.entity,
+                                    task: 'F',  // fill extension
+                                    resource: aComponent,
+                                    direction: (aDir % 2 + aDir),
+                                });
+                                this.log(undefined,'EXPORT: '+aComponent);
+                            }
+                        }
+                    })
+                }
+
+
                 if (!_.isUndefined(this.mMineral) )
                 {
 
                     let aType = this.mMineral.mineralType;
-                    if ((_.isUndefined(this.mTerminal.store[aType]) || this.mTerminal.store[aType] < 30000)
+                    if ((_.isUndefined(this.mTerminal.store[aType]) || this.mTerminal.store[aType] < 10000)
                             && !_.isUndefined(this.mStorage.store[aType]) && this.mStorage.store[aType] > 3000)
                     {
                         let aDir = this.mCenter.getDirectionTo(this.mTerminal);
@@ -490,6 +529,20 @@ class LoadingOperation extends Operation
                             priority: 1,
                             target: aTarget.entity,
                             destination: this.mTerminal.entity,
+                            task: 'F',  // fill extension
+                            resource: aType,
+                            direction: (aDir % 2 + aDir),
+                        });
+                    }
+
+                    if (!_.isUndefined(this.mTerminal.store[aType]) && (_.isUndefined(this.mStorage.store[aType]) || this.mStorage.store[aType] < 3000))
+                    {
+                        let aDir = this.mCenter.getDirectionTo(this.mStorage);
+                        this.mTasks.push(
+                        {
+                            priority: 1,
+                            target: this.mTerminal.entity,
+                            destination: aTarget.entity,
                             task: 'F',  // fill extension
                             resource: aType,
                             direction: (aDir % 2 + aDir),
@@ -520,9 +573,11 @@ class LoadingOperation extends Operation
         let aBody = this.getBody();
         let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
         {
-            return  aS.room.energyAvailable >= aBody.aCost;
+            // TODO: right now this is where I have my boost lab - so every loader will be spawned at this point.
+            // finda way to make this more usable ... ASAP
+            return  aS.name == 'Koala';///aS.room.energyAvailable >= aBody.aCost;
         })
-        this.log(undefined,JS(mySpawns));
+        //this.log(undefined,JS(mySpawns));
         if (mySpawns.length > 0)
         {
             // TODO: this is a bit meh - not sure what a good decission for the spawn is right now - maybe later

@@ -6,6 +6,12 @@ StructureContainer.prototype.init = function(pProxy)
 }
 
 
+StructureContainer.prototype.getStoreType = function()
+{
+
+}
+
+
 // this one splits the minerals from the energy
 // the result can be used as normal storage .. so _.sum(res);
 StructureContainer.prototype.getMineralStore = function()

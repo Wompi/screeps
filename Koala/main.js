@@ -23,6 +23,7 @@ _.assign(global,
     ReactionManager:    require('case.design.ReactionManager'),
     SpawnManager:       require('case.design.SpawnManager'),
     Operation:          require('case.design.Operation'),
+    StorageClassifier:  require('case.design.StorageClassifier'),
 });
 
 
@@ -114,6 +115,7 @@ _.assign(global,
     M: new Market(),
     ReactMan: new ReactionManager(),
     SpawnMan: new SpawnManager(),
+    StoreMan: new StorageClassifier(),
 });
 
 PCache.makeCache(SNode.mReset);
@@ -128,6 +130,9 @@ module.exports.loop = function ()
     {
         SNode.updateNode();
         PCache.updateCache();
+
+        StoreMan.classifyStorages(); // TODO: this is a bit ugly .. until the chache mapper is not in update this has to be here
+
     },'cache update')
 
 
@@ -136,7 +141,7 @@ module.exports.loop = function ()
     Pro.register( () =>
     {
         let myOperations  = [
-                () => [new DefenseRemoteOperation('W46N83')],
+                //() => [new DefenseRemoteOperation('W46N83')],
                 () => [new DefenseOperation()],
                 () =>
                 {
@@ -149,7 +154,11 @@ module.exports.loop = function ()
                     });
                     return myMineralHaulerOps;
                 },
-                () => [new ReactionsHaulerOperation(Game.rooms['W47N84'])],
+
+                () => [new ReactionsHaulerOperation(Game.rooms['W47N84'],'Jake',['58d5c41cd91f4a031ae8bf72','58c5c13b5db9be905ff56242','58c69c436d32f4c443c76bcb'],['L','H','LH'],[28,36],false)],
+                () => [new ReactionsHaulerOperation(Game.rooms['W47N84'],'Blake',['58d60ee7b0734b45097ec882','58d657811ff4bc4002413dfa','58c7cf5fb92edd4d1f2468fd'],['KO','OH','KHO2'],[41,35],true)],
+                () => [new ReactionsHaulerOperation(Game.rooms['W47N83'],'Elizabeth',['58d67712b32fa8a1334cbf29','58d6fd6d2675ea025e468e82','58d5f13a0c7fe95bbe6fe462'],['O','H','OH'],[22,26],true)],
+                () => [new ReactionsHaulerOperation(Game.rooms['W48N84'],'Layla',['58de1407eb01ff957c34daa4','58dd597f5477f1615012a122','58ddb0038707f0504ed34874'],['O','K','KO'],[31,23],true)],
                 () =>
                 {
                     let myLoadingOps = [];
@@ -173,7 +182,8 @@ module.exports.loop = function ()
                     });
                     return myHaulerOps;
                 },
-                () => [new FixerOperation()],
+                () => [new FixerOperation('Noah')],
+                () => [new FixerOperation('Jehova')],
                 () =>
                 {
                     let myMiningOps = [];
@@ -200,21 +210,28 @@ module.exports.loop = function ()
                     });
                     return myLinkOps;
                 },
+
                 () => [new ClaimOperation('Scarlett',['W48N84'])],     ///[','W48N84'] 'W48N84'
                 () => [new ClaimOperation('Herbert',['W47N83'])],     ///[','W48N84'] 'W48N84'
-                () => [new ReserveOperation(['A','B'],['W46N83'])],
+                () => [new ClaimOperation('Sabine',['W46N83'])],     ///[','W48N84'] 'W48N84'
+                () => [new ClaimOperation('Charly',['W48N83'])],     ///[','W48N84'] 'W48N84'
+                //() => [new ReserveOperation(['A','B'],['W46N83'])],
                 () => [new UpgraderOperation('W47N84','U1')],
                 () => [new UpgraderOperation('W47N84','U2')],
-                () => [new UpgraderOperation('W47N84','U3')],
+                () => [new UpgraderOperation('W48N84','U3')],
                 () => [new UpgraderOperation('W47N83','U4')],
                 () => [new UpgraderOperation('W47N83','U5')],
                 () => [new UpgraderOperation('W47N83','U6')],
+                () => [new UpgraderOperation('W48N84','U7')],
+                () => [new UpgraderOperation('W48N84','U8')],
                 () => [new BuilderOperation(0)],
                 () => [new BuilderOperation(1)],
                 () => [new BuilderOperation(2)],
-                () => [new BuilderOperation(3)],
-                () => [new BuilderOperation(4)],
-                () => [new BuilderOperation(5)],
+                // () => [new BuilderOperation(3)],
+                // () => [new BuilderOperation(4)],
+                // () => [new BuilderOperation(5)],
+                // () => [new BuilderOperation(6)],
+                // () => [new BuilderOperation(7)],
                 () =>
                 {
                     let myMineralOps = [];
@@ -223,15 +240,17 @@ module.exports.loop = function ()
                     Log(LOG_LEVEL.debug,'MINERAL OPS: '+myExtractors.length)
                     _.each(myExtractors, (aE) =>
                     {
-
-                        _.each(aE.miningPositions, (a,x) =>
+                        if (aE.isRegeneration())
                         {
-                            _.each(a, (ia,y) =>
+                            _.each(aE.miningPositions, (a,x) =>
                             {
-                                myMineralOps.push(new MineralOperation(aCount,aE));
-                                aCount = aCount + 1;
+                                _.each(a, (ia,y) =>
+                                {
+                                    myMineralOps.push(new MineralOperation(aCount,aE));
+                                    aCount = aCount + 1;
+                                });
                             });
-                        });
+                        }
                     });
                     return myMineralOps;
                 },
@@ -263,16 +282,25 @@ module.exports.loop = function ()
 
     //PMan.newTest();
 
-    let aSum = ReactMan.getMineralStorage();
-    // aSum['O'] = 3000;
-    // aSum['OH'] = 3000;
-    // aSum['LH'] = 3000;
-    // aSum['LO'] = 3000;
-    let myReactions = ReactMan.getPossibleReactions(aSum);
-    Log(LOG_LEVEL.debug,'REACTIONS: '+JS(myReactions));
+    // let aSum = ReactMan.getMineralStorage();
+    // // // aSum['O'] = 3000;
+    // // // aSum['OH'] = 3000;
+    // // // aSum['LH'] = 3000;
+    // // // aSum['LO'] = 3000;
+    // let myReactions = ReactMan.getPossibleReactions(aSum);
+    // Log(LOG_LEVEL.debug,'REACTIONS: '+JS(myReactions));
+    // //
+    // let myResult =  ReactMan.getAttributesForReactions(myReactions);
+    // Log(LOG_LEVEL.debug,'ATTRIBUTES: '+JS(myResult));
+    //
+    // let aCompMap = ReactMan.getComponentsForReaction('KHO2','W47N84');
+    // Log(LOG_LEVEL.debug,'COMPONENTS: '+JS(aCompMap));
+    //
+    // let aExport = ReactMan.getExportComponents('W4N84');
+    // Log(LOG_LEVEL.debug,'A EXPORT: '+JS(aExport));
+    // let bExport = ReactMan.getExportComponents('W47N83');
+    // Log(LOG_LEVEL.debug,'B EXPORT: '+JS(bExport));
 
-    let myResult =  ReactMan.getAttributesForReactions(myReactions);
-    Log(LOG_LEVEL.debug,'ATTRIBUTES: '+JS(myResult));
 
 
     PCache.printStats();
@@ -288,7 +316,12 @@ module.exports.loop = function ()
     //SpawnMan.makeStats();
     //SpawnMan.printStats();
 
-    PMan.visualizePathFlags();
+    //PMan.visualizePathFlags();
+    //_.each(PCache.getFriendlyEntityCache(ENTITY_TYPES.container), (aBox) => StoreMan.visualizeStoreType(aBox));
+
+
+
+
 
     //Pro.printRegister();
     Log(LOG_LEVEL.warn,'GAME['+Game.time+']: [ '+start.toFixed(2)+' | '+(end-start).toFixed(2)+' | '+end.toFixed(2)+' ] BUCKET: '+Game.cpu.bucket+' '+SNode.printStats(false));
@@ -296,6 +329,7 @@ module.exports.loop = function ()
 
     // ------- TEST ME ----------------
     //PMan.newTest();
+    //testCreepBody();
 };
 
 
@@ -309,7 +343,7 @@ testCreepBody = function()
     var aCreepBody = new CreepBody();
     var aSearch =
     {
-        name: ATTACK,
+        name: HEAL,
         //max:  10,//_.bind(getCarryMax,aRoom,aRoom.find(FIND_SOURCES)),    //({derp}) => getCarryMax(arguments[0]),
     };
     var aBodyOptions =
@@ -319,10 +353,10 @@ testCreepBody = function()
     };
     var aBody =
     {
-        [HEAL]:
-        {
-            count: () => 1,///getWorkCount(),
-        },
+        // [TOUGH]:
+        // {
+        //     count: () => 4,///getWorkCount(),
+        // },
     };
 
     var aResult = aCreepBody.bodyFormula(aEnergy,aSearch,aBody,aBodyOptions);

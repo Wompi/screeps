@@ -45,8 +45,8 @@ _.assign(global,
 _.assign(global,
 {
 
-    DEFAULT_WALL_HITS: 100000,
-    DEFAULT_RAMPART_HITS: 100000,
+    DEFAULT_WALL_HITS: 1000000,
+    DEFAULT_RAMPART_HITS: 1000000,
 
     COSTMATRIX_BLOCK_VALUE: 255,
 
@@ -74,6 +74,14 @@ _.assign(global,
         cross: 'crossRoad',
         normal: 'normalRoad',
         single: 'singleRoad',
+    },
+
+    STORE_TYPE:
+    {
+        storeTypeMining: 'mining store',
+        storeTypeMineral: 'mineral store',
+        storeTypeReaction: 'reaction store',
+        storeTypeExtensionBay: 'extension store',
     },
 
     INVALID_ACTION:
@@ -235,5 +243,5 @@ _.assign(global,
     RCL_ENERGY: (rcl) =>
     {
         return CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][rcl] * EXTENSION_ENERGY_CAPACITY[rcl] + CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][rcl] * SPAWN_ENERGY_CAPACITY
-    }
+    },
 });

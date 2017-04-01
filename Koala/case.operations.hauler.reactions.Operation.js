@@ -1,9 +1,14 @@
 class ReactionsHaulerOperation extends Operation
 {
-    constructor(pRoom)
+    constructor(pRoom,pName,pLabIDs,pTypes,pPos,pUnload)
     {
         super('ReactionsHaulerOperation');
+        this.mLabIDs = pLabIDs;
+        this.mTypes = pTypes;
+        this.mUnload = pUnload;
+        this.mPos = pPos;
         this.mRoom = pRoom;
+        this.mName = pName;
         this.mCreep = undefined;
         this.mLabs = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.lab), (aL) => aL.pos.roomName == this.mRoom.name);
         this.mStorage = _.find(PCache.getFriendlyEntityCache(ENTITY_TYPES.storage), (aS) => aS.pos.roomName == this.mRoom.name);
@@ -21,9 +26,9 @@ class ReactionsHaulerOperation extends Operation
     {
         if (_.isUndefined(this.mCreep) || this.mCreep.spawning) return;
 
-        let L1 = Game.getObjectById('58c5c13b5db9be905ff56242');  // 20 33
-        let L2 = Game.getObjectById('58c7cf5fb92edd4d1f2468fd');  // 21 32
-        let L3 = Game.getObjectById('58c69c436d32f4c443c76bcb');  // 22 33
+        let L1 = Game.getObjectById(this.mLabIDs[0]);  // 20 33
+        let L2 = Game.getObjectById(this.mLabIDs[1]);  // 21 32
+        let L3 = Game.getObjectById(this.mLabIDs[2]);  // 22 33
 
         this.log(undefined,JS(L3.cooldown));
         if (L3.cooldown == 0)
@@ -32,78 +37,129 @@ class ReactionsHaulerOperation extends Operation
         }
 
 
-        let aGrabType = 'L';
+        let aGrabType = this.mTypes[0];
 
-        if ((L1.mineralAmount > 100 && L2.mineralAmount > 100)
-                || _.isUndefined(this.mStorage.store['L']) || this.mStorage.store['L'] < 50
-                || _.isUndefined(this.mStorage.store['H']) || this.mStorage.store['H'] < 50
-                )
+
+        let derpRes = this.doResultHauling(L3);
+
+
+        //this.log(undefined,'result empty - no reaction type '+JS(aResult)+' '+this.mTypes[2]);
+
+        if (_.sum(this.mCreep.carry) == 0 && L3.mineralAmount < 1000)
         {
-            // TODO: move to a proper idle position;
-            this.mCreep.travelTo({pos: new RoomPosition(28,36,this.mCreep.pos.roomName)});
-            return;
+            if ((L1.mineralAmount > 100 && L2.mineralAmount > 100)
+                    || _.isUndefined(this.mStorage.store[this.mTypes[0]]) || this.mStorage.store[this.mTypes[0]] < 50
+                    || _.isUndefined(this.mStorage.store[this.mTypes[1]]) || this.mStorage.store[this.mTypes[1]] < 50
+
+                    )
+            {
+                    // TODO: move to a proper idle position;
+                    this.mCreep.travelTo({pos: new RoomPosition(this.mPos[0],this.mPos[1],this.mCreep.pos.roomName)});
+                    return;
+            }
         }
 
-        if (_.sum(this.mCreep.carry) == 0)
+        if (_.sum(this.mCreep.carry) == 0 || !_.isUndefined(this.mCreep.carry[this.mTypes[2]]))
         {
             if(!this.mCreep.pos.isNearTo(this.mStorage))
             {
                 let res = this.mCreep.travelTo(this.mStorage.entity);
             }
+            else
+            {
+                if (!_.isUndefined(this.mCreep.carry[this.mTypes[2]]))
+                {
+                    let res = this.mCreep.transfer(this.mStorage.entity,this.mTypes[2]);
+                    return;
+                }
+            }
         }
 
-        if (_.isUndefined(this.mCreep.carry['H']) && this.mCreep.pos.isNearTo(this.mStorage))
+        // if (!_.isUndefined(this.mCreep.carry[this.mTypes[2]]) && this.mCreep.pos.isNearTo(this.mStorage))
+        // {
+        //     let res = this.mCreep.transfer(this.mStorage.entity,this.mTypes[2]);
+        //     return;
+        // }
+
+        if (!_.isUndefined(this.mStorage.store[this.mTypes[1]]) && _.isUndefined(this.mCreep.carry[this.mTypes[1]]) && this.mCreep.pos.isNearTo(this.mStorage))
         {
-            let res = this.mCreep.withdraw(this.mStorage.entity,'H',_.floor(this.mCreep.carryCapacity/2));
-            //this.log(undefined,'H - '+ErrorString(res));
+            this.log(undefined,'derp A');
+            let res = this.mCreep.withdraw(this.mStorage.entity,this.mTypes[1],_.floor(this.mCreep.carryCapacity/2));
+
+            // TODO: this whole reaction hauler thing is a mess - dont even try to understand it
+            this.mCreep.cancelOrder('move');
             return;
         }
-        if (_.isUndefined(this.mCreep.carry['L']) && this.mCreep.pos.isNearTo(this.mStorage))
+        if ( !_.isUndefined(this.mStorage.store[this.mTypes[0]]) && _.isUndefined(this.mCreep.carry[this.mTypes[0]]) && this.mCreep.pos.isNearTo(this.mStorage))
         {
-            let res = this.mCreep.withdraw(this.mStorage.entity,'L',_.floor(this.mCreep.carryCapacity/2));
-            //this.log(undefined,'L - '+ErrorString(res));
+            this.log(undefined,'derp B');
+            let res = this.mCreep.withdraw(this.mStorage.entity,this.mTypes[0],_.min([this.mStorage.store[this.mTypes[0]],_.floor(this.mCreep.carryCapacity/2)]));
             return;
         }
 
-
-
-
-        this.log(undefined,'derp');
-        if (!_.isUndefined(this.mCreep.carry['H']))
+        if (!_.isUndefined(this.mCreep.carry[this.mTypes[0]]))
         {
             if (!this.mCreep.pos.isNearTo(L1))
             {
                 let res = this.mCreep.travelTo(L1);
             }
-            let res = this.mCreep.transfer(L1,'H');
-            this.log(undefined,'H derp - '+ErrorString(res));
+            let res = this.mCreep.transfer(L1,this.mTypes[0]);
         }
-        else if (!_.isUndefined(this.mCreep.carry['L']))
+        else if (!_.isUndefined(this.mCreep.carry[this.mTypes[1]]))
         {
             if (!this.mCreep.pos.isNearTo(L2))
             {
                 let res = this.mCreep.travelTo(L2);
             }
-            let res = this.mCreep.transfer(L2,'L');
-            this.log(undefined,'L derp - '+ErrorString(res));
+            let res = this.mCreep.transfer(L2,this.mTypes[1]);
+        }
+        else if (this.mUnload && L3.mineralAmount > 0 && _.sum(this.mCreep.carry) == 0)
+        {
+            if (!this.mCreep.pos.isNearTo(L3))
+            {
+                let res = this.mCreep.travelTo(L3);
+            }
+            let res = this.mCreep.withdraw(L3,this.mTypes[2]);
         }
     }
+
+    doResultHauling(pL3)
+    {
+        if (!this.mUnload) return false;
+        if (_.sum(this.mCreep.carry) > 0) return false;
+
+        if (pL3.mineralAmount > 0)
+        {
+            if (!this.mCreep.pos.isNearTo(pL3))
+            {
+                let res = this.mCreep.travelTo(pL3);
+            }
+            else
+            {
+                let res = this.mCreep.withdraw(pL3,this.mTypes[2]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     spawnHauler()
     {
         var myCreeps = getCreepsForRole(CREEP_ROLE.reactionHauler);
         var aRoomID = this.mRoom.id;
-        this.mCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aRoomID);
+        this.mCreep = _.find(myCreeps, (aCreep) => aCreep.memory.target == aRoomID && aCreep.name == this.mName);
         if (this.mLabs.length == 0) return;
 
         if (!_.isUndefined(this.mCreep)) return;
 
-        var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
-        {
-            if (_.isUndefined(aCreepMem.target)) return false;
-            if (!_.isUndefined(Game.creeps[aCreepName])) return false;
-            return aCreepMem.target == aRoomID && aCreepMem.role == CREEP_ROLE.reactionHauler;
-        });
+        // var aName = _.findKey(Memory.creeps, (aCreepMem,aCreepName) =>
+        // {
+        //     if (_.isUndefined(aCreepMem.target)) return false;
+        //     if (!_.isUndefined(Game.creeps[aCreepName])) return false;
+        //     return aCreepMem.target == aRoomID && aCreepMem.role == CREEP_ROLE.reactionHauler;
+        // });
 
         let aBody = this.getBody();
         let mySpawns = _.filter(PCache.getFriendlyEntityCache(ENTITY_TYPES.spawn), (aS) =>
@@ -126,10 +182,10 @@ class ReactionsHaulerOperation extends Operation
                     return;
                 }
                 this.log(LOG_LEVEL.debug,'possible spawn - '+aSpawn.name+' '+aSpawn.pos.toString());
-                this.log(LOG_LEVEL.debug,'possible name - '+aName);
+                //this.log(LOG_LEVEL.debug,'possible name - '+aName);
 
                 // TODO: consider a path approach here
-                let res = aSpawn.createCreep(aBody.body,aName,{role: CREEP_ROLE.reactionHauler, target: aRoomID, spawn: aSpawn.pos.wpos.serialize()});
+                let res = aSpawn.createCreep(aBody.body,this.mName,{role: CREEP_ROLE.reactionHauler, target: aRoomID, spawn: aSpawn.pos.wpos.serialize()});
                 this.log(LOG_LEVEL.info,'reserver createCreep - '+ErrorString(res));
             }
         }

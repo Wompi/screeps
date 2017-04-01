@@ -12,8 +12,8 @@ class Market
         //let myResources = RESOURCES_ALL;
         let myResources = [    RESOURCE_HYDROGEN,
                                 //RESOURCE_ENERGY,
-                            //    RESOURCE_OXYGEN,
-                            //    RESOURCE_UTRIUM,
+                                RESOURCE_OXYGEN,
+                                RESOURCE_UTRIUM,
                                 RESOURCE_LEMERGIUM,
                             //    RESOURCE_KEANIUM,
                             //    RESOURCE_ZYNTHIUM,
@@ -56,7 +56,7 @@ class Market
 
         _.each(this.mOrderBuyMap, (aList,aKey) =>
         {
-            if (RESOURCE_HYDROGEN == aKey)
+            if (RESOURCE_HYDROGEN == aKey || RESOURCE_OXYGEN == aKey)
             {
                 let aTest = aList;//_.take(_.sortByOrder(aList,'price','desc'),3);
                 //Log(LOG_LEVEL.debug,'O: '+aKey+' -> '+aList.length);
@@ -112,7 +112,7 @@ class Market
         _.each(this.mOrderSellMap, (aList,aKey) =>
         {
 
-            if (RESOURCE_LEMERGIUM == aKey)
+            if (RESOURCE_LEMERGIUM == aKey || RESOURCE_UTRIUM == aKey)
             {
                 let aTest = aList;//_.take(_.sortByOrder(aList,'price','desc'),3);
                 //Log(LOG_LEVEL.debug,'O: '+aKey+' -> '+aList.length);
@@ -151,7 +151,7 @@ class Market
                     //if (!_.isUndefined(aTerminal))
                     {
                         let aSellRoomName = 'W47N84';
-                        let aSellAmount = aR[5];
+                        let aSellAmount = _.min([10000,aR[5]]);
                         let aCommand =  `Game.market.deal('${aR[0]}',${aSellAmount},'${aSellRoomName}')`;
                         //Log(LOG_LEVEL.debug,aCommand)
                         let aBtn = makeButton(_.uniqueId('btn_buy_'),undefined,'BUY',aCommand);
@@ -198,7 +198,7 @@ class Market
 
 
         var result = aStartTerminal.send(pType, pAmount, pEndRoomName, pDescription);
-        Log(LOG_LEVEL.debug,'Transfer '+pStartRoomName+' -> '+pEndRoomName+' type: '+pType+' amount: '+pAmount+' cost: '+aTransactionCost+' result: '+ErrorSting(result));
+        Log(LOG_LEVEL.debug,'Transfer '+pStartRoomName+' -> '+pEndRoomName+' type: '+pType+' amount: '+pAmount+' cost: '+aTransactionCost+' result: '+ErrorString(result));
     }
 
 

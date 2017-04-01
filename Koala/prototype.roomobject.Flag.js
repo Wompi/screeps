@@ -14,6 +14,14 @@ Flag.prototype.getEntityEvents = function()
     };
 }
 
+Flag.prototype.init = function(pProxy)
+{
+    //Log(LOG_LEVEL.debug,'RoomObject: default init - '+this.entityType);
+    pProxy.isMy = true;
+}
+
+
+
 extend = function()
 {
     Object.defineProperties(Flag.prototype,
@@ -26,14 +34,6 @@ extend = function()
                 return this.name;
             },
         },
-        'isMy':
-        {
-            configurable: true,
-            get: function()
-            {
-                return true; // a flag can only be mine
-            },
-        }
     });
 };
 extend();

@@ -24,6 +24,15 @@ StructureExtractor.prototype.getEntityEvents = function()
     };
 }
 
+StructureExtractor.prototype.isRegeneration = function()
+{
+    let aProxy = PCache.getFriendlyEntityCacheByID(this.id);
+    if (_.isUndefined(aProxy)) return false;
+    return _.isUndefined(aProxy.mineral.ticksToRegeneration);
+}
+
+
+
 StructureExtractor.prototype.isReady = function()
 {
     let aProxy = PCache.getFriendlyEntityCacheByID(this.id);
